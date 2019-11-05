@@ -1,0 +1,17 @@
+Core:
+    Add support for multi-valued/continuous treatments
+    Add annotations to simulators that indicate whether a certain feature is
+        - continuous, positive, categorical, etc.
+    Improve the speed of all of the Python simulators using Numba and JIT compilation of critical sections
+    Expand the set of causal inference algorithms available in Python
+    Expand the library of examples included with WhyNot
+
+
+Sequential decision making:
+    Increase the number of environments available for sequential decision making
+    Incorporate baseline sequential decision making algorithms
+    
+
+Causal graph discovery:
+    Increase the set of simulator that supports causal graph generation (esp. world 2 and world 3)
+    Incorporate baseline causal graph discovery methods

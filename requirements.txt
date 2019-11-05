@@ -1,0 +1,10 @@
+-e .
+
+matplotlib
+jupyter
+pylint
+pycodestyle
+pydocstyle
+pytest
+sphinx
+sphinxcontrib-bibtex

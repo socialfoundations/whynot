@@ -1,0 +1,47 @@
+language: python
+
+# https://docs.travis-ci.com/user/multi-os/#python-example-unsupported-languages
+# TODO: Add python 3.5 tests after addressing dataclasses use
+matrix:
+    include:
+        - os: osx
+          language: generic
+          env: PYTHON_VERSION=3.6
+        - os: osx
+          language: generic
+          env: PYTHON_VERSION=3.7
+        - os: linux
+          dist: xenial
+          python: 3.6
+          env: PYTHON_VERSION=3.6
+        - os: linux
+          dist: xenial
+          python: 3.7
+          env: PYTHON_VERSION=3.7
+
+# Command to install dependencies
+install:
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;  
+      else
+        wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      fi
+    - bash miniconda.sh -b -p $HOME/miniconda
+    -  export PATH="$HOME/miniconda/bin:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda info -a
+    - conda create -q -n test-environment python=$PYTHON_VERSION
+    - source activate test-environment
+    - pip install -r requirements.txt
+
+# Command to run tests
+script:
+    # Linting
+    - sh lint.sh
+    # Unit tests
+    - pytest tests
+
+notifications:
+      email: false

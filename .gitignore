@@ -1,0 +1,37 @@
+.DS_Store
+
+# Latex extras
+*.aux
+*.log
+*.gz
+*.fls
+*.fdb_latexmk
+*.dvi
+*.blg
+
+# Vim extras
+*.swp
+
+# Python extras
+__pycache__
+*.pyc
+*.ipynb_checkpoints
+*.DS_Store
+
+# Package info
+whynot.egg-info/
+.DS_STORE
+build/*
+dist/*
+
+# virtualenv
+whynot-env
+
+# Artifact of pip install -e whynotr
+src/
+
+# Data
+*.pkl
+
+# PyCharm
+.idea/
