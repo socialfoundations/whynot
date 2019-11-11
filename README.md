@@ -222,7 +222,7 @@ effects and allow for time-varying treatments and sequential decision making.
 
 WhyNot contains a range of different simulators, and an overview is provided in
 the documentation
-[here](https://whynot-whynot.readthedocs-hosted.com/en/latest/simulators.html).
+[here](https://whynot-docs.readthedocs-hosted.com/en/latest/).
 
 
 **6. What’s the difference between WhyNot and CauseMe?**
