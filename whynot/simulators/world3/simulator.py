@@ -136,7 +136,7 @@ class State(BaseState):
     #:
     urban_industrial_land: float = 8.2e6
     #:
-    land_fertility: float = 600.
+    land_fertility: float = 600.0
     #:
     nonrenewable_resources: float = 1.0e12
     #:
@@ -145,16 +145,20 @@ class State(BaseState):
     @property
     def total_population(self):
         """Return the aggregate population."""
-        return self.population_0_to_14 + self.population_15_to_44 +\
-            self.population_45_to_64 + self.population_65_and_over
+        return (
+            self.population_0_to_14
+            + self.population_15_to_44
+            + self.population_45_to_64
+            + self.population_65_and_over
+        )
 
 
 def to_camel_case(snake_str):
     """Convert snake_str to snakeStr (camel case)."""
-    components = snake_str.split('_')
+    components = snake_str.split("_")
     # We capitalize the first letter of each component except the first one
     # with the 'title' method and join them together.
-    return components[0] + ''.join(x.title() for x in components[1:])
+    return components[0] + "".join(x.title() for x in components[1:])
 
 
 def set_state(js_context, initial_state):
@@ -163,7 +167,9 @@ def set_state(js_context, initial_state):
         js_context.eval(f"{to_camel_case(stock_name)}.initVal = {value}")
 
     # special case for resources
-    js_context.eval(f"nonrenewableResourcesInitialK = {initial_state.nonrenewable_resources}")
+    js_context.eval(
+        f"nonrenewableResourcesInitialK = {initial_state.nonrenewable_resources}"
+    )
     js_context.eval("resetModel()")
 
 
@@ -171,7 +177,7 @@ def decode_states(js_context):
     """Read out the sequence of states from the world3 engine.
 
     Parameters
-    -----------
+    ----------
         js_context: PyMiniRacerContext
             Context containing a completed execution of world3.
 
@@ -181,6 +187,7 @@ def decode_states(js_context):
             The recorded state values and the time each value was sampled during the run.
 
     """
+
     def unpack(values):
         """Parse list of [{"x": time, "y":value}] into [times], [values]."""
         return list(zip(*[(value["x"], value["y"]) for value in values]))

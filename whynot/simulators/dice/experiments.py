@@ -25,8 +25,12 @@ def dice_outcome_extractor(run):
 ###########################
 # RCT Experiment
 ###########################
-@parameter(name="propensity", default=0.5, values=np.linspace(0.05, 0.5, 10),
-           description="Probability of treatment")
+@parameter(
+    name="propensity",
+    default=0.5,
+    values=np.linspace(0.05, 0.5, 10),
+    description="Probability of treatment",
+)
 def rct_propensity(propensity):
     """Return constant propensity for RCT."""
     return propensity
@@ -42,4 +46,5 @@ RCT = DynamicsExperiment(
     state_sampler=sample_initial_states,
     propensity_scorer=rct_propensity,
     outcome_extractor=dice_outcome_extractor,
-    covariate_builder=lambda run: run.initial_state.values())
+    covariate_builder=lambda run: run.initial_state.values(),
+)

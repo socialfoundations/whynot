@@ -55,7 +55,8 @@ class Dataset:
         means = []
         for _ in range(num_bootstrap_samples):
             sample = np.random.choice(
-                self.true_effects, size=len(self.true_effects), replace=True)
+                self.true_effects, size=len(self.true_effects), replace=True
+            )
             means.append(np.mean(sample))
         return (np.quantile(means, 0.025), np.quantile(means, 0.975))
 
@@ -209,7 +210,9 @@ def extract_params(func, standard_args):
     # Ensure standard_args is disjoint from the specified params.
     for arg in standard_args:
         if arg in specified_params:
-            msg = (f"{arg} is both a parameter and a standard argument to {func.__name__}.")
+            msg = (
+                f"{arg} is both a parameter and a standard argument to {func.__name__}."
+            )
             raise ValueError(msg)
 
     # By construction, every element in specified_params
@@ -222,7 +225,7 @@ def extract_params(func, standard_args):
     return specified_params
 
 
-class ParameterCollection():
+class ParameterCollection:
     """Lightweight wrapper class around a set of parameters.
 
     Provides utility functions to support sampling and assigning subsets of the
@@ -318,12 +321,14 @@ class ParameterCollection():
             Values:		    [8, 16, 32, 64, 128, 256, 512]
         """
         class_display = "Params:"
-        param_display = "\tName:\t\t{}\n\tDescription:\t{}\n\tDefault:\t{}\n\tValues:\t\t{}\n"
+        param_display = (
+            "\tName:\t\t{}\n\tDescription:\t{}\n\tDefault:\t{}\n\tValues:\t\t{}\n"
+        )
         for param in self.params.values():
             param_values = [] if param.values is None else param.values
             class_display += "\n" + param_display.format(
-                param.name, param.description, param.default,
-                param_values)
+                param.name, param.description, param.default, param_values
+            )
         return class_display
 
     def grid(self):
@@ -340,7 +345,7 @@ class ParameterCollection():
 ####################
 # Generic Simulator
 ####################
-class GenericExperiment():
+class GenericExperiment:
     # pylint:disable-msg=too-few-public-methods
     """Encapsulate a causal simulation experiment."""
 
@@ -357,28 +362,47 @@ class GenericExperiment():
         """Return parameters of the experiment."""
         return self.params
 
-    def run(self, num_samples, seed, parallelize=True, show_progress=False, **parameter_args):
+    def run(
+        self, num_samples, seed, parallelize=True, show_progress=False, **parameter_args
+    ):
         """Run the experiment and return a causal dataset."""
         run_parameters = self.params.project(parameter_args)
-        results = self.run_method(num_samples=num_samples, seed=seed,
-                                  show_progress=show_progress,
-                                  parallelize=parallelize, **run_parameters)
+        results = self.run_method(
+            num_samples=num_samples,
+            seed=seed,
+            show_progress=show_progress,
+            parallelize=parallelize,
+            **run_parameters,
+        )
 
         (covariates, treatment, outcome), ground_truth = results
-        return Dataset(covariates=covariates, treatments=treatment,
-                       outcomes=outcome, true_effects=ground_truth)
+        return Dataset(
+            covariates=covariates,
+            treatments=treatment,
+            outcomes=outcome,
+            true_effects=ground_truth,
+        )
 
 
 #############################
 # Dynamical system simulators
 #############################
-class DynamicsExperiment():
+class DynamicsExperiment:
     """Encapsulate a causal experiment on a system dynamics simulator."""
 
     # pylint:disable-msg=too-many-arguments
-    def __init__(self, name, description, simulator_config, intervention,
-                 state_sampler, simulator, propensity_scorer,
-                 outcome_extractor, covariate_builder):
+    def __init__(
+        self,
+        name,
+        description,
+        simulator_config,
+        intervention,
+        state_sampler,
+        simulator,
+        propensity_scorer,
+        outcome_extractor,
+        covariate_builder,
+    ):
         """Create an experiment based on system dynamics simulator.
 
         Parameters
@@ -579,7 +603,7 @@ class DynamicsExperiment():
         self.state_sampler = state_sampler
 
         if not callable(propensity_scorer):
-            if isinstance(propensity_scorer, float) and 0. <= propensity_scorer <= 1.:
+            if isinstance(propensity_scorer, float) and 0.0 <= propensity_scorer <= 1.0:
                 self.propensity_scorer = lambda: propensity_scorer
             else:
                 msg = "If propensity scorer is not callable, it must be a float in [0., 1.]"
@@ -609,17 +633,31 @@ class DynamicsExperiment():
         initial_state_args = ["rng", "num_samples"]
         params += extract_params(self.state_sampler, initial_state_args)
 
-        propensity_args = ["config", "intervention", "control_run",
-                           "control_runs", "treatment_run", "treatment_runs",
-                           "run", "runs"]
+        propensity_args = [
+            "config",
+            "intervention",
+            "control_run",
+            "control_runs",
+            "treatment_run",
+            "treatment_runs",
+            "run",
+            "runs",
+        ]
         params += extract_params(self.propensity_scorer, propensity_args)
 
         outcome_args = ["config", "intervention", "run"]
         params += extract_params(self.outcome_extractor, outcome_args)
 
-        covariate_args = ["config", "intervention", "run",
-                          "runs", "control_run", "control_runs",
-                          "treatment_run", "treatment_runs"]
+        covariate_args = [
+            "config",
+            "intervention",
+            "run",
+            "runs",
+            "control_run",
+            "control_runs",
+            "treatment_run",
+            "treatment_runs",
+        ]
         params += extract_params(self.covariate_builder, covariate_args)
 
         return params
@@ -658,14 +696,20 @@ class DynamicsExperiment():
         """
         # Work with copies of the initial state to avoid issues where the
         # simulator had side effects on the state.
-        control_run = simulate(copy.deepcopy(initial_state), config=config,
-                               intervention=None, seed=seed)
-        treatment_run = simulate(copy.deepcopy(initial_state), config=config,
-                                 intervention=intervention, seed=seed)
+        control_run = simulate(
+            copy.deepcopy(initial_state), config=config, intervention=None, seed=seed
+        )
+        treatment_run = simulate(
+            copy.deepcopy(initial_state),
+            config=config,
+            intervention=intervention,
+            seed=seed,
+        )
         return control_run, treatment_run
 
-    def _run_all_simulations(self, initial_states, config,
-                             intervention, rng, parallelize, show_progress):
+    def _run_all_simulations(
+        self, initial_states, config, intervention, rng, parallelize, show_progress
+    ):
         """Run simulation for treatment and control groups for each initial state.
 
         Parameters
@@ -694,11 +738,14 @@ class DynamicsExperiment():
         parallel_args = []
         for state in initial_states:
             seed = rng.randint(0, 9999)
-            parallel_args.append((self.simulator.simulate, config, intervention, state, seed))
+            parallel_args.append(
+                (self.simulator.simulate, config, intervention, state, seed)
+            )
 
         if parallelize:
-            runs = utils.parallelize(self.run_dynamics_simulator, parallel_args,
-                                     show_progress=show_progress)
+            runs = utils.parallelize(
+                self.run_dynamics_simulator, parallel_args, show_progress=show_progress
+            )
         elif show_progress:
             runs = [self.run_dynamics_simulator(*args) for args in tqdm(parallel_args)]
         else:
@@ -708,8 +755,9 @@ class DynamicsExperiment():
 
         return control_runs, treatment_runs
 
-    def construct_covariates(self, config, intervention, control_runs,
-                             treatment_runs, treatments, params):
+    def construct_covariates(
+        self, config, intervention, control_runs, treatment_runs, treatments, params
+    ):
         """Build the observational dataset after running simulator.
 
         Parameters
@@ -735,7 +783,9 @@ class DynamicsExperiment():
 
         """
         observed_runs = []
-        for treatment, control_run, treatment_run in zip(treatments, control_runs, treatment_runs):
+        for treatment, control_run, treatment_run in zip(
+            treatments, control_runs, treatment_runs
+        ):
             run = treatment_run if treatment else control_run
             observed_runs.append(run)
 
@@ -757,8 +807,12 @@ class DynamicsExperiment():
         else:
             # Generate the covariates one by one
 
-            dataset = np.array([self.covariate_builder(run=observed_run, **kwargs)
-                                for observed_run in observed_runs])
+            dataset = np.array(
+                [
+                    self.covariate_builder(run=observed_run, **kwargs)
+                    for observed_run in observed_runs
+                ]
+            )
 
         if dataset.ndim == 1:
             dataset = np.expand_dims(dataset, axis=1)
@@ -806,7 +860,9 @@ class DynamicsExperiment():
 
         return control_outcomes, treatment_outcomes
 
-    def get_propensity_scores(self, config, intervention, control_runs, treatment_runs, params):
+    def get_propensity_scores(
+        self, config, intervention, control_runs, treatment_runs, params
+    ):
         """Return probability of treatment for a set of runs.
 
         Parameters
@@ -832,10 +888,12 @@ class DynamicsExperiment():
         if not callable(self.propensity_scorer):
             if isinstance(self.propensity_scorer, float):
                 uniform_propensity = self.propensity_scorer
-                if 0. <= uniform_propensity <= 1.:
+                if 0.0 <= uniform_propensity <= 1.0:
                     return uniform_propensity * np.ones(len(control_runs))
 
-            raise ValueError("If propensity scorer is not callable, it must be a float in [0., 1.]")
+            raise ValueError(
+                "If propensity scorer is not callable, it must be a float in [0., 1.]"
+            )
 
         scorer_args = self._get_args(self.propensity_scorer)
 
@@ -870,9 +928,9 @@ class DynamicsExperiment():
         propensity_scores = []
         for control_run, treatment_run in zip(control_runs, treatment_runs):
             if "control_run" in scorer_args and "treatment_run" in scorer_args:
-                score = self.propensity_scorer(control_run=control_run,
-                                               treatment_run=treatment_run,
-                                               **kwargs)
+                score = self.propensity_scorer(
+                    control_run=control_run, treatment_run=treatment_run, **kwargs
+                )
             elif "control_run" in scorer_args:
                 score = self.propensity_scorer(control_run=control_run, **kwargs)
             elif "treatment_run" in scorer_args:
@@ -970,15 +1028,16 @@ class DynamicsExperiment():
 
         return self.intervention(**kwargs)
 
-    def construct_causal_graph(self, control_runs, treatment_runs,
-                               config, intervention, run_parameters):
+    def construct_causal_graph(
+        self, control_runs, treatment_runs, config, intervention, run_parameters
+    ):
         """Construct the causal graph associated with the experiment.
 
         This feature is still experimental and will likely have rough
         edges.
 
         Parameters
-        -----------
+        ----------
             control_runs: list
                 List of untreated whynot.framework.Run objects generated by the experiment.
             treatment_runs: list
@@ -1009,34 +1068,56 @@ class DynamicsExperiment():
 
             # Trace the propensity scorer
             propensities = self.get_propensity_scores(
-                config, intervention, control_runs, treatment_runs, run_parameters)
+                config, intervention, control_runs, treatment_runs, run_parameters
+            )
             treatment_deps = causal_graphs.backtrack(propensities[0], node_map)
 
             # Trace the covariate extractor.
             covariates = self.construct_covariates(
-                config, intervention, control_runs, treatment_runs, np.array([0.]), run_parameters)
+                config,
+                intervention,
+                control_runs,
+                treatment_runs,
+                np.array([0.0]),
+                run_parameters,
+            )
             covariate_deps = causal_graphs.backtrack(covariates[0], node_map)
 
             # Trace the outcome extractor
             control_outcomes, _ = self.get_outcomes(
-                config, intervention, control_runs, treatment_runs, run_parameters)
+                config, intervention, control_runs, treatment_runs, run_parameters
+            )
             outcome_deps = causal_graphs.backtrack(control_outcomes[0], node_map)
 
         # Unpack the dependencies from backtracking
         treatment_deps = [node.name for node in treatment_deps[0]]
         outcome_deps = [node.name for node in outcome_deps[0]]
-        covariate_deps = dict((cov, [node.name for node in deps])
-                              for cov, deps in covariate_deps.items())
+        covariate_deps = dict(
+            (cov, [node.name for node in deps]) for cov, deps in covariate_deps.items()
+        )
 
         # Build the causal graph corresponding to the dynamics.
         ate_graph = causal_graphs.ate_graph_builder(
-            self.simulator, run, config, intervention, treatment_deps,
-            covariate_deps, outcome_deps)
+            self.simulator,
+            run,
+            config,
+            intervention,
+            treatment_deps,
+            covariate_deps,
+            outcome_deps,
+        )
 
         return ate_graph
 
-    def run(self, num_samples, seed=None, parallelize=True, show_progress=False,
-            causal_graph=False, **parameter_args):
+    def run(
+        self,
+        num_samples,
+        seed=None,
+        parallelize=True,
+        show_progress=False,
+        causal_graph=False,
+        **parameter_args,
+    ):
         # pylint:disable-msg=too-many-locals
         """Run a basic parameterized experiment on a dynamical system simulator.
 
@@ -1068,8 +1149,10 @@ class DynamicsExperiment():
 
         """
         if causal_graph and not self.simulator.SUPPORTS_CAUSAL_GRAPHS:
-            error_msg = ("This simulator does not currently support causal graph generation."
-                         "Rerun the command with causal_graphs=False to continue.")
+            error_msg = (
+                "This simulator does not currently support causal graph generation."
+                "Rerun the command with causal_graphs=False to continue."
+            )
             raise ValueError(error_msg)
 
         run_parameters = self.parameter_collection.project(parameter_args)
@@ -1083,18 +1166,29 @@ class DynamicsExperiment():
 
         # Run the model
         control_runs, treatment_runs = self._run_all_simulations(
-            initial_states, config, intervention, rng, parallelize, show_progress)
+            initial_states, config, intervention, rng, parallelize, show_progress
+        )
 
         # Assign treatment
         propensities = self.get_propensity_scores(
-            config, intervention, control_runs, treatment_runs, run_parameters)
-        treatment = (rng.uniform(size=propensities.shape) < propensities).astype(np.int64)
+            config, intervention, control_runs, treatment_runs, run_parameters
+        )
+        treatment = (rng.uniform(size=propensities.shape) < propensities).astype(
+            np.int64
+        )
 
         # Build observational dataset
         covariates = self.construct_covariates(
-            config, intervention, control_runs, treatment_runs, treatment, run_parameters)
+            config,
+            intervention,
+            control_runs,
+            treatment_runs,
+            treatment,
+            run_parameters,
+        )
         control_outcomes, treatment_outcomes = self.get_outcomes(
-            config, intervention, control_runs, treatment_runs, run_parameters)
+            config, intervention, control_runs, treatment_runs, run_parameters
+        )
 
         # Assign treatment
         outcomes = np.copy(control_outcomes)
@@ -1105,10 +1199,15 @@ class DynamicsExperiment():
 
         if causal_graph:
             graph = self.construct_causal_graph(
-                control_runs, treatment_runs, config, intervention, run_parameters)
+                control_runs, treatment_runs, config, intervention, run_parameters
+            )
         else:
             graph = None
 
-        return Dataset(covariates=covariates, treatments=treatment,
-                       outcomes=outcomes, true_effects=treatment_effects,
-                       causal_graph=graph)
+        return Dataset(
+            covariates=covariates,
+            treatments=treatment,
+            outcomes=outcomes,
+            true_effects=treatment_effects,
+            causal_graph=graph,
+        )

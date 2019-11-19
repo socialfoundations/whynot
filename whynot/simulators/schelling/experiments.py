@@ -25,12 +25,26 @@ def run_simulator(control_config, treatment_config, seed):
     return control_segregation, treatment_segregation
 
 
-@parameter(name="education_pc", default=0.3, values=np.arange(0., 0.99, 0.05),
-           description="Random fraction of the population to educate")
-@parameter(name="education_boost", default=-1, values=[-1, -2, -3, -4],
-           description="How much education decreases homophily")
-def run_schelling(education_pc, education_boost, num_samples=100,
-                  seed=None, show_progress=False, parallelize=True):
+@parameter(
+    name="education_pc",
+    default=0.3,
+    values=np.arange(0.0, 0.99, 0.05),
+    description="Random fraction of the population to educate",
+)
+@parameter(
+    name="education_boost",
+    default=-1,
+    values=[-1, -2, -3, -4],
+    description="How much education decreases homophily",
+)
+def run_schelling(
+    education_pc,
+    education_boost,
+    num_samples=100,
+    seed=None,
+    show_progress=False,
+    parallelize=True,
+):
     """Run a basic RCT experiment on Schelling.
 
     Each unit in the experiment is a grid or "community" in the Schelling model.
@@ -117,6 +131,9 @@ def run_schelling(education_pc, education_boost, num_samples=100,
 #: RCT experiment to understand the effect of homophily reduction on total segregation.
 RCT = GenericExperiment(
     name="schelling_rct",
-    description=("Test the efficacy of an education program to reduce "
-                 "homophiliy of agents in the Schelling model."),
-    run_method=run_schelling)
+    description=(
+        "Test the efficacy of an education program to reduce "
+        "homophiliy of agents in the Schelling model."
+    ),
+    run_method=run_schelling,
+)

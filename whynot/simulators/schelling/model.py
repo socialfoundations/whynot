@@ -12,7 +12,8 @@ class SchellingAgent(Agent):
     def __init__(self, pos, model, agent_type, homophily):
         """Create a new Schelling agent.
 
-        Args:
+        Parameters
+        ----------
             unique_id: Unique identifier for the agent.
             x, y: Agent initial location.
             agent_type: Indicator for the agent's type (minority=1, majority=0)
@@ -40,8 +41,17 @@ class SchellingAgent(Agent):
 class Schelling(Model):
     """Model class for the Schelling segregation model."""
 
-    def __init__(self, height=20, width=20, density=0.8, minority_pc=0.2,
-                 homophily=3, education_boost=0, education_pc=0.2, seed=None):
+    def __init__(
+        self,
+        height=20,
+        width=20,
+        density=0.8,
+        minority_pc=0.2,
+        homophily=3,
+        education_boost=0,
+        education_pc=0.2,
+        seed=None,
+    ):
         """Seed is used to set randomness in the __new__ function of the Model superclass."""
         # pylint: disable-msg=unused-argument,super-init-not-called
 
@@ -60,7 +70,8 @@ class Schelling(Model):
         self.datacollector = DataCollector(
             {"happy": "happy"},  # Model-level count of happy agents
             # For testing purposes, agent's individual x and y
-            {"x": lambda a: a.pos[0], "y": lambda a: a.pos[1]})
+            {"x": lambda a: a.pos[0], "y": lambda a: a.pos[1]},
+        )
 
         # Set up agents
         # We use a grid iterator that returns
@@ -79,7 +90,9 @@ class Schelling(Model):
                 if self.random.random() < self.education_pc:
                     agent_homophily += self.education_boost
 
-                agent = SchellingAgent((x_coord, y_coord), self, agent_type, agent_homophily)
+                agent = SchellingAgent(
+                    (x_coord, y_coord), self, agent_type, agent_homophily
+                )
                 self.grid.position_agent(agent, (x_coord, y_coord))
                 self.schedule.add(agent)
 

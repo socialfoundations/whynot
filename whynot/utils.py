@@ -48,12 +48,13 @@ def parallelize(func, arg_lst, show_progress=False, max_workers=None):
             Maximum number of parallel processes to execute simultaneously.
 
     Returns
-    ------
+    -------
         results: list
             List of outcomes of running func(*arg) on each arg in arg_list.
             Results are in the same order as the input arg_list.
 
     """
+
     def display(range_obj):
         if show_progress:
             range_obj = tqdm(range_obj)
@@ -90,17 +91,22 @@ def parallel_run_estimators(causal_datasets):
     """
     all_estimates = defaultdict(lambda: defaultdict(list))
     for key, trials in causal_datasets.items():
-        parallel_args = [(dataset.covariates, dataset.treatments, dataset.outcomes)
-                         for dataset in trials]
-        all_trial_estimates = parallelize(wn.causal_suite, parallel_args, show_progress=True)
+        parallel_args = [
+            (dataset.covariates, dataset.treatments, dataset.outcomes)
+            for dataset in trials
+        ]
+        all_trial_estimates = parallelize(
+            wn.causal_suite, parallel_args, show_progress=True
+        )
         for estimates in all_trial_estimates:
             for method, estimate in estimates.items():
                 all_estimates[method][key].append(estimate)
     return all_estimates
 
 
-def sample_size_experiment(experiment, sample_sizes, num_trials,
-                           parameters=None, seeds=None, verbose=False):
+def sample_size_experiment(
+    experiment, sample_sizes, num_trials, parameters=None, seeds=None, verbose=False
+):
     """Repeatedly run an experiment at different sample sizes.
 
     All of the datasets are generate sequentially, and the estimators are run in
@@ -164,10 +170,16 @@ def sample_size_experiment(experiment, sample_sizes, num_trials,
     return parallel_run_estimators(datasets), all_sates
 
 
-def parameter_sweep_experiment(experiment, sample_size, num_trials,
-                               parameter_name, parameter_values,
-                               fixed_parameters=None,
-                               seeds=None, verbose=False):
+def parameter_sweep_experiment(
+    experiment,
+    sample_size,
+    num_trials,
+    parameter_name,
+    parameter_values,
+    fixed_parameters=None,
+    seeds=None,
+    verbose=False,
+):
     """Repeatedly run an experiment for different values of a parameter.
 
     All of the datasets are generate sequentially, and the estimators are run in
@@ -257,6 +269,7 @@ def summarize_errors(estimates, sample_ates, metric):
             similarly for standard deviation.
 
     """
+
     def score(est, sate):
         if metric == "relative_error":
             return np.abs((est - sate) / sate)

@@ -11,6 +11,7 @@ from whynot.framework import GenericExperiment, parameter
 # Helper functions
 ##################
 
+
 def load_dataset():
     """Load the LaLonde dataset."""
     dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -32,12 +33,26 @@ def get_experiments():
     return [RandomResponse]
 
 
-@parameter(name="hidden_dim", default=32, values=[8, 16, 32, 64, 128, 256, 512],
-           description="hidden dimension of 2-layer ReLu network response.")
-@parameter(name="alpha_scale", default=0.01, values=np.linspace(1e-4, 10, 10),
-           description="Scale of the hidden-layer weights.")
-def run_lalonde(num_samples, hidden_dim, alpha_scale, seed=None,
-                parallelize=True, show_progress=False):
+@parameter(
+    name="hidden_dim",
+    default=32,
+    values=[8, 16, 32, 64, 128, 256, 512],
+    description="hidden dimension of 2-layer ReLu network response.",
+)
+@parameter(
+    name="alpha_scale",
+    default=0.01,
+    values=np.linspace(1e-4, 10, 10),
+    description="Scale of the hidden-layer weights.",
+)
+def run_lalonde(
+    num_samples,
+    hidden_dim,
+    alpha_scale,
+    seed=None,
+    parallelize=True,
+    show_progress=False,
+):
     # pylint:disable-msg=unused-argument
     """Generate data from the LaLonde dataset with a random response function.
 
@@ -68,11 +83,15 @@ def run_lalonde(num_samples, hidden_dim, alpha_scale, seed=None,
 
     # Define the networks
     num_inputs = covariates.shape[1]
-    control_config = {"W": 0.05 * rng.randn(num_inputs, hidden_dim),
-                      "alpha": alpha_scale * rng.randn(hidden_dim, 1)}
+    control_config = {
+        "W": 0.05 * rng.randn(num_inputs, hidden_dim),
+        "alpha": alpha_scale * rng.randn(hidden_dim, 1),
+    }
 
-    treatment_config = {"W": 0.05 * rng.randn(num_inputs, hidden_dim),
-                        "alpha": alpha_scale * rng.randn(hidden_dim, 1)}
+    treatment_config = {
+        "W": 0.05 * rng.randn(num_inputs, hidden_dim),
+        "alpha": alpha_scale * rng.randn(hidden_dim, 1),
+    }
 
     def get_effect(features, treatment):
         if treatment:
@@ -95,6 +114,9 @@ def run_lalonde(num_samples, hidden_dim, alpha_scale, seed=None,
 #: Experiment simulating an outcome function on top of fixed LaLonde covariates.
 RandomResponse = GenericExperiment(
     name="lalonde",
-    description=("An experiment on the LaLone dataset with fixed covariates "
-                 "and random 2-layer Relu NN for the response."),
-    run_method=run_lalonde)
+    description=(
+        "An experiment on the LaLone dataset with fixed covariates "
+        "and random 2-layer Relu NN for the response."
+    ),
+    run_method=run_lalonde,
+)

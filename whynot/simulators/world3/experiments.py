@@ -7,14 +7,17 @@ from whynot.simulators import world3
 
 def get_experiments():
     """Return all experiments for world3."""
-    return [PollutionRCT,
-            PollutionConfounding,
-            PollutionUnobservedConfounding,
-            PollutionMediation]
+    return [
+        PollutionRCT,
+        PollutionConfounding,
+        PollutionUnobservedConfounding,
+        PollutionMediation,
+    ]
 
 
 def sample_initial_states(rng):
     """Sample initial state by randomly perturbing the default state."""
+
     def random_scale(scale, base=10):
         """Make 10**(-scale) to 10**scale smaller/bigger uniformly."""
         return rng.choice(np.logspace(-scale, scale, base=base, num=50))
@@ -45,24 +48,32 @@ PollutionRCT = DynamicsExperiment(
     name="world3_rct",
     description="Study effect of intervening in 1975 to decrease pollution generation.",
     simulator=world3,
-    simulator_config=world3.Config(persistent_pollution_generation_factor=1.),
-    intervention=world3.Intervention(time=1975, persistent_pollution_generation_factor=0.85),
+    simulator_config=world3.Config(persistent_pollution_generation_factor=1.0),
+    intervention=world3.Intervention(
+        time=1975, persistent_pollution_generation_factor=0.85
+    ),
     state_sampler=sample_initial_states,
     propensity_scorer=0.5,
     outcome_extractor=lambda run: run[2050].total_population,
-    covariate_builder=lambda run: run.initial_state.values())
+    covariate_builder=lambda run: run.initial_state.values(),
+)
 
 
 ##########################
 # Confounding Experiments
 ##########################
-@parameter(name="treatment_bias", default=0.8, values=np.linspace(0.5, 0.05, 1),
-           description="Bias of probability of treatment between top and bottom pollution runs.")
+@parameter(
+    name="treatment_bias",
+    default=0.8,
+    values=np.linspace(0.5, 0.05, 1),
+    description="Bias of probability of treatment between top and bottom pollution runs.",
+)
 def pollution_confounded_propensity(intervention, control_runs, treatment_bias):
     """Probability of treating each unit.
 
     To generate confounding, we are more likely to treat worlds with high pollution.
     """
+
     def persistent_pollution(run):
         return run[intervention.time].persistent_pollution
 
@@ -72,7 +83,7 @@ def pollution_confounded_propensity(intervention, control_runs, treatment_bias):
     def treatment_prob(idx):
         if pollution[idx] > upper_quantile:
             return treatment_bias
-        return 1. - treatment_bias
+        return 1.0 - treatment_bias
 
     return np.array([treatment_prob(idx) for idx in range(len(control_runs))])
 
@@ -81,43 +92,62 @@ def pollution_confounded_propensity(intervention, control_runs, treatment_bias):
 #: An observational experiment with confounding. Polluted states are more likely to be treated.
 PollutionConfounding = DynamicsExperiment(
     name="world3_pollution_confounding",
-    description=("Study effect of intervening to decrease pollution.  Confounding "
-                 "arises becauses states with high pollution are more likely "
-                 "to receive treatment."),
+    description=(
+        "Study effect of intervening to decrease pollution.  Confounding "
+        "arises becauses states with high pollution are more likely "
+        "to receive treatment."
+    ),
     simulator=world3,
-    simulator_config=world3.Config(persistent_pollution_generation_factor=1.),
-    intervention=world3.Intervention(time=1975, persistent_pollution_generation_factor=0.85),
+    simulator_config=world3.Config(persistent_pollution_generation_factor=1.0),
+    intervention=world3.Intervention(
+        time=1975, persistent_pollution_generation_factor=0.85
+    ),
     state_sampler=sample_initial_states,
     propensity_scorer=pollution_confounded_propensity,
     outcome_extractor=lambda run: run[2050].total_population,
-    covariate_builder=lambda intervention, run: run[intervention.time].values())
+    covariate_builder=lambda intervention, run: run[intervention.time].values(),
+)
 
 
 # pylint: disable-msg=invalid-name
 #: An observational experiment with unobserved confounding.
 PollutionUnobservedConfounding = DynamicsExperiment(
     name="world3_pollution_unobserved_confounding",
-    description=("Study effect of intervening to decrease pollution.  Confounding "
-                 "arises becauses states with high pollution are more likely "
-                 "to receive treatment. However, only variables that directly affect "
-                 "treatment assignment are observed."),
+    description=(
+        "Study effect of intervening to decrease pollution.  Confounding "
+        "arises becauses states with high pollution are more likely "
+        "to receive treatment. However, only variables that directly affect "
+        "treatment assignment are observed."
+    ),
     simulator=world3,
-    simulator_config=world3.Config(persistent_pollution_generation_factor=1.),
-    intervention=world3.Intervention(time=1975, persistent_pollution_generation_factor=0.85),
+    simulator_config=world3.Config(persistent_pollution_generation_factor=1.0),
+    intervention=world3.Intervention(
+        time=1975, persistent_pollution_generation_factor=0.85
+    ),
     state_sampler=sample_initial_states,
     propensity_scorer=pollution_confounded_propensity,
     outcome_extractor=lambda run: run[2050].total_population,
-    covariate_builder=lambda intervention, run: np.array([
-        run[intervention.time].persistent_pollution]))
+    covariate_builder=lambda intervention, run: np.array(
+        [run[intervention.time].persistent_pollution]
+    ),
+)
 
 
 ########################
 # Mediation Experiments
 ########################
-@parameter(name="mediation_year", default=2015, values=[1980, 2000, 2020, 2045],
-           description="What year to get mediating variables")
-@parameter(name="num_mediators", default=11, values=[0, 3, 5, 7, 10],
-           description="number of mediators to include.")
+@parameter(
+    name="mediation_year",
+    default=2015,
+    values=[1980, 2000, 2020, 2045],
+    description="What year to get mediating variables",
+)
+@parameter(
+    name="num_mediators",
+    default=11,
+    values=[0, 3, 5, 7, 10],
+    description="number of mediators to include.",
+)
 def mediation_covariates(intervention, run, mediation_year, num_mediators):
     """Build the causal dataset."""
     # Just use all of the states at the moment of treatment assignment
@@ -130,14 +160,19 @@ def mediation_covariates(intervention, run, mediation_year, num_mediators):
 #: An observational experiment with mediation from states after intervention.
 PollutionMediation = DynamicsExperiment(
     name="world3_pollution_mediation",
-    description=("Study effect of intervening to decrease pollution.  Confounding "
-                 "arises becauses states with high pollution are more likely "
-                 "to receive treatment. Mediation arises since future states "
-                 "are also observed."),
+    description=(
+        "Study effect of intervening to decrease pollution.  Confounding "
+        "arises becauses states with high pollution are more likely "
+        "to receive treatment. Mediation arises since future states "
+        "are also observed."
+    ),
     simulator=world3,
-    simulator_config=world3.Config(persistent_pollution_generation_factor=1.),
-    intervention=world3.Intervention(time=1975, persistent_pollution_generation_factor=0.85),
+    simulator_config=world3.Config(persistent_pollution_generation_factor=1.0),
+    intervention=world3.Intervention(
+        time=1975, persistent_pollution_generation_factor=0.85
+    ),
     state_sampler=sample_initial_states,
     propensity_scorer=pollution_confounded_propensity,
     outcome_extractor=lambda run: run[2050].total_population,
-    covariate_builder=mediation_covariates)
+    covariate_builder=mediation_covariates,
+)

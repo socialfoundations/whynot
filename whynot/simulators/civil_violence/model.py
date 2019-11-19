@@ -13,7 +13,8 @@ class Citizen(Agent):
 
     Summary of rule: If grievance - risk > threshold, rebel.
 
-    Attributes:
+    Attributes
+    ----------
         unique_id: unique int
         x, y: Grid coordinates
         hardship: Agent's 'perceived hardship (i.e., physical or economic
@@ -34,11 +35,21 @@ class Citizen(Agent):
 
     """
 
-    def __init__(self, unique_id, model, pos, hardship, regime_legitimacy,
-                 risk_aversion, threshold, vision):
+    def __init__(
+        self,
+        unique_id,
+        model,
+        pos,
+        hardship,
+        regime_legitimacy,
+        risk_aversion,
+        threshold,
+        vision,
+    ):
         """Create a new Citizen.
 
-        Args:
+        Parameters
+        ----------
             unique_id: unique int
             x, y: Grid coordinates
             hardship: Agent's 'perceived hardship (i.e., physical or economic
@@ -54,7 +65,7 @@ class Citizen(Agent):
 
         """
         super().__init__(unique_id, model)
-        self.breed = 'citizen'
+        self.breed = "citizen"
         self.pos = pos
         self.hardship = hardship
         self.regime_legitimacy = regime_legitimacy
@@ -77,7 +88,9 @@ class Citizen(Agent):
 
     def update_arrest_parameter(self):
         """Change probability of arrest based on grievance."""
-        self.arrest_parameter = self.grievance() - self.arrest_probability * self.regime_legitimacy
+        self.arrest_parameter = (
+            self.grievance() - self.arrest_probability * self.regime_legitimacy
+        )
 
     def step(self):
         """Decide whether to activate, then move if applicable."""
@@ -85,19 +98,23 @@ class Citizen(Agent):
             self.jail_sentence -= 1
             return  # no other changes or movements if agent is in jail.
 
-        if self.condition == 'Active':
+        if self.condition == "Active":
             self.days_active += 1
 
         self.update_neighbors()
         self.update_estimated_arrest_probability()
         self.update_arrest_parameter()
         net_risk = self.risk_aversion * self.arrest_probability
-        if self.condition == 'Quiescent' and (
-                self.grievance() - net_risk) > self.threshold:
-            self.condition = 'Active'
-        elif self.condition == 'Active' and (
-                self.grievance() - net_risk) <= self.threshold:
-            self.condition = 'Quiescent'
+        if (
+            self.condition == "Quiescent"
+            and (self.grievance() - net_risk) > self.threshold
+        ):
+            self.condition = "Active"
+        elif (
+            self.condition == "Active"
+            and (self.grievance() - net_risk) <= self.threshold
+        ):
+            self.condition = "Quiescent"
         if self.model.movement and self.empty_neighbors:
             new_pos = self.random.choice(self.empty_neighbors)
             self.model.grid.move_agent(self, new_pos)
@@ -105,26 +122,35 @@ class Citizen(Agent):
     def update_neighbors(self):
         """Look around and see who my neighbors are."""
         self.neighborhood = self.model.grid.get_neighborhood(
-            self.pos, moore=True, radius=self.vision)
+            self.pos, moore=True, radius=self.vision
+        )
         self.neighbors = self.model.grid.get_cell_list_contents(self.neighborhood)
-        self.empty_neighbors = [c for c in self.neighborhood if
-                                self.model.grid.is_cell_empty(c)]
+        self.empty_neighbors = [
+            c for c in self.neighborhood if self.model.grid.is_cell_empty(c)
+        ]
 
     def update_estimated_arrest_probability(self):
         """Estimate p(Arrest | I go active) based on local ratio of cops to actives."""
-        cops_in_vision = len([c for c in self.neighbors if c.breed == 'cop'])
-        actives_in_vision = 1.  # citizen counts herself
+        cops_in_vision = len([c for c in self.neighbors if c.breed == "cop"])
+        actives_in_vision = 1.0  # citizen counts herself
         for unit in self.neighbors:
-            if (unit.breed == 'citizen' and unit.condition == 'Active'
-                    and unit.jail_sentence == 0):
+            if (
+                unit.breed == "citizen"
+                and unit.condition == "Active"
+                and unit.jail_sentence == 0
+            ):
                 actives_in_vision += 1
         self.arrest_probability = 1 - math.exp(
-            -1 * self.model.arrest_prob_constant * (cops_in_vision / actives_in_vision))
+            -1 * self.model.arrest_prob_constant * (cops_in_vision / actives_in_vision)
+        )
 
     def update_risk_aversion(self):
         """Change risk aversion for jailed citizens based on cellmates."""
-        cellmates_risk_aversion = [c.risk_aversion for c in self.neighbors
-                                   if ((c.breed == 'citizen') and (c.jail_sentence > 0))]
+        cellmates_risk_aversion = [
+            c.risk_aversion
+            for c in self.neighbors
+            if ((c.breed == "citizen") and (c.jail_sentence > 0))
+        ]
         if cellmates_risk_aversion:
             min_aversion = max(cellmates_risk_aversion)
             diff = self.prison_interaction * (min_aversion - self.risk_aversion)
@@ -137,7 +163,8 @@ class Cop(Agent):
 
     Summary of rule: Inspect local vision and arrest a random active agent.
 
-    Attributes:
+    Attributes
+    ----------
         unique_id: unique int
         x, y: Grid coordinates
         vision: number of cells in each direction (N, S, E and W) that cop is
@@ -148,7 +175,8 @@ class Cop(Agent):
     def __init__(self, unique_id, model, pos, vision):
         """Create a new Cop.
 
-        Args:
+        Parameters
+        ----------
             unique_id: unique int
             x, y: Grid coordinates
             vision: number of cells in each direction (N, S, E and W) that
@@ -157,7 +185,7 @@ class Cop(Agent):
 
         """
         super().__init__(unique_id, model)
-        self.breed = 'cop'
+        self.breed = "cop"
         self.pos = pos
         self.vision = vision
 
@@ -184,18 +212,20 @@ class Cop(Agent):
         self.update_neighbors()
         active_neighbors = []
         for agent in self.neighbors:
-            if agent.breed == 'citizen' and \
-                    agent.condition == 'Active' and \
-                    agent.jail_sentence == 0:
+            if (
+                agent.breed == "citizen"
+                and agent.condition == "Active"
+                and agent.jail_sentence == 0
+            ):
                 active_neighbors.append(agent)
         if active_neighbors:
             arrestee = self.random.choice(active_neighbors)
-#             sentence = self.random.randint(0, self.model.max_jail_term)
+            #             sentence = self.random.randint(0, self.model.max_jail_term)
             sentence = self.model.max_jail_term
             arrestee.jail_sentence = sentence
             arrestee.arrests += 1
             # arrestee is made quiescent if placed in Jail
-            arrestee.condition = 'Quiescent'
+            arrestee.condition = "Quiescent"
             # update perceived regime legitimacy if agent is arrested
             arrestee.update_risk_aversion()
 
@@ -206,10 +236,12 @@ class Cop(Agent):
     def update_neighbors(self):
         """Look around and see who my neighbors are."""
         self.neighborhood = self.model.grid.get_neighborhood(
-            self.pos, moore=True, radius=self.vision)
+            self.pos, moore=True, radius=self.vision
+        )
         self.neighbors = self.model.grid.get_cell_list_contents(self.neighborhood)
-        self.empty_neighbors = [c for c in self.neighborhood if
-                                self.model.grid.is_cell_empty(c)]
+        self.empty_neighbors = [
+            c for c in self.neighborhood if self.model.grid.is_cell_empty(c)
+        ]
 
 
 class RandomActivation(BaseScheduler):
@@ -231,8 +263,18 @@ class RandomActivation(BaseScheduler):
 class CivilViolenceModel(Model):
     """Model encapsulates the entire civil violence simulator and interactions."""
 
-    def __init__(self, height, width, cop_vision, max_jail_term, prison_interaction,
-                 arrest_prob_constant=2.3, movement=True, max_steps=1000, seed=None):
+    def __init__(
+        self,
+        height,
+        width,
+        cop_vision,
+        max_jail_term,
+        prison_interaction,
+        arrest_prob_constant=2.3,
+        movement=True,
+        max_steps=1000,
+        seed=None,
+    ):
         """Seed is used to set randomness in the __new__ function of the Model superclass."""
         # pylint: disable-msg=unused-argument,super-init-not-called
         super().__init__()
@@ -250,15 +292,27 @@ class CivilViolenceModel(Model):
         self.schedule = RandomActivation(self)
         self.grid = Grid(height, width, torus=True)
 
-    def add_agent(self, unique_id, pos,
-                  hardship, legitimacy, risk_aversion, active_threshold, citizen_vision):
+    def add_agent(
+        self,
+        unique_id,
+        pos,
+        hardship,
+        legitimacy,
+        risk_aversion,
+        active_threshold,
+        citizen_vision,
+    ):
         """Add a new agent to the grid."""
-        citizen = Citizen(unique_id, self, pos,
-                          hardship=hardship,
-                          regime_legitimacy=legitimacy,
-                          risk_aversion=risk_aversion,
-                          threshold=active_threshold,
-                          vision=citizen_vision)
+        citizen = Citizen(
+            unique_id,
+            self,
+            pos,
+            hardship=hardship,
+            regime_legitimacy=legitimacy,
+            risk_aversion=risk_aversion,
+            threshold=active_threshold,
+            vision=citizen_vision,
+        )
         x_coord, y_coord = pos
         self.grid[y_coord][x_coord] = citizen
         self.schedule.add(citizen)

@@ -3,6 +3,7 @@ import whynot
 
 try:
     import whynot_estimators
+
     ESTIMATORS_INSTALLED = True
 except ImportError:
     ESTIMATORS_INSTALLED = False
@@ -34,7 +35,7 @@ def causal_suite(covariates, treatment, outcome, verbose=False):
             If True, print incremental messages as estimators are executed.
 
     Returns
-    --------
+    -------
         results: dict
             Dictionary with keys denoting the name of each method and
             values the corresponding :class:`InferenceResult`:
@@ -62,14 +63,18 @@ def causal_suite(covariates, treatment, outcome, verbose=False):
         methods.update(installed)
     elif verbose:
         print("Only the base estimators are installed.")
-        print("To install additional additional estimators, `pip install whynot_estimators.`")
+        print(
+            "To install additional additional estimators, `pip install whynot_estimators.`"
+        )
 
     results = {}
     for name, estimator in methods.items():
         if verbose:
             print(f"Running estimator: {name}")
         try:
-            inference_result = estimator.estimate_treatment_effect(covariates, treatment, outcome)
+            inference_result = estimator.estimate_treatment_effect(
+                covariates, treatment, outcome
+            )
         # pylint:disable-msg=broad-except
         except Exception:
             print(f"Estimator {name} failed to run... skipping!")

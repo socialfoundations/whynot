@@ -14,7 +14,7 @@ def sample_initial_states(rng):
     """Sample an initial world2 state by perturbing the default."""
     state = world2.State()
     state.population *= rng.uniform(0.75, 2)
-    state.natural_resources *= rng.uniform(0.25, 10.)
+    state.natural_resources *= rng.uniform(0.25, 10.0)
     state.capital_investment *= rng.uniform(0.5, 2.0)
     state.pollution *= rng.uniform(0.5, 2)
     state.capital_investment_in_agriculture *= rng.uniform(0.5, 1.5)
@@ -34,27 +34,38 @@ RCT = DynamicsExperiment(
     state_sampler=sample_initial_states,
     propensity_scorer=0.25,
     outcome_extractor=lambda run: run[2000].population,
-    covariate_builder=lambda run: run.initial_state.values())
+    covariate_builder=lambda run: run.initial_state.values(),
+)
 
 
 ###########################
 # Treatment Bias Experiment
 ###########################
-@parameter(name="treatment_bias", default=0.2, values=[0.1, 0.2, 0.5, 0.9],
-           description="How much to bias treatment assignment")
-@parameter(name="treatment_percentage", default=0.2, values=[0.05, 0.2, 0.5, 0.9],
-           description="What fraction of the units should be treated.")
+@parameter(
+    name="treatment_bias",
+    default=0.2,
+    values=[0.1, 0.2, 0.5, 0.9],
+    description="How much to bias treatment assignment",
+)
+@parameter(
+    name="treatment_percentage",
+    default=0.2,
+    values=[0.05, 0.2, 0.5, 0.9],
+    description="What fraction of the units should be treated.",
+)
 def biased_treatment_propensity(control_runs, treatment_bias, treatment_percentage):
     """Compute propensity scores as a function of the bias."""
     # Sort runs by initial quantity of natural resources
-    sorted_idxs = sorted(range(len(control_runs)),
-                         key=lambda idx: control_runs[idx].initial_state.natural_resources,
-                         reverse=True)
+    sorted_idxs = sorted(
+        range(len(control_runs)),
+        key=lambda idx: control_runs[idx].initial_state.natural_resources,
+        reverse=True,
+    )
 
     # More likely to treat units with top initial quantity of natural resources
-    top_resource_idxs = sorted_idxs[int(treatment_percentage * len(sorted_idxs)):]
+    top_resource_idxs = sorted_idxs[int(treatment_percentage * len(sorted_idxs)) :]
 
-    propensities = (1. - treatment_bias) * np.ones(len(control_runs))
+    propensities = (1.0 - treatment_bias) * np.ones(len(control_runs))
     propensities[top_resource_idxs] = treatment_bias
 
     return propensities
@@ -71,14 +82,19 @@ BiasedTreatment = DynamicsExperiment(
     state_sampler=sample_initial_states,
     propensity_scorer=biased_treatment_propensity,
     outcome_extractor=lambda run: run[2000].population,
-    covariate_builder=lambda run: run.initial_state.values())
+    covariate_builder=lambda run: run.initial_state.values(),
+)
 
 
 ######################
 # Mediation Experiment
 ######################
-@parameter(name="birth_rate_intervention", default=0.02, values=[0.039, 0.02, 0.01],
-           description="Decrease in birth rate in the intervention year.")
+@parameter(
+    name="birth_rate_intervention",
+    default=0.02,
+    values=[0.039, 0.02, 0.01],
+    description="Decrease in birth rate in the intervention year.",
+)
 def mediation_intervention(birth_rate_intervention):
     """Return the treatment config for the mediation experiment.
 
@@ -102,10 +118,18 @@ def mediation_propensity_scores(intervention, control_runs):
     return propensities
 
 
-@parameter(name="mediation_year", default=1980, values=[1980, 2000, 2030, 2030],
-           description="Year to choose the mediation states.")
-@parameter(name="num_mediators", default=3, values=[0, 1, 2, 3, 4],
-           description="How many mediating states to choose.")
+@parameter(
+    name="mediation_year",
+    default=1980,
+    values=[1980, 2000, 2030, 2030],
+    description="Year to choose the mediation states.",
+)
+@parameter(
+    name="num_mediators",
+    default=3,
+    values=[0, 1, 2, 3, 4],
+    description="How many mediating states to choose.",
+)
 def mediation_covariates(run, intervention, mediation_year, num_mediators):
     """Return covariates including mediators."""
     confounders = run[intervention.time].values()
@@ -125,7 +149,8 @@ Mediation = DynamicsExperiment(
     state_sampler=sample_initial_states,
     propensity_scorer=mediation_propensity_scores,
     outcome_extractor=lambda run: run[2030].quality_of_life,
-    covariate_builder=mediation_covariates)
+    covariate_builder=mediation_covariates,
+)
 
 if __name__ == "__main__":
     RCT.run(num_samples=10)

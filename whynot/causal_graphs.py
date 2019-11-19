@@ -83,7 +83,7 @@ def dataclass_to_box(dataclass, trace, name_suffix=None, skip_args=None):
     suffix = f"_{name_suffix}" if name_suffix else ""
     replacements, node_map = {}, {}
     for name, value in zip(names, flattened):
-        if (skip_args and name in skip_args):
+        if skip_args and name in skip_args:
             # Don't wrap this argument in a box
             replacements[name] = value
         elif hasattr(value, "get_boxable"):
@@ -145,7 +145,8 @@ def run_to_box(run, trace_ctx, skip_args=None):
     boxed_states, global_nodemap = [], {}
     for state, time in zip(run.states, run.times):
         boxed_state, nodemap = dataclass_to_box(
-            state, trace_ctx, name_suffix=str(time), skip_args=skip_args)
+            state, trace_ctx, name_suffix=str(time), skip_args=skip_args
+        )
         boxed_states.append(boxed_state)
         global_nodemap.update(nodemap)
     boxed_run = wn.framework.Run(states=boxed_states, times=run.times)
@@ -179,7 +180,7 @@ def is_dead_node(node):
     if hasattr(node.fun, "fun") and node.fun.fun == np.multiply:
         # If we multiplied a parent by a constant 0, skip.
         for idx, arg in enumerate(node.args):
-            if idx not in node.parent_argnums and arg == 0.:
+            if idx not in node.parent_argnums and arg == 0.0:
                 return True
     return False
 
@@ -230,7 +231,9 @@ def backtrack(output_boxes, input_node_map):
 
     # For each output, figure out which (if any) of the inputs it depends on
     # by solving a graph search problem on the computation graph.
-    output_dependencies = dict((output_idx, set()) for output_idx in range(len(output_boxes)))
+    output_dependencies = dict(
+        (output_idx, set()) for output_idx in range(len(output_boxes))
+    )
     for idx, output_box in enumerate(output_boxes):
         # If the output isn't a box, then it's independent of all the inputs.
         if isbox(output_box):
@@ -308,9 +311,13 @@ def trace_dependencies(func, args):
     with trace_stack.new_trace() as trace:
 
         # Wrap each input argument in a "box" with an associated start node to allow tracing
-        input_nodes = [TracerNode.new_root(arg, name=idx) for idx, arg in enumerate(args)]
-        input_boxes = [new_box(arg, trace, start_node)
-                       for arg, start_node in zip(args, input_nodes)]
+        input_nodes = [
+            TracerNode.new_root(arg, name=idx) for idx, arg in enumerate(args)
+        ]
+        input_boxes = [
+            new_box(arg, trace, start_node)
+            for arg, start_node in zip(args, input_nodes)
+        ]
 
         # Execute the function to build the computation graph
         output_boxes = func(*input_boxes)
@@ -370,12 +377,14 @@ def trace_dynamics(dynamics):
          1: {"states": ["x2"], config: []},
 
     """
+
     def tracer(state, time, config):
         """Compute output dependencies of the dynamics."""
         with trace_stack.new_trace() as trace:
             state_box, state_node_map = wn.causal_graphs.dataclass_to_box(state, trace)
             config_box, config_node_map = wn.causal_graphs.dataclass_to_box(
-                config, trace, skip_args=["start_time", "end_time", "delta_t"])
+                config, trace, skip_args=["start_time", "end_time", "delta_t"]
+            )
 
             # Aggregrate the state and config maps
             node_map = state_node_map.copy()
@@ -397,8 +406,10 @@ def trace_dynamics(dynamics):
                         state_deps.append(node.name)
                     else:
                         config_deps.append(node.name)
-                named_dependencies[names[output_idx]] = {"states": state_deps,
-                                                         "configs": config_deps}
+                named_dependencies[names[output_idx]] = {
+                    "states": state_deps,
+                    "configs": config_deps,
+                }
 
             return named_dependencies
 
@@ -441,7 +452,9 @@ def build_dynamics_graph(simulator, runs, config, config_nodes=False):
 
     """
     if not simulator.SUPPORTS_CAUSAL_GRAPHS:
-        raise ValueError("Simulator does not currently support causal graph construction.")
+        raise ValueError(
+            "Simulator does not currently support causal graph construction."
+        )
 
     # Assert simulator has a dynamics tracer.
     dynamics_tracer = trace_dynamics(simulator.dynamics)
@@ -469,17 +482,31 @@ def build_dynamics_graph(simulator, runs, config, config_nodes=False):
         for output, dependencies in dependency_map.items():
             output_name = f"{output}_{end_time}"
             graph.add_edges_from(
-                [(f"{state}_{start_time}", output_name) for state in dependencies["states"]])
+                [
+                    (f"{state}_{start_time}", output_name)
+                    for state in dependencies["states"]
+                ]
+            )
             if config_nodes:
                 graph.add_edges_from(
-                    [(f"{conf_name}_{start_time}", output_name)
-                     for conf_name in dependencies["configs"]])
+                    [
+                        (f"{conf_name}_{start_time}", output_name)
+                        for conf_name in dependencies["configs"]
+                    ]
+                )
 
     return graph
 
 
-def ate_graph_builder(simulator, run, config, intervention, treatment_dependencies,
-                      covariate_dependencies, outcome_dependencies):
+def ate_graph_builder(
+    simulator,
+    run,
+    config,
+    intervention,
+    treatment_dependencies,
+    covariate_dependencies,
+    outcome_dependencies,
+):
     """Build a causal graph for an average treatment effect estimation experiment.
 
     Parameters
@@ -537,18 +564,22 @@ def ate_graph_builder(simulator, run, config, intervention, treatment_dependenci
     intervention_nodes = []
     for time in run.times:
         if time >= intervention.time:
-            intervention_nodes.extend([f"{param}_{time}" for param in intervention.updates])
+            intervention_nodes.extend(
+                [f"{param}_{time}" for param in intervention.updates]
+            )
     graph.add_edges_from([("Treatment", node) for node in intervention_nodes])
 
     # Outcome nodes
     graph.add_node("Outcome", observed="yes")
     graph.add_edges_from([(node, "Outcome") for node in outcome_dependencies])
 
-    covariate_names = ['' for _ in range(len(covariate_dependencies))]
+    covariate_names = ["" for _ in range(len(covariate_dependencies))]
     for idx, dependencies in covariate_dependencies.items():
         if len(dependencies) > 1:
-            error_msg = ("Each covariate should depend on a single node, but covariate "
-                         f"{idx} depends on {len(dependencies)} nodes!")
+            error_msg = (
+                "Each covariate should depend on a single node, but covariate "
+                f"{idx} depends on {len(dependencies)} nodes!"
+            )
             raise ValueError(error_msg)
         name = dependencies[0]
         graph.nodes[name]["observed"] = "yes"

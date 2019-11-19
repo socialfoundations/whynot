@@ -20,7 +20,7 @@ def get_experiments():
 
 def months_in_prison(popu):
     """Return array of months in prison for each person in population."""
-    return np.array([person['months_in_prison'] for person in popu.values()])
+    return np.array([person["months_in_prison"] for person in popu.values()])
 
 
 def covariates_from_population(popu):
@@ -47,13 +47,17 @@ def covariates_from_population(popu):
     """
     covariates = []
     for person in popu.values():
-        covariates.append([1 if person['sex'] == 'f' else 0,
-                           person['death'][0] - person['birth'],
-                           len(person['children']),
-                           len(person['siblings']),
-                           len(person['friends']),
-                           person['age_at_first_birth'],
-                           1 if person['partner'] > 0 else 0])
+        covariates.append(
+            [
+                1 if person["sex"] == "f" else 0,
+                person["death"][0] - person["birth"],
+                len(person["children"]),
+                len(person["siblings"]),
+                len(person["friends"]),
+                person["age_at_first_birth"],
+                1 if person["partner"] > 0 else 0,
+            ]
+        )
 
     return np.array(covariates)
 
@@ -73,8 +77,8 @@ def treatments_from_population(popu):
     """
     treatments = []
     for person in popu.values():
-        if person['harsh_sentence']:
-            treatments.append(np.mean(person['harsh_sentence']))
+        if person["harsh_sentence"]:
+            treatments.append(np.mean(person["harsh_sentence"]))
         else:
             treatments.append(0)
     return np.array(treatments)
@@ -105,8 +109,7 @@ def population_to_data(popu):
     return covariates, treatments, outcomes
 
 
-def run_sentence_length_trial(num_samples, seed, show_progress=False,
-                              parallelize=True):
+def run_sentence_length_trial(num_samples, seed, show_progress=False, parallelize=True):
     """Run sentence experiment on incarceration simulator.
 
     Experiment about the effect of harsher sentences on total prison time in the
@@ -145,12 +148,14 @@ def run_sentence_length_trial(num_samples, seed, show_progress=False,
     popu_random = incarceration.simulate(config, show_progress)
     covariates, treatment, outcome = population_to_data(popu_random)
 
-    config = incarceration.Config(random_seed=seed, random_sentence_type=False,
-                                  harsh_sentence=True)
+    config = incarceration.Config(
+        random_seed=seed, random_sentence_type=False, harsh_sentence=True
+    )
     popu_harsh = incarceration.simulate(config, show_progress)
 
-    config = incarceration.Config(random_seed=seed, random_sentence_type=False,
-                                  harsh_sentence=False)
+    config = incarceration.Config(
+        random_seed=seed, random_sentence_type=False, harsh_sentence=False
+    )
     popu_lenient = incarceration.simulate(config, show_progress)
 
     ground_truth = (months_in_prison(popu_harsh), months_in_prison(popu_lenient))
@@ -163,4 +168,5 @@ def run_sentence_length_trial(num_samples, seed, show_progress=False,
 SentenceLength = GenericExperiment(
     name="sentence_length_rct",
     description="Randomized controlled trial with interference between units.",
-    run_method=run_sentence_length_trial)
+    run_method=run_sentence_length_trial,
+)

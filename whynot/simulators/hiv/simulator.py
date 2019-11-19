@@ -31,7 +31,7 @@ class Config(BaseConfig):
     # pylint: disable-msg=invalid-name
     # pylint: disable-msg=too-many-instance-attributes
     #: Target cell type 1 production (source) rate
-    lambda_1: float = 10000.
+    lambda_1: float = 10000.0
     #: Target cell type 2 production (source) rate
     lambda_2: float = 31.98
     #: Target cell type 1 death rate
@@ -168,45 +168,77 @@ def dynamics(state, time, config, intervention=None):
 
     # Keep notation roughly consistent with the Adams paper.
     # pylint: disable-msg=invalid-name
-    uninfected_T1, infected_T1, uninfected_T2, infected_T2, free_virus, immune_response = state
+    (
+        uninfected_T1,
+        infected_T1,
+        uninfected_T2,
+        infected_T2,
+        free_virus,
+        immune_response,
+    ) = state
 
     delta_uninfected_T1 = (
         config.lambda_1
         - config.d_1 * uninfected_T1
-        - (1 - config.epsilon_1) * config.k_1 * free_virus * uninfected_T1)
+        - (1 - config.epsilon_1) * config.k_1 * free_virus * uninfected_T1
+    )
 
     delta_infected_T1 = (
         (1 - config.epsilon_1) * config.k_1 * free_virus * uninfected_T1
         - config.delta * infected_T1
-        - config.m_1 * immune_response * infected_T1)
+        - config.m_1 * immune_response * infected_T1
+    )
 
     delta_uninfected_T2 = (
         config.lambda_2
         - config.d_2 * uninfected_T2
-        - (1 - config.f * config.epsilon_1) * config.k_2 * free_virus * uninfected_T2)
+        - (1 - config.f * config.epsilon_1) * config.k_2 * free_virus * uninfected_T2
+    )
 
     delta_infected_T2 = (
         (1 - config.f * config.epsilon_1) * config.k_2 * free_virus * uninfected_T2
         - config.delta * infected_T2
-        - config.m_2 * immune_response * infected_T2)
+        - config.m_2 * immune_response * infected_T2
+    )
 
     delta_virus = (
         (1 - config.epsilon_2) * config.N_T * config.delta * (infected_T1 + infected_T2)
         - config.c * free_virus
         - free_virus
-        * ((1. - config.epsilon_1) * config.rho_1 * config.k_1 * uninfected_T1
-           + ((1. - config.f * config.epsilon_1) * config.rho_2 * config.k_2 * uninfected_T2)))
+        * (
+            (1.0 - config.epsilon_1) * config.rho_1 * config.k_1 * uninfected_T1
+            + (
+                (1.0 - config.f * config.epsilon_1)
+                * config.rho_2
+                * config.k_2
+                * uninfected_T2
+            )
+        )
+    )
 
     delta_immune_response = (
         config.lambda_E
-        + ((config.b_E * (infected_T1 + infected_T2))
-           / (infected_T1 + infected_T2 + config.K_B)) * immune_response
-        - ((config.d_E * (infected_T1 + infected_T2))
-           / (infected_T1 + infected_T2 + config.K_D)) * immune_response
-        - config.delta_E * immune_response)
+        + (
+            (config.b_E * (infected_T1 + infected_T2))
+            / (infected_T1 + infected_T2 + config.K_B)
+        )
+        * immune_response
+        - (
+            (config.d_E * (infected_T1 + infected_T2))
+            / (infected_T1 + infected_T2 + config.K_D)
+        )
+        * immune_response
+        - config.delta_E * immune_response
+    )
 
-    ds_dt = [delta_uninfected_T1, delta_infected_T1, delta_uninfected_T2,
-             delta_infected_T2, delta_virus, delta_immune_response]
+    ds_dt = [
+        delta_uninfected_T1,
+        delta_infected_T1,
+        delta_uninfected_T2,
+        delta_infected_T2,
+        delta_virus,
+        delta_immune_response,
+    ]
     return ds_dt
 
 
@@ -236,13 +268,18 @@ def simulate(initial_state, config, intervention=None, seed=None):
     """
     # Simulator is deterministic, so seed is ignored
     # pylint: disable-msg=unused-argument
-    t_eval = np.arange(config.start_time, config.end_time + config.delta_t, config.delta_t)
+    t_eval = np.arange(
+        config.start_time, config.end_time + config.delta_t, config.delta_t
+    )
 
-    solution = odeint(dynamics,
-                      y0=dataclasses.astuple(initial_state),
-                      t=t_eval,
-                      args=(config, intervention),
-                      rtol=config.rtol, atol=config.atol)
+    solution = odeint(
+        dynamics,
+        y0=dataclasses.astuple(initial_state),
+        t=t_eval,
+        args=(config, intervention),
+        rtol=config.rtol,
+        atol=config.atol,
+    )
 
     states = [initial_state] + [State(*state) for state in solution[1:]]
     return wn.framework.Run(states=states, times=t_eval)

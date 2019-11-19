@@ -15,8 +15,10 @@ def benchmark_dynamic_simulator(simulator, name, num_trials=10):
         start_time = time.perf_counter()
         simulator.simulate(initial_state, config)
         timings.append(time.perf_counter() - start_time)
-    print(f"{name.upper()}: \taverage={np.mean(timings):.3f} s, std={np.std(timings):.3f} s, "
-          f"max={np.max(timings):.3f} s, (trials={num_trials})")
+    print(
+        f"{name.upper()}:\t average={np.mean(timings):.3f} s, std={np.std(timings):.3f} s, "
+        f"max={np.max(timings):.3f} s, (trials={num_trials})"
+    )
 
 
 def benchmark_agent_based_model(simulator, name, num_agents=100, num_trials=10):
@@ -28,8 +30,10 @@ def benchmark_agent_based_model(simulator, name, num_agents=100, num_trials=10):
         start_time = time.perf_counter()
         simulator.simulate(agents, config)
         timings.append(time.perf_counter() - start_time)
-    print(f"{name.upper()}: \taverage={np.mean(timings):.3f} s, std={np.std(timings):.3f} s, "
-          f"max={np.max(timings):.3f} s, (trials={num_trials})")
+    print(
+        f"{name.upper()}:\t average={np.mean(timings):.3f} s, std={np.std(timings):.3f} s, "
+        f"max={np.max(timings):.3f} s, (trials={num_trials})"
+    )
 
 
 def benchmark_all():
