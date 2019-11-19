@@ -21,9 +21,9 @@ class Config:
     #: Fraction of "minority" agents
     minority_pc: float = 0.2
     #: Agent propensity to live near other agents of the same type.
-    homophily: float = 5.
+    homophily: float = 5.0
     #: How much education changes homophily
-    education_boost: float = -1.
+    education_boost: float = -1.0
     #: What percentage of agent receive education
     education_pc: float = 0.0
 
@@ -41,7 +41,7 @@ def get_segregation(model):
             segregated_agents += 1
 
     if model.schedule.get_agent_count() == 0:
-        return 0.
+        return 0.0
 
     return segregated_agents / model.schedule.get_agent_count()
 
@@ -78,7 +78,7 @@ def simulate(config, rollouts=10, seed=None):
         # Use a different seed for each rollout
         variable_parameters={"seed": rng.randint(9999999, size=rollouts)},
         # Single rollout for each seed
-        iterations=1
+        iterations=1,
     )
     param_sweep.run_all()
     dataframe = param_sweep.get_model_vars_dataframe()

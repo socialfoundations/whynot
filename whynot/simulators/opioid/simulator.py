@@ -15,11 +15,20 @@ import whynot.traceable_numpy as np
 from whynot.simulators.infrastructure import BaseConfig, BaseIntervention, BaseState
 
 
-class TimeVaryingParam():  # pylint: disable=too-few-public-methods
+class TimeVaryingParam:  # pylint: disable=too-few-public-methods
     """Encapsulate a time-varying parameter obtained from a joinpoint model."""
 
-    def __init__(self, baseline, alpha_1, joinpoint=None, alpha_2=None, intervention_year=None,
-                 intervention_val=0.0, start_year=2002, stabilize_year=None):
+    def __init__(
+        self,
+        baseline,
+        alpha_1,
+        joinpoint=None,
+        alpha_2=None,
+        intervention_year=None,
+        intervention_val=0.0,
+        start_year=2002,
+        stabilize_year=None,
+    ):
         """Specify a joinpoint model for a time-varying parameter.
 
         Parameters
@@ -51,7 +60,9 @@ class TimeVaryingParam():  # pylint: disable=too-few-public-methods
 
         if intervention_year is not None:
             if stabilize_year is not None:
-                raise ValueError("Cannot use stabilization and intervention simultaneously")
+                raise ValueError(
+                    "Cannot use stabilization and intervention simultaneously"
+                )
             if joinpoint is not None and intervention_year < joinpoint:
                 raise ValueError("Cannot intervene before joinpoint")
 
@@ -77,16 +88,20 @@ class TimeVaryingParam():  # pylint: disable=too-few-public-methods
         # pylint:disable-msg=no-member
         running_value = self.baseline
         if self.joinpoint is None or time <= self.joinpoint:
-            return running_value * np.power(1. + self.alpha_1, time - self.start_year)
+            return running_value * np.power(1.0 + self.alpha_1, time - self.start_year)
 
-        running_value *= np.power(1. + self.alpha_1, self.joinpoint - self.start_year)
+        running_value *= np.power(1.0 + self.alpha_1, self.joinpoint - self.start_year)
 
         if self.intervention_year is None or time <= self.intervention_year:
-            return running_value * np.power(1. + self.alpha_2, time - self.joinpoint)
+            return running_value * np.power(1.0 + self.alpha_2, time - self.joinpoint)
 
-        running_value *= np.power(1. + self.alpha_2, self.intervention_year - self.joinpoint)
+        running_value *= np.power(
+            1.0 + self.alpha_2, self.intervention_year - self.joinpoint
+        )
 
-        return running_value * np.power(1. + self.intervention_val, time - self.intervention_year)
+        return running_value * np.power(
+            1.0 + self.intervention_val, time - self.intervention_year
+        )
 
     def _current_rate(self, time):
         """Return current APC."""
@@ -110,13 +125,13 @@ class TimeVaryingParam():  # pylint: disable=too-few-public-methods
             rate -= decay_per_year
             if time <= year:
                 break
-            running_val *= (1. + rate)
+            running_val *= 1.0 + rate
 
         # Handle fractional values
         if time <= self.stabilize_year:
             # pylint:disable-msg=no-member
             remainder = time - np.floor(time)
-            running_val *= (1. + rate) ** remainder
+            running_val *= (1.0 + rate) ** remainder
 
         return running_val
 
@@ -142,12 +157,13 @@ class Config(BaseConfig):
     # Dynamics parameters
     #: Annual incidence of nonmedical prescription opioid use.
     nonmedical_incidence: TimeVaryingParam = TimeVaryingParam(
-        baseline=2496835, alpha_1=0.0016, joinpoint=2008,
-        alpha_2=-0.0747)
+        baseline=2496835, alpha_1=0.0016, joinpoint=2008, alpha_2=-0.0747
+    )
 
     #: Annual incidence of illicit opioid use from sources other than prescription opioids.
     illicit_incidence: TimeVaryingParam = TimeVaryingParam(
-        baseline=13489, alpha_1=0.235, stabilize_year=2025)
+        baseline=13489, alpha_1=0.235, stabilize_year=2025
+    )
 
     #: Annual transition rate of non-medical opioid use to opioid use disorder.
     nonmedical_to_oud: float = 0.06
@@ -165,10 +181,16 @@ class Config(BaseConfig):
     # calibration targets.
     #: Overdose mortality rate for opioid use disorder.
     oud_overdose: TimeVaryingParam = TimeVaryingParam(
-        baseline=0.003, alpha_1=0.224, joinpoint=2007, alpha_2=0.03)
+        baseline=0.003, alpha_1=0.224, joinpoint=2007, alpha_2=0.03
+    )
     #: Overdose mortality rate for illicit opioid use.
     illicit_overdose: TimeVaryingParam = TimeVaryingParam(
-        baseline=0.005, alpha_1=0.011, joinpoint=2011, alpha_2=0.356, stabilize_year=2025)
+        baseline=0.005,
+        alpha_1=0.011,
+        joinpoint=2011,
+        alpha_2=0.356,
+        stabilize_year=2025,
+    )
     #: "Exit rate" from nonmedical users group. (Either stop using or die from non-opioid causes).
     nonmedical_exit: float = 0.177
     #: "Exit rate" from opioid user disorder group.
@@ -213,8 +235,7 @@ class Intervention(BaseIntervention):
 
     """
 
-    def __init__(self, time=2015, nonmedical_incidence=None,
-                 illicit_incidence=None):
+    def __init__(self, time=2015, nonmedical_incidence=None, illicit_incidence=None):
         """Construct an intervention object.
 
         Parameters
@@ -278,7 +299,7 @@ def compute_overdose_deaths(run, start_year, end_year, config, intervention):
     if intervention:
         config = config.update(intervention)
 
-    deaths = 0.
+    deaths = 0.0
     for outcome_year in range(start_year, end_year + 1):
         state = run[outcome_year]
         nonmedical_deaths = state.nonmedical_users * config.nonmedical_overdose
@@ -346,24 +367,30 @@ def dynamics(state, time, config, intervention=None):
     # Update non-medical opioid use cases
     nonmedical_increase = config.nonmedical_incidence[time]
     nonmedical_decrease = nonmedical_users * (
-        config.nonmedical_exit + config.nonmedical_overdose +
-        config.nonmedical_to_oud + config.nonmedical_to_illicit)
+        config.nonmedical_exit
+        + config.nonmedical_overdose
+        + config.nonmedical_to_oud
+        + config.nonmedical_to_illicit
+    )
 
     nonmedical_delta = nonmedical_increase - nonmedical_decrease
 
     # Update opioid use disorder cases
     oud_increase = config.nonmedical_to_oud * nonmedical_users
     oud_decrease = oud_users * (
-        config.oud_exit[time] + config.oud_overdose[time] + config.oud_to_illicit[time])
+        config.oud_exit[time] + config.oud_overdose[time] + config.oud_to_illicit[time]
+    )
     oud_delta = oud_increase - oud_decrease
 
     # Update illicit opiate use cases
     illicit_increase = config.illicit_incidence[time] + (
-        config.oud_to_illicit[time] * oud_users +
-        config.nonmedical_to_illicit * nonmedical_users)
+        config.oud_to_illicit[time] * oud_users
+        + config.nonmedical_to_illicit * nonmedical_users
+    )
 
     illicit_decrease = illicit_users * (
-        config.illicit_exit + config.illicit_overdose[time])
+        config.illicit_exit + config.illicit_overdose[time]
+    )
 
     illicit_delta = illicit_increase - illicit_decrease
 
@@ -393,13 +420,18 @@ def simulate(initial_state, config, intervention=None, seed=None):
     """
     # pylint: disable-msg=unused-argument
     # pylint:disable-msg=no-member
-    t_eval = np.arange(config.start_time, config.end_time + config.delta_t, config.delta_t)
+    t_eval = np.arange(
+        config.start_time, config.end_time + config.delta_t, config.delta_t
+    )
 
-    solution = odeint(dynamics,
-                      y0=dataclasses.astuple(initial_state),
-                      t=t_eval,
-                      args=(config, intervention),
-                      rtol=1e-4, atol=1e-4)
+    solution = odeint(
+        dynamics,
+        y0=dataclasses.astuple(initial_state),
+        t=t_eval,
+        args=(config, intervention),
+        rtol=1e-4,
+        atol=1e-4,
+    )
 
     states = [initial_state] + [State(*state) for state in solution[1:]]
     return wn.framework.Run(states=states, times=t_eval)

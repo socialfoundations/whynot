@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/zykls/whynot.svg?token=ERpRX6SmHRsKJ8dNb4QV&branch=master)](https://travis-ci.com/zykls/whynot)
 [![Documentation Status](https://readthedocs.com/projects/whynot-docs/badge/?version=latest)](https://whynot-docs.readthedocs-hosted.com/en/latest/?badge=latest)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 **WhyNot** is a Python package that provides an experimental sandbox for causal
 inference. The package facilitates development, testing, and benchmarking causal

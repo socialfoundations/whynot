@@ -22,7 +22,7 @@ class Config(BaseConfig):
 
     # Dynamics parameters
     #: Natural growth rate of rabbits, when there's no foxes.
-    rabbit_growth: float = 1.
+    rabbit_growth: float = 1.0
     #: Natural death rate of rabbits, due to predation.
     rabbit_death: float = 0.1
     #: Natural death rate of fox, when there's no rabbits.
@@ -36,7 +36,7 @@ class Config(BaseConfig):
     #: End time of the simulator (in years).
     end_time: float = 100
     #: Spacing of the evaluation grid
-    delta_t: float = 1.
+    delta_t: float = 1.0
 
 
 @dataclasses.dataclass
@@ -45,9 +45,9 @@ class State(BaseState):
     """State of the Lotka-Volterra model."""
 
     #: Number of rabbits.
-    rabbits: float = 10.
+    rabbits: float = 10.0
     #: Number of foxes.
-    foxes: float = 5.
+    foxes: float = 5.0
 
 
 class Intervention(BaseIntervention):
@@ -106,11 +106,14 @@ def dynamics(state, time, config, intervention=None):
 
     rabbits, foxes = state
 
-    delta_rabbits = (config.rabbit_growth * rabbits
-                     - config.rabbit_death * rabbits * foxes)
+    delta_rabbits = (
+        config.rabbit_growth * rabbits - config.rabbit_death * rabbits * foxes
+    )
 
-    delta_foxes = (-config.fox_death * foxes +
-                   config.fox_growth * config.rabbit_death * rabbits * foxes)
+    delta_foxes = (
+        -config.fox_death * foxes
+        + config.fox_growth * config.rabbit_death * rabbits * foxes
+    )
 
     ds_dt = np.array([delta_rabbits, delta_foxes])
     return ds_dt
@@ -136,13 +139,18 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     """
     # pylint: disable-msg=unused-argument
-    t_eval = np.arange(config.start_time, config.end_time + config.delta_t, config.delta_t)
+    t_eval = np.arange(
+        config.start_time, config.end_time + config.delta_t, config.delta_t
+    )
 
-    solution = odeint(dynamics,
-                      y0=dataclasses.astuple(initial_state),
-                      t=t_eval,
-                      args=(config, intervention),
-                      rtol=1e-4, atol=1e-4)
+    solution = odeint(
+        dynamics,
+        y0=dataclasses.astuple(initial_state),
+        t=t_eval,
+        args=(config, intervention),
+        rtol=1e-4,
+        atol=1e-4,
+    )
 
     states = [initial_state] + [State(*state) for state in solution[1:]]
     return wn.framework.Run(states=states, times=t_eval)

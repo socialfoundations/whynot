@@ -21,7 +21,7 @@ def test_dependency_tracing_basic():
         delta_x2 = 2 * x2
         return [delta_x1, delta_x2, 23]
 
-    dependencies = wn.causal_graphs.trace_dependencies(func, (1., .2))
+    dependencies = wn.causal_graphs.trace_dependencies(func, (1.0, 0.2))
     assert set(dependencies[0]) == set([0, 1])
     assert set(dependencies[1]) == set([1])
     assert set(dependencies[2]) == set()
@@ -30,7 +30,7 @@ def test_dependency_tracing_basic():
     def univar(x1, x2):
         return x1 + x2
 
-    dependencies = wn.causal_graphs.trace_dependencies(univar, (1., .2))
+    dependencies = wn.causal_graphs.trace_dependencies(univar, (1.0, 0.2))
     assert set(dependencies[0]) == set([0, 1])
 
     # univariate input
@@ -40,43 +40,46 @@ def test_dependency_tracing_basic():
     dependencies = wn.causal_graphs.trace_dependencies(univar_input, 4)
     assert set(dependencies[0]) == set([0])
 
+
 def test_noop():
     """Test is the causal graph builder correctly handles noops."""
+
     def noop(x1):
         return 0 * x1
 
-    dependencies = wn.causal_graphs.trace_dependencies(noop, 1.)
+    dependencies = wn.causal_graphs.trace_dependencies(noop, 1.0)
     assert set(dependencies[0]) == set()
 
     def noop1(x, y, z):
         a = 2 * x + y - z
-        b = x * y * z * 0.
+        b = x * y * z * 0.0
         c = 0 * a ** 2 - b
         return c
 
     dependencies = wn.causal_graphs.trace_dependencies(noop1, (1, 2, 3))
     assert set(dependencies[0]) == set()
 
-    dependencies = wn.causal_graphs.trace_dependencies(noop1, (0., 2, 3))
+    dependencies = wn.causal_graphs.trace_dependencies(noop1, (0.0, 2, 3))
     assert set(dependencies[0]) == set()
-    
+
     # Avoid spurious hit
     def false_noop(x, y):
         return x + y
 
-    dependencies = wn.causal_graphs.trace_dependencies(false_noop, (0., 1.))
+    dependencies = wn.causal_graphs.trace_dependencies(false_noop, (0.0, 1.0))
     assert set(dependencies[0]) == set([0, 1])
 
-    dependencies = wn.causal_graphs.trace_dependencies(false_noop, (0., 0.))
+    dependencies = wn.causal_graphs.trace_dependencies(false_noop, (0.0, 0.0))
     assert set(dependencies[0]) == set([0, 1])
 
 
 def test_dependency_tracing_numpy():
     """Test for tracing dependencies with numpy operations."""
+
     def func(a, b, c):
         """Simple matrix multiplication test."""
         vec = np.array([a, b, c])
-        mat = np.array([[1., 0., 0.], [1., 1., 1.], [1., 0, 1.]])
+        mat = np.array([[1.0, 0.0, 0.0], [1.0, 1.0, 1.0], [1.0, 0, 1.0]])
 
         output = np.dot(mat, vec)
         return output
@@ -89,15 +92,16 @@ def test_dependency_tracing_numpy():
 
 def test_error_handling():
     """Test dependency tracing correctly handles multiple datatypes."""
+
     def func(a, b):
         return a + b
 
     # Floats should succeed
-    deps = wn.causal_graphs.trace_dependencies(func, (1., .2))
+    deps = wn.causal_graphs.trace_dependencies(func, (1.0, 0.2))
     assert set(deps[0]) == set([0, 1])
 
     # Int should be cast and work
-    deps = wn.causal_graphs.trace_dependencies(func, (1., 2))
+    deps = wn.causal_graphs.trace_dependencies(func, (1.0, 2))
     assert set(deps[0]) == set([0, 1])
 
     a = np.random.rand(3, 3).astype(np.float32)
@@ -112,7 +116,8 @@ def test_error_handling():
 
     # Should raise for string arguments
     with pytest.raises(ValueError):
-        wn.causal_graphs.trace_dependencies(func, (1., "str"))
+        wn.causal_graphs.trace_dependencies(func, (1.0, "str"))
+
 
 ###########################
 # Test tracing the dynamics
@@ -120,19 +125,24 @@ def test_error_handling():
 @dataclasses.dataclass
 class SimpleState(BaseState):
     """State for simple dynamics simulator."""
-    x1: float = 1.
-    x2: float = 2.
-    x3: float = 3.
+
+    x1: float = 1.0
+    x2: float = 2.0
+    x3: float = 3.0
+
 
 @dataclasses.dataclass
 class SimpleConfig(BaseConfig):
     """Config for simple dynamics simulator."""
+
     param: float = 2.0
-    start_time: float = 0.
-    end_time: float = 5.
+    start_time: float = 0.0
+    end_time: float = 5.0
+
 
 class SimpleIntervention(BaseIntervention):
     """Change param at the given time."""
+
     def __init__(self, time=5, **kwargs):
         super(SimpleIntervention, self).__init__(SimpleConfig, time, **kwargs)
 
@@ -159,13 +169,14 @@ def simple_dynamics(state, time, config):
         # Only x2 depends on input
         dx1 = config.param
         dx2 = x1 + x2 + x3
-        dx3 = 0.
+        dx3 = 0.0
 
     return [dx1, dx2, dx3]
 
 
-class SimpleSimulator():
+class SimpleSimulator:
     """Mock of a module."""
+
     def __init__(self):
         self.dynamics = simple_dynamics
         self.SUPPORTS_CAUSAL_GRAPHS = True
@@ -233,13 +244,13 @@ def test_ate_causal_graph_builder():
         return wnp.sum(run.states[-1].values())
 
     def soft_threshold(x, tau, r=200):
-        return 1. / (wnp.exp(tau * r - r * x) + 1)
+        return 1.0 / (wnp.exp(tau * r - r * x) + 1)
 
     def propensity_scores(run, intervention):
         # Treat the run if x1 + x2 above some "soft-threshold"
         # at the intervention time
         return 1.0 - 0.9 * soft_threshold(run[0].x1 + run[4].x2, tau=4)
-    
+
     intervention = SimpleIntervention(time=3, param=1.0)
     experiment = wn.DynamicsExperiment(
         name="test_experiment.",
@@ -250,7 +261,8 @@ def test_ate_causal_graph_builder():
         state_sampler=lambda: SimpleState(),
         propensity_scorer=propensity_scores,
         outcome_extractor=outcome_extractor,
-        covariate_builder=covariate_builder)
+        covariate_builder=covariate_builder,
+    )
 
     dset = experiment.run(num_samples=10, causal_graph=True)
     graph = dset.causal_graph

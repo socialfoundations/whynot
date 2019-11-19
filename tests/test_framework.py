@@ -9,6 +9,7 @@ import statsmodels
 import whynot as wn
 from whynot.framework import parameter
 
+
 def test_framework_run():
     """Test the whynot.Run object"""
     states = ["start_state", 2, 3, 4]
@@ -22,7 +23,7 @@ def test_framework_run():
 
 def test_parameter():
     """Test the parameter decorator."""
-    #Ccase when no standard arguments
+    # Ccase when no standard arguments
     @parameter(name="a", default=1, values=[1, 2], description="test a")
     @parameter(name="b", default=3, values=[3, 4], description="test b")
     def foo(a, b):
@@ -47,21 +48,24 @@ def test_parameter():
 
     # If a parameter is added, but omitted form the signature, we should raise
     with pytest.raises(ValueError):
+
         @parameter(name="a", default=0)
         def baz(propensity):
             return propensity
 
     # If a parameter is also part of standard args, we should raise
     with pytest.raises(ValueError):
+
         @parameter(name="rng", default=0)
         def foobar(rng):
             return 2
+
         wn.framework.extract_params(foobar, standard_args=["rng"])
 
     # If values isn't specified, we should handle things sensible
     @parameter(name="a", default=1)
     @parameter(name="b", default=3, values=[3, 4])
-    @parameter(name="c", default=4, values=np.arange(0.05, 0.95, 0.1)) 
+    @parameter(name="c", default=4, values=np.arange(0.05, 0.95, 0.1))
     def values_test(a, b, c):
         return a + b + c
 
@@ -70,9 +74,6 @@ def test_parameter():
     sampled = param_collection.sample()
     assert sampled["a"] == 1
     print(sampled)
-
-
-
 
 
 def test_parameter_collection():
@@ -86,7 +87,6 @@ def test_parameter_collection():
     projected = collection.project({"p1": 10})
     assert projected["p1"] == 10
     assert projected["p2"] == 2
-
 
     p3 = ExperimentParameter(name="p3", default=3)
     p4 = ExperimentParameter(name="p4", default=4)
@@ -121,16 +121,19 @@ def test_parameter_collection():
 class ToyConfig:
     num_steps: int = 10
 
+
 @dataclasses.dataclass
 class Intervention(ToyConfig):
     year: int = 0
     effect_size: int = 1
 
+
 @dataclasses.dataclass
 class ToyState:
     val: int = 0
 
-class ToySimulator():
+
+class ToySimulator:
     """Simple simulator for testing purposes.
 
     Dynamics are to add effect_size to state at each time step if
@@ -152,7 +155,9 @@ class ToySimulator():
                 state.val += intervention.effect_size
         return wn.framework.Run(states=states, times=times)
 
+
 TEST_SIMULATOR = ToySimulator()
+
 
 def check_shapes(dataset, num_samples, num_features):
     """Ensure the output has the right size."""
@@ -166,13 +171,16 @@ def check_rct_assigment(assignment, prob):
     """Ensure that RCT assignment has approximately the correct proportion of treated."""
     total_treated = np.sum(assignment)
     ci_low, ci_upp = statsmodels.stats.proportion.proportion_confint(
-        count=total_treated, nobs=len(assignment), alpha=0.001, method="beta")
+        count=total_treated, nobs=len(assignment), alpha=0.001, method="beta"
+    )
     assert ci_low <= prob <= ci_upp
+
 
 ### Helper methods for DynamicsExperiment tests
 def basic_state_sampler():
     """Initial state is 0 for all rollouts."""
     return ToyState(val=0)
+
 
 def correlated_state_sampler(num_samples):
     """Sample correlated initial states."""
@@ -181,20 +189,25 @@ def correlated_state_sampler(num_samples):
         states.append(ToyState(val=sample_idx))
     return states
 
+
 def basic_outcome_extractor(run):
     """Look at state value after 5 steps."""
     return run[5].val
+
 
 def basic_covariate_builder(run):
     """Return the final state of the run."""
     return np.array(run.states[-1].val)
 
-def build_experiment(state_sampler=basic_state_sampler,
-                     config=ToyConfig(num_steps=10),
-                     intervention=Intervention(year=0, effect_size=1),
-                     propensity_scorer=0.5,
-                     outcome_extractor=basic_outcome_extractor,
-                     covariate_builder=basic_covariate_builder):
+
+def build_experiment(
+    state_sampler=basic_state_sampler,
+    config=ToyConfig(num_steps=10),
+    intervention=Intervention(year=0, effect_size=1),
+    propensity_scorer=0.5,
+    outcome_extractor=basic_outcome_extractor,
+    covariate_builder=basic_covariate_builder,
+):
     """Construct a dynamics experiment instance with sane defaults."""
     return wn.framework.DynamicsExperiment(
         name="basic_test",
@@ -205,7 +218,9 @@ def build_experiment(state_sampler=basic_state_sampler,
         state_sampler=state_sampler,
         propensity_scorer=propensity_scorer,
         outcome_extractor=outcome_extractor,
-        covariate_builder=covariate_builder)
+        covariate_builder=covariate_builder,
+    )
+
 
 # DynamicsExperiment class tests.
 def test_dynamics_experiment_basic():
@@ -220,13 +235,12 @@ def test_dynamics_experiment_basic():
     dataset = basic_exp.run(num_samples=200)
     check_shapes(dataset, 200, 1)
 
-
     # Make sure the true effect is correctly computed
     assert np.allclose(5, dataset.true_effects)
 
     # Make sure the assignment and outcome are consistent
-    assert np.allclose(0, dataset.outcomes[dataset.treatments == 0.])
-    assert np.allclose(5, dataset.outcomes[dataset.treatments == 1.])
+    assert np.allclose(0, dataset.outcomes[dataset.treatments == 0.0])
+    assert np.allclose(5, dataset.outcomes[dataset.treatments == 1.0])
 
     # Make sure that incorrect parameters are flagged
     with pytest.raises(ValueError):
@@ -247,26 +261,30 @@ def test_state_sampler():
             return ToyState(val=0)
         return ToyState(val=1)
 
-    exp = build_experiment(state_sampler=random_initial_state,
-                           covariate_builder=initial_state_covariates)
+    exp = build_experiment(
+        state_sampler=random_initial_state, covariate_builder=initial_state_covariates
+    )
     dataset0 = exp.run(num_samples=100, seed=1234)
     dataset1 = exp.run(num_samples=100, seed=1234)
 
     assert np.allclose(dataset0.covariates, dataset1.covariates)
 
-   # Ensure the state sampler correctly deals with correlated state sampling
-    exp = build_experiment(state_sampler=correlated_state_sampler,
-                           covariate_builder=initial_state_covariates)
+    # Ensure the state sampler correctly deals with correlated state sampling
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler,
+        covariate_builder=initial_state_covariates,
+    )
     dataset = exp.run(num_samples=100, seed=1234)
     assert np.allclose(np.expand_dims(np.arange(100), axis=1), dataset.covariates)
 
     # Test that parameters play nicely with state sampler
-    @parameter(name='init_val', default=2)
+    @parameter(name="init_val", default=2)
     def parameterized_sampler(init_val):
         return ToyState(val=init_val)
 
-    exp = build_experiment(state_sampler=parameterized_sampler,
-                           covariate_builder=initial_state_covariates)
+    exp = build_experiment(
+        state_sampler=parameterized_sampler, covariate_builder=initial_state_covariates
+    )
 
     # Ensure default works
     dataset = exp.run(num_samples=10)
@@ -281,6 +299,7 @@ def test_state_sampler():
 
     with pytest.raises(ValueError):
         exp.run(num_samples=10, random_val=123)
+
 
 def test_config():
     """Test simulator config methods."""
@@ -336,6 +355,7 @@ def test_intervention():
     @parameter(name="effect_size", default=2)
     def pintervention(effect_size):
         return Intervention(effect_size=effect_size)
+
     exp = build_experiment(intervention=pintervention)
 
     # Default
@@ -365,7 +385,6 @@ def test_propensity_scorer_rct():
     dataset = exp.run(num_samples=1000, seed=1234)
     check_rct_assigment(dataset.treatments, 0.8)
 
-
     # Make sure providing a function for the propensity score also works
     exp = build_experiment(propensity_scorer=lambda: 0.3)
     dataset = exp.run(num_samples=1000, seed=1234)
@@ -377,7 +396,7 @@ def test_propensity_scorer_rct():
         exp.run(num_samples=1000, seed=1234)
 
     with pytest.raises(ValueError):
-        exp = build_experiment(propensity_scorer=2.)
+        exp = build_experiment(propensity_scorer=2.0)
         exp.run(num_samples=1000, seed=1234)
 
     # Test parameterizing the propensity scorer
@@ -401,19 +420,24 @@ def test_propensity_scorer_rct():
 
     # Tests specifying control_config and treatment_config
     config = ToyConfig(num_steps=13)
+
     def config_scorer(config):
         assert config.num_steps == 13
         return 0.2
+
     exp = build_experiment(propensity_scorer=config_scorer, config=config)
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.2)
 
     intervene = Intervention(year=4)
+
     def intervention_scorer(intervention):
         assert intervention.year == 4
         return 0.2
-    exp = build_experiment(propensity_scorer=intervention_scorer,
-                           intervention=intervene)
+
+    exp = build_experiment(
+        propensity_scorer=intervention_scorer, intervention=intervene
+    )
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.2)
 
@@ -421,10 +445,13 @@ def test_propensity_scorer_rct():
         assert config.num_steps == 13
         assert intervention.year == 4
         return 0.2
-    exp = build_experiment(propensity_scorer=both_scorer, config=config,
-                           intervention=intervene)
+
+    exp = build_experiment(
+        propensity_scorer=both_scorer, config=config, intervention=intervene
+    )
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.2)
+
 
 def test_propensity_scorer_observation():
     """Test propensity scorer in the observational setting."""
@@ -437,7 +464,9 @@ def test_propensity_scorer_observation():
         assert np.allclose(np.array([s.val for s in control_run.states]), start)
         return 0.5
 
-    exp = build_experiment(state_sampler=correlated_state_sampler, propensity_scorer=crun_scorer)
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler, propensity_scorer=crun_scorer
+    )
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.5)
 
@@ -447,7 +476,9 @@ def test_propensity_scorer_observation():
         assert np.allclose(np.array([s.val for s in run.states]), start)
         return 0.5
 
-    exp = build_experiment(state_sampler=correlated_state_sampler, propensity_scorer=run_scorer)
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler, propensity_scorer=run_scorer
+    )
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.5)
 
@@ -457,7 +488,9 @@ def test_propensity_scorer_observation():
         assert np.allclose(start + np.arange(10), run_vals)
         return 0.5
 
-    exp = build_experiment(state_sampler=correlated_state_sampler, propensity_scorer=trun_scorer)
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler, propensity_scorer=trun_scorer
+    )
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.5)
 
@@ -470,16 +503,20 @@ def test_propensity_scorer_observation():
 
         # Make sure they are control runs (i.e. all constant)
         for run in control_runs:
-            assert np.allclose(np.array([s.val for s in run.states]), run.initial_state.val)
+            assert np.allclose(
+                np.array([s.val for s in run.states]), run.initial_state.val
+            )
 
         # Only treat first half of runs
         n = len(control_runs)
-        propensities = np.zeros((n, ))
-        propensities[: n // 2] = 1.
+        propensities = np.zeros((n,))
+        propensities[: n // 2] = 1.0
         return propensities
 
     n = 100
-    exp = build_experiment(state_sampler=correlated_state_sampler, propensity_scorer=cruns_scorer)
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler, propensity_scorer=cruns_scorer
+    )
     dataset = exp.run(num_samples=n, seed=1234)
     assert np.allclose(dataset.treatments[: n // 2], 1)
     assert np.allclose(dataset.treatments[n // 2 :], 0)
@@ -488,7 +525,9 @@ def test_propensity_scorer_observation():
         # Runs should be the same as control runs
         return cruns_scorer(runs)
 
-    exp = build_experiment(state_sampler=correlated_state_sampler, propensity_scorer=runs_scorer)
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler, propensity_scorer=runs_scorer
+    )
     dataset = exp.run(num_samples=n, seed=1234)
     assert np.allclose(dataset.treatments[: n // 2], 1)
     assert np.allclose(dataset.treatments[n // 2 :], 0)
@@ -501,16 +540,20 @@ def test_propensity_scorer_observation():
 
         # Make sure they are control runs (i.e. all constant)
         for run in treatment_runs:
-            assert np.allclose(np.array([s.val for s in run.states]),
-                               run.initial_state.val + np.arange(10))
+            assert np.allclose(
+                np.array([s.val for s in run.states]),
+                run.initial_state.val + np.arange(10),
+            )
 
         # Only treat first half of runs
         n = len(treatment_runs)
-        propensities = np.zeros((n, ))
-        propensities[: n // 2] = 1.
+        propensities = np.zeros((n,))
+        propensities[: n // 2] = 1.0
         return propensities
 
-    exp = build_experiment(state_sampler=correlated_state_sampler, propensity_scorer=truns_scorer)
+    exp = build_experiment(
+        state_sampler=correlated_state_sampler, propensity_scorer=truns_scorer
+    )
     dataset = exp.run(num_samples=n, seed=1234)
     assert np.allclose(dataset.treatments[: n // 2], 1)
     assert np.allclose(dataset.treatments[n // 2 :], 0)
@@ -530,7 +573,7 @@ def test_outcome_extractor():
     assert np.allclose(dataset.outcomes[dataset.treatments == 1], 5)
 
     # Compose compute_outcome with parameters
-    @parameter(name='observation_step', default=3)
+    @parameter(name="observation_step", default=3)
     def parameter_compute_outcome(run, observation_step):
         """Look at state value after observation_step steps."""
         return run[observation_step].val

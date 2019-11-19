@@ -12,7 +12,7 @@ class BaseConfig:
     start_time: float = 0
     end_time: float = 0
     # Time elapsed between measurements of the system.
-    delta_t: float = 1.
+    delta_t: float = 1.0
 
     def update(self, intervention):
         """Generate a new config after applying the intervention."""

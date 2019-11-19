@@ -32,8 +32,9 @@ class HIVEnv(ODEEnv):
         state_space_high = np.inf * np.ones(state_dim)
         observation_space = spaces.Box(state_space_low, state_space_high)
 
-        super(HIVEnv, self).__init__(simulate, config, action_space,
-                                     observation_space, initial_state)
+        super(HIVEnv, self).__init__(
+            simulate, config, action_space, observation_space, initial_state
+        )
 
     def _get_intervention(self, action):
         """Return the intervention in the simulator required to tack action."""
@@ -49,8 +50,8 @@ class HIVEnv(ODEEnv):
         """Compute the reward based on the observed state and choosen intervention."""
         # pylint: disable-msg=invalid-name
         # Constants chosen according to the reference paper
-        Q, R1, R2, S = 0.1, 20000., 20000., 1000.
+        Q, R1, R2, S = 0.1, 20000.0, 20000.0, 1000.0
         reward = S * state.immune_response - Q * state.free_virus
-        reward -= R1 * (intervention.updates['epsilon_1'] ** 2)
-        reward -= R2 * (intervention.updates['epsilon_2'] ** 2)
+        reward -= R1 * (intervention.updates["epsilon_1"] ** 2)
+        reward -= R2 * (intervention.updates["epsilon_2"] ** 2)
         return reward

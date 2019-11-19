@@ -40,6 +40,10 @@ def estimate_treatment_effect(covariates, treatment, outcome):
     ate = results.params[1]
     stderr = results.bse[1]
     conf_int = (ate - 1.96 * stderr, ate + 1.96 * stderr)
-    return InferenceResult(ate=ate, stderr=stderr, ci=conf_int,
-                           individual_effects=None,
-                           elapsed_time=stop_time - start_time)
+    return InferenceResult(
+        ate=ate,
+        stderr=stderr,
+        ci=conf_int,
+        individual_effects=None,
+        elapsed_time=stop_time - start_time,
+    )

@@ -115,7 +115,7 @@ class State(BaseState):
 #################
 # Dynamics
 #################
-class WorldDynamics():
+class WorldDynamics:
     """Class encapsulating world2 dynamics."""
 
     def __init__(self, config, intervention, initial_state):
@@ -152,7 +152,9 @@ class WorldDynamics():
     @property
     def crowding_ratio(self):
         """Return current crowding ratio."""
-        return self._state.population / (self.config.land_area * self.config.population_density)
+        return self._state.population / (
+            self.config.land_area * self.config.population_density
+        )
 
     @property
     def pollution_ratio(self):
@@ -162,20 +164,25 @@ class WorldDynamics():
     @property
     def food_ratio(self):
         """Return current food ratio."""
-        capital_investment_ratio_in_agr = (self.capital_investment_ratio
-                                           * self._state.capital_investment_in_agriculture
-                                           / self.config.capital_investment_agriculture)
+        capital_investment_ratio_in_agr = (
+            self.capital_investment_ratio
+            * self._state.capital_investment_in_agriculture
+            / self.config.capital_investment_agriculture
+        )
 
         pollution_multiplier = tables.FOOD_FROM_POLLUTION[self.pollution_ratio]
         crowding_multiplier = tables.FOOD_FROM_CROWDING[self.crowding_ratio]
-        capital_investment_food_potential = \
-            tables.FOOD_POTENTIAL_FROM_CAPITAL_INVESTMENT[capital_investment_ratio_in_agr]
+        capital_investment_food_potential = tables.FOOD_POTENTIAL_FROM_CAPITAL_INVESTMENT[
+            capital_investment_ratio_in_agr
+        ]
 
-        food_ratio = (capital_investment_food_potential
-                      * crowding_multiplier
-                      * pollution_multiplier
-                      * self.config.food_coefficient
-                      / self.config.food_normal)
+        food_ratio = (
+            capital_investment_food_potential
+            * crowding_multiplier
+            * pollution_multiplier
+            * self.config.food_coefficient
+            / self.config.food_normal
+        )
 
         return food_ratio
 
@@ -183,18 +190,24 @@ class WorldDynamics():
     def standard_of_living(self):
         """Return the current standard of living."""
         # Natural resources
-        frac_natural_resources_remaining = (self._state.natural_resources /
-                                            self.initial_natural_resources)
-        natural_resources_extraction_multiplier = \
-            tables.NATURAL_RESOURCE_EXTRACTION[frac_natural_resources_remaining]
+        frac_natural_resources_remaining = (
+            self._state.natural_resources / self.initial_natural_resources
+        )
+        natural_resources_extraction_multiplier = tables.NATURAL_RESOURCE_EXTRACTION[
+            frac_natural_resources_remaining
+        ]
 
         effective_capital_investment_ratio = (
             self.capital_investment_ratio
             * natural_resources_extraction_multiplier
             * (1.0 - self._state.capital_investment_in_agriculture)
-            / (1.0 - self.config.capital_investment_agriculture))
+            / (1.0 - self.config.capital_investment_agriculture)
+        )
 
-        return effective_capital_investment_ratio / self.config.effective_capital_investment_ratio
+        return (
+            effective_capital_investment_ratio
+            / self.config.effective_capital_investment_ratio
+        )
 
     @property
     def death_rate_per_year(self):
@@ -209,7 +222,8 @@ class WorldDynamics():
             * material_multiplier
             * pollution_multiplier
             * food_multiplier
-            * crowding_multiplier)
+            * crowding_multiplier
+        )
 
         return death_rate_per_year
 
@@ -226,47 +240,55 @@ class WorldDynamics():
             * material_multiplier
             * pollution_multiplier
             * food_multiplier
-            * crowding_multiplier)
+            * crowding_multiplier
+        )
 
         return birth_rate_per_year
 
     @property
     def natural_resources_usage_rate(self):
         """Return the rate of natural resource usage at the current time."""
-        material_multiplier = tables.NATURAL_RESOURCES_FROM_MATERIAL[self.standard_of_living]
+        material_multiplier = tables.NATURAL_RESOURCES_FROM_MATERIAL[
+            self.standard_of_living
+        ]
 
         natural_resources_usage_rate = (
             self._state.population
             * self.config.natural_resources_usage
-            * material_multiplier)
+            * material_multiplier
+        )
 
         return natural_resources_usage_rate
 
     @property
     def capital_investment_rate(self):
         """Return the rate of capital investment at the current time."""
-        material_multiplier = tables.CAPITAL_INVESTMENT_MULTIPLIER_TABLE[self.standard_of_living]
+        material_multiplier = tables.CAPITAL_INVESTMENT_MULTIPLIER_TABLE[
+            self.standard_of_living
+        ]
 
         capital_investment_generation = (
             self._state.population
             * material_multiplier
-            * self.config.capital_investment_generation)
+            * self.config.capital_investment_generation
+        )
 
         capital_investment_discard = (
-            self._state.capital_investment
-            * self.config.capital_investment_discard)
+            self._state.capital_investment * self.config.capital_investment_discard
+        )
 
         return capital_investment_generation - capital_investment_discard
 
     @property
     def pollution_rate(self):
         """Return the current rate of pollution."""
-        capital_multiplier = tables.POLLUTION_FROM_CAPITAL[self.capital_investment_ratio]
+        capital_multiplier = tables.POLLUTION_FROM_CAPITAL[
+            self.capital_investment_ratio
+        ]
 
         pollution_generation = (
-            self._state.population
-            * capital_multiplier
-            * self.config.pollution)
+            self._state.population * capital_multiplier * self.config.pollution
+        )
 
         absorption_time = tables.POLLUTION_ABSORPTION_TIME_TABLE[self.pollution_ratio]
         pollution_absorption = self._state.pollution / absorption_time
@@ -276,36 +298,48 @@ class WorldDynamics():
     @property
     def quality_of_life(self):
         """Return the current quality of life meta-statistic."""
-        material_multiplier = tables.QUALITY_OF_LIFE_FROM_MATERIAL[self.standard_of_living]
+        material_multiplier = tables.QUALITY_OF_LIFE_FROM_MATERIAL[
+            self.standard_of_living
+        ]
         crowding_multiplier = tables.QUALITY_OF_LIFE_FROM_CROWDING[self.crowding_ratio]
         food_multiplier = tables.QUALITY_OF_LIFE_FROM_FOOD[self.food_ratio]
-        pollution_multiplier = tables.QUALITY_OF_LIFE_FROM_POLLUTION[self.pollution_ratio]
+        pollution_multiplier = tables.QUALITY_OF_LIFE_FROM_POLLUTION[
+            self.pollution_ratio
+        ]
 
         quality_of_life = (
             self.config.quality_of_life_standard
             * material_multiplier
             * crowding_multiplier
             * food_multiplier
-            * pollution_multiplier)
+            * pollution_multiplier
+        )
 
         return quality_of_life
 
     def capital_invest_agr_frac_delta(self, delta_t):
         """Return the change in the fraction of captial invested in agriculture."""
-        capital_fraction_indicated_by_food_ratio =\
-            tables.CAPITAL_FRACTION_INDICATE_BY_FOOD_RATIO_TABLE[self.food_ratio]
+        capital_fraction_indicated_by_food_ratio = tables.CAPITAL_FRACTION_INDICATE_BY_FOOD_RATIO_TABLE[
+            self.food_ratio
+        ]
 
-        quality_of_life_material = tables.QUALITY_OF_LIFE_FROM_MATERIAL[self.standard_of_living]
+        quality_of_life_material = tables.QUALITY_OF_LIFE_FROM_MATERIAL[
+            self.standard_of_living
+        ]
         quality_of_life_food = tables.QUALITY_OF_LIFE_FROM_FOOD[self.food_ratio]
 
         life_quality_ratio = quality_of_life_material / quality_of_life_food
-        capital_investment_from_quality_ratio = \
-            tables.CAPITAL_INVESTMENT_FROM_QUALITY[life_quality_ratio]
+        capital_investment_from_quality_ratio = tables.CAPITAL_INVESTMENT_FROM_QUALITY[
+            life_quality_ratio
+        ]
 
-        delta = (delta_t / self.config.capital_investment_in_agriculture_frac_adj_time) \
-            * (capital_fraction_indicated_by_food_ratio
-               * capital_investment_from_quality_ratio
-               - self._state.capital_investment_in_agriculture)
+        delta = (
+            delta_t / self.config.capital_investment_in_agriculture_frac_adj_time
+        ) * (
+            capital_fraction_indicated_by_food_ratio
+            * capital_investment_from_quality_ratio
+            - self._state.capital_investment_in_agriculture
+        )
 
         return delta
 
@@ -331,7 +365,9 @@ class WorldDynamics():
         pollution_delta = self.pollution_rate * delta_t
 
         # Investment in agriculture
-        capital_investment_in_agr_frac_delta = self.capital_invest_agr_frac_delta(delta_t)
+        capital_investment_in_agr_frac_delta = self.capital_invest_agr_frac_delta(
+            delta_t
+        )
 
         # Update the state variables. Gather deltas first to ensure the updates
         # are atomic, e.g. since changing the population will also change the
@@ -340,7 +376,9 @@ class WorldDynamics():
         self._state.natural_resources += natural_resources_delta
         self._state.capital_investment += capital_investment_delta
         self._state.pollution += pollution_delta
-        self._state.capital_investment_in_agriculture += capital_investment_in_agr_frac_delta
+        self._state.capital_investment_in_agriculture += (
+            capital_investment_in_agr_frac_delta
+        )
         self._state.quality_of_life = self.quality_of_life
 
 
@@ -370,7 +408,9 @@ def simulate(initial_state, config, intervention=None, seed=None):
     world = WorldDynamics(config, intervention, initial_state)
 
     states = [initial_state]
-    times = np.arange(config.start_time, config.end_time + config.delta_t, config.delta_t)
+    times = np.arange(
+        config.start_time, config.end_time + config.delta_t, config.delta_t
+    )
     for time in times[:-1]:
         world.step(time, config.delta_t)
         states.append(world.state)

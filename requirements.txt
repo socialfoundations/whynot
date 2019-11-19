@@ -1,9 +1,9 @@
 -e .
 
+black
 matplotlib
 jupyter
-pylint
-pycodestyle
+pre-commit
 pydocstyle
 pytest
 sphinx

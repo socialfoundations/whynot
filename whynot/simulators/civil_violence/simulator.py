@@ -48,7 +48,7 @@ class Config:
     # What's the longest time a citizen can stay in jail?
     max_jail_term: int = 5
     #: How strongly other agent grievances affect each agent in prison.
-    prison_interaction: float = .1
+    prison_interaction: float = 0.1
     #: A fixed parameter to calibrate arrest likelihood.
     arrest_prob_constant: float = 2.3
 
@@ -57,7 +57,7 @@ def count_type_citizens(model, condition, exclude_jailed=True):
     """Count agents as either Quiescent/Active."""
     count = 0
     for agent in model.schedule.agents:
-        if agent.breed == 'cop':
+        if agent.breed == "cop":
             continue
         if exclude_jailed and agent.jail_sentence:
             continue
@@ -70,7 +70,7 @@ def count_jailed(model):
     """Count number of jailed agents."""
     count = 0
     for agent in model.schedule.agents:
-        if agent.breed == 'citizen' and agent.jail_sentence:
+        if agent.breed == "citizen" and agent.jail_sentence:
             count += 1
     return count
 
@@ -109,14 +109,16 @@ def simulate(agents, config, seed=None, max_steps=1000):
 
     assert len(agents) + num_cops < num_cells
 
-    model = CivilViolenceModel(height=config.grid_height,
-                               width=config.grid_width,
-                               cop_vision=config.cop_vision,
-                               max_jail_term=config.max_jail_term,
-                               prison_interaction=config.prison_interaction,
-                               arrest_prob_constant=config.arrest_prob_constant,
-                               max_steps=max_steps,
-                               seed=seed)
+    model = CivilViolenceModel(
+        height=config.grid_height,
+        width=config.grid_width,
+        cop_vision=config.cop_vision,
+        max_jail_term=config.max_jail_term,
+        prison_interaction=config.prison_interaction,
+        arrest_prob_constant=config.arrest_prob_constant,
+        max_steps=max_steps,
+        seed=seed,
+    )
     # Place agents on grid
     for i, agent in enumerate(agents):
         model.add_agent(
@@ -126,7 +128,8 @@ def simulate(agents, config, seed=None, max_steps=1000):
             agent.legitimacy,
             agent.risk_aversion,
             agent.active_threshold,
-            agent.vision)
+            agent.vision,
+        )
 
     for i in range(num_cops):
         model.add_cop(i + len(agents), model.find_empty())
@@ -145,12 +148,13 @@ def simulate(agents, config, seed=None, max_steps=1000):
         "risk_aversion": "risk_aversion",
         "threshold": "threshold",
         "arrest_parameter": "arrest_parameter",
-        "vision": "vision"}
+        "vision": "vision",
+    }
 
     datacollector = DataCollector(agent_reporters=agent_reporters)
     while model.running:
         model.step()
     datacollector.collect(model)
     dataframe = datacollector.get_agent_vars_dataframe()
-    observations = dataframe[dataframe.breed == 'citizen'].drop(columns='breed')
+    observations = dataframe[dataframe.breed == "citizen"].drop(columns="breed")
     return observations

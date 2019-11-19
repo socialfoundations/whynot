@@ -6,8 +6,7 @@ from whynot.simulators import hiv
 
 def get_experiments():
     """Return all experiments for HIV."""
-    return [HIVRCT,
-            HIVConfounding]
+    return [HIVRCT, HIVConfounding]
 
 
 def sample_initial_states(rng):
@@ -36,15 +35,20 @@ HIVRCT = DynamicsExperiment(
     state_sampler=sample_initial_states,
     propensity_scorer=0.5,
     outcome_extractor=lambda run: run[149].infected_T2,
-    covariate_builder=lambda run: run.initial_state.values())
+    covariate_builder=lambda run: run.initial_state.values(),
+)
 
 
 ##########################
 # Confounding Experiments
 ##########################
 
-@parameter(name="treatment_bias", default=0.9,
-           description="Treatment probability bias between more infected and less infected units.")
+
+@parameter(
+    name="treatment_bias",
+    default=0.9,
+    description="Treatment probability bias between more infected and less infected units.",
+)
 def hiv_confounded_propensity(run, treatment_bias):
     """Probability of treating each unit.
 
@@ -53,19 +57,22 @@ def hiv_confounded_propensity(run, treatment_bias):
     if run.initial_state.immune_response > 10 and run.initial_state.free_virus > 1:
         return treatment_bias
 
-    return 1. - treatment_bias
+    return 1.0 - treatment_bias
 
 
 # pylint: disable-msg=invalid-name
 #: Experiment on effect of increased drug efficacy on infected macrophages with confounding
 HIVConfounding = DynamicsExperiment(
     name="hiv_confounding",
-    description=("Study effect of increased drug efficacy on infected macrophages (cells/ml). "
-                 "Units with high immune response and free virus are more likely to be treated."),
+    description=(
+        "Study effect of increased drug efficacy on infected macrophages (cells/ml). "
+        "Units with high immune response and free virus are more likely to be treated."
+    ),
     simulator=hiv,
     simulator_config=hiv.Config(epsilon_1=0.1, start_time=0, end_time=150),
     intervention=hiv.Intervention(time=100, epsilon_1=0.5),
     state_sampler=sample_initial_states,
     propensity_scorer=hiv_confounded_propensity,
     outcome_extractor=lambda run: run[149].infected_T2,
-    covariate_builder=lambda intervention, run: run.initial_state.values())
+    covariate_builder=lambda intervention, run: run.initial_state.values(),
+)

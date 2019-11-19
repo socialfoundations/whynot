@@ -20,12 +20,14 @@ def run_simulator(agents, config, treatment_assignment, seed):
     for agent, treated in zip(agents, treatment_assignment):
         agent = copy.deepcopy(agent)
         if treated:
-            agent.risk_aversion = .9
+            agent.risk_aversion = 0.9
         population.append(agent)
     return civil_violence.simulate(population, config, seed)
 
 
-def run_abm_experiment(agents, treatment_assignments, config, rng, parallelize, show_progress=True):
+def run_abm_experiment(
+    agents, treatment_assignments, config, rng, parallelize, show_progress=True
+):
     """Run an agent-based modeling experiment.
 
     We run (in parallel) the agent based model for the given treatment assignments to
@@ -68,7 +70,10 @@ def run_abm_experiment(agents, treatment_assignments, config, rng, parallelize, 
         one_hot[idx] = 1.0
         counterfactual_assignments.append(one_hot)
 
-    assignments = [treatment_assignments, baseline_assignments] + counterfactual_assignments
+    assignments = [
+        treatment_assignments,
+        baseline_assignments,
+    ] + counterfactual_assignments
 
     # Use the same seed for all runs to ensure difference in counterfactual
     # outcome only due to treatment assignment.
@@ -76,7 +81,9 @@ def run_abm_experiment(agents, treatment_assignments, config, rng, parallelize, 
     parallel_args = [(agents, config, assign, seed) for assign in assignments]
 
     if parallelize:
-        runs = utils.parallelize(run_simulator, parallel_args, show_progress=show_progress)
+        runs = utils.parallelize(
+            run_simulator, parallel_args, show_progress=show_progress
+        )
     else:
         runs = [run_simulator(*args) for args in parallel_args]
 
@@ -103,26 +110,54 @@ def sample_agents(rng, num_samples, citizen_vision):
         agent = civil_violence.Agent()
         agent.vision = citizen_vision
         agent.hardship = rng.uniform()
-        agent.risk_aversion = .1
-        agent.active_threshold = .1
+        agent.risk_aversion = 0.1
+        agent.active_threshold = 0.1
         agent.legitimacy = rng.uniform()
         agents.append(agent)
     return agents
 
 
-@parameter(name="citizen_vision", default=5, values=list(range(1, 7)),
-           description="How many other citizens each agent can see.")
-@parameter(name="agent_density", default=0.8, values=np.arange(0.05, 0.95, 0.1),
-           description="How densely packed are agents on the grid.")
-@parameter(name='cop_fraction', default=0.05, values=[.1, .2, .3],
-           description="number of cops = floor(num_samples * cop_fraction)")
-@parameter(name="arrest_prob_constant", default=0.9, values=[0.6, 1.2, 2.3, 4.6],
-           description="How strong the interaction between agents is.")
-@parameter(name="prison_interaction", default=0.4, values=[.01, .05, .1, .15, .2],
-           description="Degree to which regime legitimacy is drawn toward the min while in prison")
-def run_civil_violence(citizen_vision, agent_density, cop_fraction, arrest_prob_constant,
-                       prison_interaction, num_samples=100, seed=None, show_progress=False,
-                       parallelize=True):
+@parameter(
+    name="citizen_vision",
+    default=5,
+    values=list(range(1, 7)),
+    description="How many other citizens each agent can see.",
+)
+@parameter(
+    name="agent_density",
+    default=0.8,
+    values=np.arange(0.05, 0.95, 0.1),
+    description="How densely packed are agents on the grid.",
+)
+@parameter(
+    name="cop_fraction",
+    default=0.05,
+    values=[0.1, 0.2, 0.3],
+    description="number of cops = floor(num_samples * cop_fraction)",
+)
+@parameter(
+    name="arrest_prob_constant",
+    default=0.9,
+    values=[0.6, 1.2, 2.3, 4.6],
+    description="How strong the interaction between agents is.",
+)
+@parameter(
+    name="prison_interaction",
+    default=0.4,
+    values=[0.01, 0.05, 0.1, 0.15, 0.2],
+    description="Degree to which regime legitimacy is drawn toward the min while in prison",
+)
+def run_civil_violence(
+    citizen_vision,
+    agent_density,
+    cop_fraction,
+    arrest_prob_constant,
+    prison_interaction,
+    num_samples=100,
+    seed=None,
+    show_progress=False,
+    parallelize=True,
+):
     """Run an RCT experiment on ABM civil violence model.
 
     Each unit in the experiment is an agent in the model. Treatment corresponds to
@@ -178,7 +213,8 @@ def run_civil_violence(citizen_vision, agent_density, cop_fraction, arrest_prob_
         grid_width=side_length,
         cop_fraction=cop_fraction,
         arrest_prob_constant=arrest_prob_constant,
-        prison_interaction=prison_interaction)
+        prison_interaction=prison_interaction,
+    )
 
     # Generate population of agents
     agents = sample_agents(rng, num_samples, citizen_vision)
@@ -187,8 +223,13 @@ def run_civil_violence(citizen_vision, agent_density, cop_fraction, arrest_prob_
     rct_assignments = rng.uniform(size=(num_samples,)) < 0.5
 
     outcomes, true_effects = run_abm_experiment(
-        agents, rct_assignments, simulator_config, rng, parallelize=parallelize,
-        show_progress=show_progress)
+        agents,
+        rct_assignments,
+        simulator_config,
+        rng,
+        parallelize=parallelize,
+        show_progress=show_progress,
+    )
 
     covariates = pd.DataFrame(dataclasses.asdict(a) for a in agents).values
     treatment = rct_assignments.astype(np.int64)
@@ -200,4 +241,5 @@ def run_civil_violence(citizen_vision, agent_density, cop_fraction, arrest_prob_
 RCT = GenericExperiment(
     name="civil_violence_rct",
     description="RCT experiment showing the effect of SUTVA violations on inference.",
-    run_method=run_civil_violence)
+    run_method=run_civil_violence,
+)

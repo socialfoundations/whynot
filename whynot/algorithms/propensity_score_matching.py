@@ -29,19 +29,22 @@ def estimate_treatment_effect(covariates, treatment, outcome):
 
     """
     start_time = perf_counter()
-    data = pd.DataFrame({'treatment': treatment, 'outcome': outcome})
+    data = pd.DataFrame({"treatment": treatment, "outcome": outcome})
 
     covdict = {}
     for j in range(covariates.shape[1]):
         name = str(j)
         data[name] = covariates[:, j]
-        covdict[name] = 'c'
+        covdict[name] = "c"
 
     matcher = PropensityScoreMatching()
-    ate = matcher.estimate_ATE(data, 'treatment', 'outcome', covdict, bootstrap=True)
+    ate = matcher.estimate_ATE(data, "treatment", "outcome", covdict, bootstrap=True)
     stop_time = perf_counter()
 
-    return InferenceResult(ate=ate[1], stderr=None,
-                           ci=(ate[0], ate[2]),
-                           individual_effects=None,
-                           elapsed_time=stop_time - start_time)
+    return InferenceResult(
+        ate=ate[1],
+        stderr=None,
+        ci=(ate[0], ate[2]),
+        individual_effects=None,
+        elapsed_time=stop_time - start_time,
+    )

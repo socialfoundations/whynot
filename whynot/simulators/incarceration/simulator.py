@@ -73,29 +73,26 @@ def infect(person_sex, relation_type, relation_sex):
     relation_sex : string
         Sex of related person ('m' or 'f')
 
-    Returns:
-    int
+    Returns
+    -------
+    infected : int
         1 if infected, 0 otherwise
 
     """
     infection_probability_month = {
-        'f': {
-            'parent': {'f': 0.000849988733768181,
-                       'm': 0.0112878570024662, },
-            'sibling': {'f': 0.00801193753900653,
-                        'm': 0.0332053842229949, },
-            'partner': {'*': 0.0043472740358963},
-            'child':  {'*': 0.0169602401420906}
+        "f": {
+            "parent": {"f": 0.000849988733768181, "m": 0.0112878570024662,},
+            "sibling": {"f": 0.00801193753900653, "m": 0.0332053842229949,},
+            "partner": {"*": 0.0043472740358963},
+            "child": {"*": 0.0169602401420906},
         },
-        'm': {
-            'parent': {'f': 0.00347339838166261,
-                       'm': 0.0113344842544054, },
-            'sibling': {'f': 0.00436688659218365,
-                        'm': 0.0301729987453868, },
-            'partner': {'*': 0.00078339990345766},
-            'child': {'*': 0.00634223110220566}
+        "m": {
+            "parent": {"f": 0.00347339838166261, "m": 0.0113344842544054,},
+            "sibling": {"f": 0.00436688659218365, "m": 0.0301729987453868,},
+            "partner": {"*": 0.00078339990345766},
+            "child": {"*": 0.00634223110220566},
         },
-        '*': {'*': {'*': 1.675041946602729e-05}}
+        "*": {"*": {"*": 1.675041946602729e-05}},
     }
 
     probability = infection_probability_month[person_sex][relation_type][relation_sex]
@@ -104,34 +101,33 @@ def infect(person_sex, relation_type, relation_sex):
 
 def valid_age(person, i, min_age):
     """Verify age requirement of person in given iteration."""
-    return person['birth'] <= (i - min_age) and person['death'] >= i
+    return person["birth"] <= (i - min_age) and person["death"] >= i
 
 
 def initialize(config):
     """Load population and generate initial incarceration state."""
     random.seed(config.random_seed)
 
-    population_pickle = os.path.join(os.path.dirname(__file__),
-                                     "population.pkl.gz")
+    population_pickle = os.path.join(os.path.dirname(__file__), "population.pkl.gz")
     popu = pickle.load(gzip.open(population_pickle, "rb"))
 
     alive = []
     for num, person in popu.items():
-        person['num'] = num
-        person['months_in_prison'] = 0
-        person['harsh_sentence'] = []
+        person["num"] = num
+        person["months_in_prison"] = 0
+        person["harsh_sentence"] = []
         if valid_age(person, config.start_iter, config.min_age):
             alive.append(person)
-    num_infect = round(config.percent*len(alive))
+    num_infect = round(config.percent * len(alive))
     potentials = []
     for person in alive:
-        if config.start_iter - person['birth'] <= 45:
+        if config.start_iter - person["birth"] <= 45:
             potentials.append(person)
     infected = random.sample(potentials, num_infect)
     for person in infected:
         sentence, harsh_sentence = generate_sentence(person, -1, 0, config)
-        person['incarcerated'] = sentence
-        person['harsh_sentence'].append(harsh_sentence)
+        person["incarcerated"] = sentence
+        person["harsh_sentence"].append(harsh_sentence)
 
     return popu
 
@@ -139,38 +135,42 @@ def initialize(config):
 def spread_infection(popu, person, itr, month, config):
     """Pass on infection."""
     # ensure same infection patterns regardless of sentence intervention
-    np.random.seed(hash((config.random_seed, person['num'], itr, month)) % (2**32 - 1))
+    np.random.seed(
+        hash((config.random_seed, person["num"], itr, month)) % (2 ** 32 - 1)
+    )
 
-    sex = person['sex']
+    sex = person["sex"]
 
-    for sibling in person['siblings']:
-        popu[sibling]['infected'] += infect(sex, 'sibling', popu[sibling]['sex'])
+    for sibling in person["siblings"]:
+        popu[sibling]["infected"] += infect(sex, "sibling", popu[sibling]["sex"])
 
-    if person['partner'] >= 0 and person['iter_married'] >= itr:
-        partner = person['partner']
-        popu[partner]['infected'] += infect(popu[partner]['sex'], 'partner', '*')
+    if person["partner"] >= 0 and person["iter_married"] >= itr:
+        partner = person["partner"]
+        popu[partner]["infected"] += infect(popu[partner]["sex"], "partner", "*")
 
-    for child in person['children']:
+    for child in person["children"]:
         if valid_age(popu[child], itr, config.min_age):
-            popu[child]['infected'] += infect(sex, 'child', '*')
+            popu[child]["infected"] += infect(sex, "child", "*")
 
-    for friend in person['friends']:
-        popu[friend]['infected'] += infect(sex, 'sibling', popu[friend]['sex'])
+    for friend in person["friends"]:
+        popu[friend]["infected"] += infect(sex, "sibling", popu[friend]["sex"])
 
-    for parent in person['parents']:
-        popu[parent]['infected'] += infect(sex, 'parent', popu[parent]['sex'])
+    for parent in person["parents"]:
+        popu[parent]["infected"] += infect(sex, "parent", popu[parent]["sex"])
 
 
 def generate_sentence(person, itr, month, config):
     """Generate sentence based on harshness setting."""
     # generate both sentences to ensure consistent counterfactuals
     # offset random seed to avoid interference with infection random seed
-    np.random.seed(hash((1, config.random_seed, person['num'], itr, month)) % (2**32-1))
+    np.random.seed(
+        hash((1, config.random_seed, person["num"], itr, month)) % (2 ** 32 - 1)
+    )
 
     gamma_parameter = 1.2
 
     lenient_mean = config.mean_sentence_lenient
-    gamma_sample = np.random.gamma(gamma_parameter, lenient_mean/gamma_parameter)
+    gamma_sample = np.random.gamma(gamma_parameter, lenient_mean / gamma_parameter)
     lenient_sentence = np.random.poisson(gamma_sample)
 
     if config.consistent_sentence_length:
@@ -178,7 +178,7 @@ def generate_sentence(person, itr, month, config):
         harsh_sentence = lenient_sentence + penalty
     else:
         harsh_mean = config.mean_sentence_harsh
-        gamma_sample = np.random.gamma(gamma_parameter, harsh_mean/gamma_parameter)
+        gamma_sample = np.random.gamma(gamma_parameter, harsh_mean / gamma_parameter)
         harsh_sentence = np.random.poisson(gamma_sample)
 
     if config.random_sentence_type:
@@ -195,8 +195,8 @@ def assign_sentence(person, itr, month, config):
     """Assign sentence."""
     if valid_age(person, itr, config.min_age):
         sentence, harsh_sentence = generate_sentence(person, itr, month, config)
-        person['incarcerated'] = sentence
-        person['harsh_sentence'].append(harsh_sentence)
+        person["incarcerated"] = sentence
+        person["harsh_sentence"].append(harsh_sentence)
 
 
 def simulate(config, show_progress=False):
@@ -232,18 +232,18 @@ def simulate(config, show_progress=False):
 
                 # random infection, not due to contagion
                 if valid_age(person, itr, config.min_age):
-                    person['infected'] += infect('*', '*', '*')
+                    person["infected"] += infect("*", "*", "*")
 
                 # infect connected people
-                if person['incarcerated'] > 0:
-                    person['incarcerated'] -= 1
-                    person['months_in_prison'] += 1
+                if person["incarcerated"] > 0:
+                    person["incarcerated"] -= 1
+                    person["months_in_prison"] += 1
                     spread_infection(popu, person, itr, month, config)
 
             # sentencing step
             for person in agents:
-                if person['infected'] and not person['incarcerated']:
+                if person["infected"] and not person["incarcerated"]:
                     assign_sentence(person, itr, month, config)
-                person['infected'] = 0
+                person["infected"] = 0
 
     return popu

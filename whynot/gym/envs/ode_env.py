@@ -6,8 +6,15 @@ from whynot.gym.utils import seeding
 class ODEEnv(Env):
     """Base environment class for ODE simulator based environments."""
 
-    def __init__(self, simulate_fn, config, action_space, observation_space,
-                 initial_state, timestep=1.0):
+    def __init__(
+        self,
+        simulate_fn,
+        config,
+        action_space,
+        observation_space,
+        initial_state,
+        timestep=1.0,
+    ):
         """Initialize an environment class.
 
         Parameters
@@ -74,13 +81,13 @@ class ODEEnv(Env):
         self.time += self.timestep
         # Get the next state from simulation.
         self.state = self.simulate_fn(
-            initial_state=self.state, config=self.config,
-            intervention=intervention)[self.time]
+            initial_state=self.state, config=self.config, intervention=intervention
+        )[self.time]
         done = bool(self.time >= self.terminal_time)
         reward = self._get_reward(intervention, self.state)
         return self._get_observation(self.state), reward, done, {}
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         """Render the environment, unused."""
 
     @staticmethod

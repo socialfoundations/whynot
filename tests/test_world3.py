@@ -1,6 +1,7 @@
 """Unit tests for world 3 model."""
 from whynot.simulators.world3.simulator import *
 
+
 def get_world3_context():
     """Load a javascript context for world3"""
     ctx = PyMiniRacerContext()
@@ -38,12 +39,15 @@ def test_set_config():
             assert ctx.eval("serviceCapitalOutputRatio.before") == 23
             assert ctx.eval("serviceCapitalOutputRatio.after") == 23
         elif param == "nonrenewable_resource_usage_factor":
-            assert ctx.eval("nonrenewableResourceUsageFactor.before") == \
-                    config.nonrenewable_resource_usage_factor
+            assert (
+                ctx.eval("nonrenewableResourceUsageFactor.before")
+                == config.nonrenewable_resource_usage_factor
+            )
             assert ctx.eval("nonrenewableResourceUsageFactor.after") == 2
         else:
-            assert ctx.eval(f"{to_camel_case(param)}.before") == \
-                    ctx.eval(f"{to_camel_case(param)}.after")
+            assert ctx.eval(f"{to_camel_case(param)}.before") == ctx.eval(
+                f"{to_camel_case(param)}.after"
+            )
 
 
 def test_setup():
@@ -60,6 +64,8 @@ def test_setup():
         assert ctx.eval(f"landFertility.initVal") == idx * 1111
         assert ctx.eval("serviceCapitalOutputRatio.before") == idx * 22
         assert ctx.eval("serviceCapitalOutputRatio.after") == idx * 22
-        assert ctx.eval("nonrenewableResourceUsageFactor.before") == \
-                config.nonrenewable_resource_usage_factor
+        assert (
+            ctx.eval("nonrenewableResourceUsageFactor.before")
+            == config.nonrenewable_resource_usage_factor
+        )
         assert ctx.eval("nonrenewableResourceUsageFactor.after") == idx * 22

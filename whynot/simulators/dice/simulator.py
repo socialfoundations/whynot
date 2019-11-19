@@ -7,8 +7,18 @@ import sys
 
 import numpy as np
 import pyomo
-from pyomo.environ import RangeSet, ConcreteModel, NonNegativeReals, Reals, Var, \
-    Constraint, Objective, summation, log, maximize
+from pyomo.environ import (
+    RangeSet,
+    ConcreteModel,
+    NonNegativeReals,
+    Reals,
+    Var,
+    Constraint,
+    Objective,
+    summation,
+    log,
+    maximize,
+)
 
 import whynot as wn
 from whynot.simulators.infrastructure import BaseConfig, BaseIntervention, BaseState
@@ -197,7 +207,7 @@ class Config(BaseConfig):
 
     def ga(self, time):  # pylint:disable-msg=invalid-name
         """Growth rate of productivity."""
-        return self.ga0 * np.exp(-self.dela * 5. * (time - 1))
+        return self.ga0 * np.exp(-self.dela * 5.0 * (time - 1))
 
     def al(self, time):  # pylint:disable-msg=invalid-name
         """Level of total factor productivity."""
@@ -223,7 +233,7 @@ class Config(BaseConfig):
 
     def cost1(self, time):
         """Cost adjusted for backstop."""
-        return self.pbacktime(time) * self.sigma(time) / self.expcost2 / 1000.
+        return self.pbacktime(time) * self.sigma(time) / self.expcost2 / 1000.0
 
     def etree(self, time):
         """Emissions from deforestation."""
@@ -242,7 +252,9 @@ class Config(BaseConfig):
     @property
     def optlrsav(self):
         """Optimal long-run savings rate used for transversality."""
-        return (self.dk + .004) / (self.dk + .004 * self.elasmu + self.prstp) * self.gama
+        return (
+            (self.dk + 0.004) / (self.dk + 0.004 * self.elasmu + self.prstp) * self.gama
+        )
 
     def partfract(self, time):
         """Fraction of emissions in control regime."""
@@ -252,8 +264,12 @@ class Config(BaseConfig):
         if time > self.periodfullpart:
             return self.partfractfull
 
-        return (self.partfract2010
-                + (self.partfractfull - self.partfract2010) * (time - 1) / self.periodfullpart)
+        return (
+            self.partfract2010
+            + (self.partfractfull - self.partfract2010)
+            * (time - 1)
+            / self.periodfullpart
+        )
 
     def cpricebase(self, time):
         """Carbon price in base case."""
@@ -380,7 +396,7 @@ def get_ipopt_solver():
         executable_path = os.path.join(cur_dir, "ipopt_bin", "ipopt-osx")
     else:
         raise ValueError(f"No IPOPT binaries for platform {sys.platform}")
-    return pyomo.opt.SolverFactory('ipopt', executable=executable_path)
+    return pyomo.opt.SolverFactory("ipopt", executable=executable_path)
 
 
 def initialize_model(model, initial_state, config):
@@ -389,7 +405,11 @@ def initialize_model(model, initial_state, config):
 
     # Create and initialize model variables
     for var_name in initial_state.variables:
-        domain = NonNegativeReals if (var_name in initial_state.nonnegative_variables) else Reals
+        domain = (
+            NonNegativeReals
+            if (var_name in initial_state.nonnegative_variables)
+            else Reals
+        )
         bounds = var_bounds.get(var_name, None)
         model.add_component(var_name, Var(model.time, domain=domain, bounds=bounds))
 
@@ -404,6 +424,7 @@ def initialize_model(model, initial_state, config):
 
 def generate_bounds(config):
     """Generate variable bound functions for initialization."""
+
     def miu_bounds(_, time):
         if time == 1:
             return (1e-20, None)
@@ -414,12 +435,12 @@ def generate_bounds(config):
     def tatm_bounds(_, time):
         if time == 1:
             return (config.tatm0, config.tatm0)
-        return (None, 40.)
+        return (None, 40.0)
 
     def tocean_bounds(_, time):
         if time == 1:
             return (config.tocean0, config.tocean0)
-        return (-1, 20.)
+        return (-1, 20.0)
 
     def mat_bounds(_, time):
         if time == 1:
@@ -429,20 +450,20 @@ def generate_bounds(config):
     def mu_bounds(_, time):
         if time == 1:
             return (config.mu0, config.mu0)
-        return (100., None)
+        return (100.0, None)
 
     def ml_bounds(_, time):
         if time == 1:
             return (config.ml0, config.ml0)
-        return (1000., None)
+        return (1000.0, None)
 
     def c_bounds(*_):
-        return (2., None)
+        return (2.0, None)
 
     def k_bounds(_, time):
         if time == 1:
             return (config.k0, config.k0)
-        return (1., None)
+        return (1.0, None)
 
     def cpc_bounds(*_):
         return (0.01, None)
@@ -471,31 +492,38 @@ def generate_bounds(config):
             return (None, 1000)
         return (None, None)
 
-    variable_bounds = {"MIU": miu_bounds,
-                       "TATM": tatm_bounds,
-                       "TOCEAN": tocean_bounds,
-                       "MAT": mat_bounds,
-                       "MU": mu_bounds,
-                       "ML": ml_bounds,
-                       "C": c_bounds,
-                       "K": k_bounds,
-                       "CPC": cpc_bounds,
-                       "S": s_bounds,
-                       "CCA": cca_bounds,
-                       "CPRICE": cprice_bounds}
+    variable_bounds = {
+        "MIU": miu_bounds,
+        "TATM": tatm_bounds,
+        "TOCEAN": tocean_bounds,
+        "MAT": mat_bounds,
+        "MU": mu_bounds,
+        "ML": ml_bounds,
+        "C": c_bounds,
+        "K": k_bounds,
+        "CPC": cpc_bounds,
+        "S": s_bounds,
+        "CCA": cca_bounds,
+        "CPRICE": cprice_bounds,
+    }
     return variable_bounds
 
 
 def add_emissions_dynamics(model, config):
     """Add emissions and damages constraints."""
+
     def eeq(model, time):
         """Emissions equation."""
         return model.E[time] == model.EIND[time] + config.etree(time)
+
     add_constraint(model, eeq)
 
     def eindeq(model, time):
         """Industrial emissions."""
-        return model.EIND[time] == config.sigma(time) * model.YGROSS[time] * (1 - (model.MIU[time]))
+        return model.EIND[time] == config.sigma(time) * model.YGROSS[time] * (
+            1 - (model.MIU[time])
+        )
+
     add_constraint(model, eindeq)
 
     def ccaeq(model, time):
@@ -503,140 +531,199 @@ def add_emissions_dynamics(model, config):
         if time < config.numPeriods:
             return model.CCA[time + 1] == model.CCA[time] + model.EIND[time] * 5 / 3.666
         return Constraint.Skip
+
     add_constraint(model, ccaeq)
 
     def foreq(model, time):
-        return (model.FORC[time] == config.fco22x
-                * ((log((model.MAT[time] / 588.000)) / log(2))) + config.forcoth(time))
+        return model.FORC[time] == config.fco22x * (
+            (log((model.MAT[time] / 588.000)) / log(2))
+        ) + config.forcoth(time)
+
     add_constraint(model, foreq)
 
     def damfraceq(model, time):
-        return (model.DAMFRAC[time] == (config.a1 * model.TATM[time])
-                + (config.a2 * model.TATM[time] ** config.a3))
+        return model.DAMFRAC[time] == (config.a1 * model.TATM[time]) + (
+            config.a2 * model.TATM[time] ** config.a3
+        )
+
     add_constraint(model, damfraceq)
 
     def dameq(model, time):
         return model.DAMAGES[time] == model.YGROSS[time] * model.DAMFRAC[time]
+
     add_constraint(model, dameq)
 
     def abateeq(model, time):
-        return (model.ABATECOST[time] ==
-                model.YGROSS[time] * config.cost1(time) * (model.MIU[time] ** config.expcost2)
-                * (config.partfract(time) ** (1 - config.expcost2)))
+        return model.ABATECOST[time] == model.YGROSS[time] * config.cost1(time) * (
+            model.MIU[time] ** config.expcost2
+        ) * (config.partfract(time) ** (1 - config.expcost2))
+
     add_constraint(model, abateeq)
 
     def mcabateeq(model, time):
-        return (model.MCABATE[time] == config.pbacktime(time)
-                * model.MIU[time]**(config.expcost2 - 1))
+        return model.MCABATE[time] == config.pbacktime(time) * model.MIU[time] ** (
+            config.expcost2 - 1
+        )
+
     add_constraint(model, mcabateeq)
 
     def carbpriceeq(model, time):
-        return (model.CPRICE[time] == config.pbacktime(time)
-                * (model.MIU[time] / config.partfract(time)) ** (config.expcost2 - 1))
+        return model.CPRICE[time] == config.pbacktime(time) * (
+            model.MIU[time] / config.partfract(time)
+        ) ** (config.expcost2 - 1)
+
     add_constraint(model, carbpriceeq)
 
 
 def add_climate_dynamics(model, config):
     """Impose dynamics of climate and carbon cycle via constraints."""
+
     def mmat(model, time):
         """Atmospheric concentration equation."""
         if time < config.numPeriods:
-            return (model.MAT[time + 1] == model.MAT[time] * config.b11
-                    + model.MU[time] * config.b21 + (model.E[time] * (5 / 3.666)))
+            return model.MAT[time + 1] == model.MAT[time] * config.b11 + model.MU[
+                time
+            ] * config.b21 + (model.E[time] * (5 / 3.666))
         return Constraint.Skip
+
     add_constraint(model, mmat)
 
     def mml(model, time):
         """Lower ocean concentration."""
         if time < config.numPeriods:
-            return model.ML[time + 1] == model.ML[time] * config.b33 + model.MU[time] * config.b23
+            return (
+                model.ML[time + 1]
+                == model.ML[time] * config.b33 + model.MU[time] * config.b23
+            )
         return Constraint.Skip
+
     add_constraint(model, mml)
 
     def mmu(model, time):
         """Shallow ocean concentration."""
         if time < config.numPeriods:
-            return (model.MU[time + 1] == model.MAT[time] * config.b12
-                    + model.MU[time] * config.b22 + model.ML[time] * config.b32)
+            return (
+                model.MU[time + 1]
+                == model.MAT[time] * config.b12
+                + model.MU[time] * config.b22
+                + model.ML[time] * config.b32
+            )
         return Constraint.Skip
+
     add_constraint(model, mmu)
 
     def tatmeq(model, time):
         """Temperature-climate equation for atmosphere."""
         if time < config.numPeriods:
-            return (model.TATM[time + 1] == model.TATM[time] + config.c1
-                    * ((model.FORC[time + 1] - (config.fco22x / config.t2xco2) * model.TATM[time])
-                       - (config.c3 * (model.TATM[time] - model.TOCEAN[time]))))
+            return model.TATM[time + 1] == model.TATM[time] + config.c1 * (
+                (
+                    model.FORC[time + 1]
+                    - (config.fco22x / config.t2xco2) * model.TATM[time]
+                )
+                - (config.c3 * (model.TATM[time] - model.TOCEAN[time]))
+            )
         return Constraint.Skip
+
     add_constraint(model, tatmeq)
 
     def toceaneq(model, time):
         """Temperature-climate equation for lower oceans."""
         if time < config.numPeriods:
-            return (model.TOCEAN[time + 1] == model.TOCEAN[time]
-                    + config.c4 * (model.TATM[time] - model.TOCEAN[time]))
+            return model.TOCEAN[time + 1] == model.TOCEAN[time] + config.c4 * (
+                model.TATM[time] - model.TOCEAN[time]
+            )
         return Constraint.Skip
+
     add_constraint(model, toceaneq)
 
 
 def add_economic_dynamics(model, config):
     """Add dynamics constraints on economic variables."""
+
     def ygrosseq(model, time):
-        return (model.YGROSS[time] ==
-                (config.al(time) * (config.L[time] / 1000) ** (1 - config.gama))
-                * (model.K[time] ** config.gama))
+        return model.YGROSS[time] == (
+            config.al(time) * (config.L[time] / 1000) ** (1 - config.gama)
+        ) * (model.K[time] ** config.gama)
+
     add_constraint(model, ygrosseq)
 
     def yneteq(model, time):
         return model.YNET[time] == model.YGROSS[time] * (1 - model.DAMFRAC[time])
+
     add_constraint(model, yneteq)
 
     def yyeq(model, time):
         return model.Y[time] == model.YNET[time] - model.ABATECOST[time]
+
     add_constraint(model, yyeq)
 
     def cc(model, time):  # pylint:disable-msg=invalid-name
         return model.C[time] == model.Y[time] - model.I[time]
+
     add_constraint(model, cc)
 
     def cpce(model, time):
         return model.CPC[time] == 1000 * model.C[time] / config.L[time]
+
     add_constraint(model, cpce)
 
     def seq(model, time):
         return model.I[time] == model.S[time] * model.Y[time]
+
     add_constraint(model, seq)
 
     def kkeq(model, time):
         if time < config.numPeriods:
-            return (model.K[time + 1] <= (1 - config.dk) ** config.tstep * model.K[time]
-                    + config.tstep * model.I[time])
+            return (
+                model.K[time + 1]
+                <= (1 - config.dk) ** config.tstep * model.K[time]
+                + config.tstep * model.I[time]
+            )
         return Constraint.Skip
+
     add_constraint(model, kkeq)
 
     def rieq(model, time):
         if time < config.numPeriods:
-            return (model.RI[time] == (1 + config.prstp)
-                    * (model.CPC[time + 1] / model.CPC[time]) ** (config.elasmu / config.tstep) - 1)
+            return (
+                model.RI[time]
+                == (1 + config.prstp)
+                * (model.CPC[time + 1] / model.CPC[time])
+                ** (config.elasmu / config.tstep)
+                - 1
+            )
         return Constraint.Skip
+
     add_constraint(model, rieq)
 
 
 def add_utility_dynamics(model, config):
     """Add constraints on utility variables."""
+
     def cemutotpereq(model, time):
-        return model.CEMUTOTPER[time] == model.PERIODU[time] * config.L[time] * config.rr(time)
+        return model.CEMUTOTPER[time] == model.PERIODU[time] * config.L[
+            time
+        ] * config.rr(time)
+
     add_constraint(model, cemutotpereq)
 
     def perideq(model, time):
-        return (model.PERIODU[time] ==
-                ((model.C[time] * 1000 / config.L[time]) ** (1 - config.elasmu) - 1)
-                / (1 - config.elasmu) - 1)
+        return (
+            model.PERIODU[time]
+            == ((model.C[time] * 1000 / config.L[time]) ** (1 - config.elasmu) - 1)
+            / (1 - config.elasmu)
+            - 1
+        )
+
     add_constraint(model, perideq)
 
     def utiliteq(model):
-        return (model.UTILITY == config.tstep * config.scale1
-                * summation(model.CEMUTOTPER) + config.scale2)
+        return (
+            model.UTILITY
+            == config.tstep * config.scale1 * summation(model.CEMUTOTPER)
+            + config.scale2
+        )
+
     model.util = Constraint(rule=utiliteq)
 
 
@@ -708,13 +795,13 @@ def simulate(initial_state, config, intervention=None, seed=None, stochastic=Tru
     # Solve the model
     solver = get_ipopt_solver()
     with silence_stdout():
-        _ = solver.solve(model,
-                         tee=True,
-                         symbolic_solver_labels=True,
-                         keepfiles=False,
-                         options={"max_iter": 99900,
-                                  "halt_on_ampl_error": "yes",
-                                  "print_level": 0})
+        _ = solver.solve(
+            model,
+            tee=True,
+            symbolic_solver_labels=True,
+            keepfiles=False,
+            options={"max_iter": 99900, "halt_on_ampl_error": "yes", "print_level": 0},
+        )
 
     # Read out values from the optimized model
     states, times = [], []
@@ -728,5 +815,5 @@ def simulate(initial_state, config, intervention=None, seed=None, stochastic=Tru
     return wn.framework.Run(states=states, times=times)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     simulate(State(MAT=600), Config(numPeriods=10), stochastic=False)

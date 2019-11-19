@@ -27,9 +27,14 @@ class World3Env(ODEEnv):
         state_space_high = np.inf * np.ones(num_states)
         observation_space = spaces.Box(state_space_low, state_space_high)
 
-        super(World3Env, self).__init__(simulate, config, action_space,
-                                        observation_space, initial_state,
-                                        timestep=config.delta_t)
+        super(World3Env, self).__init__(
+            simulate,
+            config,
+            action_space,
+            observation_space,
+            initial_state,
+            timestep=config.delta_t,
+        )
 
     def _get_intervention(self, action):
         """Return the intervention needed to take action in the simulator."""
@@ -42,7 +47,8 @@ class World3Env(ODEEnv):
             action_to_intervention_map[idx] = Intervention(
                 self.time,
                 nonrenewable_resource_usage_factor=resource_usage,
-                persistent_pollution_generation_factor=pollution_generation)
+                persistent_pollution_generation_factor=pollution_generation,
+            )
         return action_to_intervention_map[action]
 
     def _get_reward(self, intervention, state):
@@ -55,7 +61,14 @@ class World3Env(ODEEnv):
         reward += 2e-8 * state.total_population
 
         # Taking any action other than the "default" is costly
-        reward -= 0.3 * (1. - intervention.updates['nonrenewable_resource_usage_factor']) ** 2
-        reward -= 0.5 * (1. - intervention.updates['persistent_pollution_generation_factor']) ** 2
+        reward -= (
+            0.3
+            * (1.0 - intervention.updates["nonrenewable_resource_usage_factor"]) ** 2
+        )
+        reward -= (
+            0.5
+            * (1.0 - intervention.updates["persistent_pollution_generation_factor"])
+            ** 2
+        )
 
         return reward
