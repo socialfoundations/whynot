@@ -163,7 +163,7 @@ def dynamics(state, time, config, intervention=None):
             Derivative of the dynamics with respect to time
 
     """
-    if intervention and intervention.time >= time:
+    if intervention and time >= intervention.time:
         config = config.update(intervention)
 
     # Keep notation roughly consistent with the Adams paper.
