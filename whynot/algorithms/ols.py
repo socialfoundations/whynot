@@ -3,6 +3,7 @@ from time import perf_counter
 
 import numpy as np
 import statsmodels.api as sm
+
 from whynot.framework import InferenceResult
 
 

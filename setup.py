@@ -10,7 +10,6 @@ setup(
     include_package_data=True,
     install_requires=[
         "autograd",
-        "causality",
         "dataclasses; python_version<'3.7'",
         "gym",
         "mesa",
