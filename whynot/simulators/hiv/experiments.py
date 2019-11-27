@@ -4,6 +4,9 @@ from whynot.framework import DynamicsExperiment, parameter
 from whynot.simulators import hiv
 
 
+__all__ = ["get_experiments", "HIVRCT", "HIVConfounding"]
+
+
 def get_experiments():
     """Return all experiments for HIV."""
     return [HIVRCT, HIVConfounding]

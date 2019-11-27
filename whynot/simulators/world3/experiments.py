@@ -4,6 +4,14 @@ import numpy as np
 from whynot.framework import DynamicsExperiment, parameter
 from whynot.simulators import world3
 
+__all__ = [
+    "get_experiments",
+    "PollutionRCT",
+    "PollutionConfounding",
+    "PollutionUnobservedConfounding",
+    "PollutionMediation",
+]
+
 
 def get_experiments():
     """Return all experiments for world3."""

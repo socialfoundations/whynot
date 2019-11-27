@@ -4,6 +4,8 @@ import numpy as np
 from whynot.framework import DynamicsExperiment, parameter
 from whynot.simulators import dice
 
+__all__ = ["get_experiments", "RCT"]
+
 
 def get_experiments():
     """Return all of the Lotka-Volterra experiments."""
