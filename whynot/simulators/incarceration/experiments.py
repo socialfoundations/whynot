@@ -5,6 +5,8 @@ import numpy as np
 from whynot.framework import GenericExperiment
 from whynot.simulators import incarceration
 
+__all__ = ["get_experiments", "SentenceLength"]
+
 
 def get_experiments():
     """Return all available experiments for incarceration simulator.
