@@ -1,6 +1,7 @@
 """Experiments for HIV simulator."""
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import hiv
 
 
@@ -52,12 +53,15 @@ HIVRCT = DynamicsExperiment(
     default=0.9,
     description="Treatment probability bias between more infected and less infected units.",
 )
-def hiv_confounded_propensity(run, treatment_bias):
+def hiv_confounded_propensity(untreated_run, treatment_bias):
     """Probability of treating each unit.
 
     We are more likely to treat units with high immune response and free virus.
     """
-    if run.initial_state.immune_response > 10 and run.initial_state.free_virus > 1:
+    if (
+        untreated_run.initial_state.immune_response > 10
+        and untreated_run.initial_state.free_virus > 1
+    ):
         return treatment_bias
 
     return 1.0 - treatment_bias

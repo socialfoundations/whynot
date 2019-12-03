@@ -8,7 +8,7 @@ from ipywidgets import *
 import ipywidgets as widgets
 
 import whynot as wn
-from whynot.framework import DynamicsExperiment
+from whynot.dynamics import DynamicsExperiment
 from whynot.simulators import opioid
 from whynot.simulators.opioid.experiments import (
     sample_initial_states,

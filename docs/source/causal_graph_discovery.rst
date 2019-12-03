@@ -79,7 +79,7 @@ thinly-wrapped NumPy version,
     import whynot as wn
     import whynot.traceable_numpy as np
 
-Then define a :class:`~whynot.framework.DynamicsExperiment` as normal.
+Then define a :class:`~whynot.dynamics.DynamicsExperiment` as normal.
 
 .. code:: python
 
@@ -94,8 +94,9 @@ Then define a :class:`~whynot.framework.DynamicsExperiment` as normal.
         return 1. / (np.exp(r * (threshold  - x)) + 1)
 
 
-    def confounded_propensity_scores(run, intervention):
+    def confounded_propensity_scores(untreated_run, intervention):
         """Confounded treatment assignment probability."""
+        run = untreated_run
         return 0.3 + 0.4 * (1. - soft_threshold(run[intervention.time].foxes, threshold=7))
 
 
@@ -147,13 +148,14 @@ threshold` rather than a hard threshold to make graph construction possible.
     # BAD 
     # Hard IF statement: Graph tracing cannot discover that treatment
     # assignment depends on the fox population at the time of intervention.
-    def confounded_propensity_scores(run, intervention):
-        if run[intervention.time].foxes > 7:
+    def confounded_propensity_scores(untreated_run, intervention):
+        if untreated_run[intervention.time].foxes > 7:
             return 0.7
         return 0.4
 
     # GOOD
     # Soft/continuous variant: Graph tracing discovers treatment depends on 
     # the fox population at the time of intervention.
-    def confounded_propensity_scores(run, intervention):
+    def confounded_propensity_scores(untreated_run, intervention):
+        run = untreated_run
         return 0.3 + 0.4 * (1. - soft_threshold(run[intervention.time].foxes, threshold=7))

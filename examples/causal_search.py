@@ -8,11 +8,34 @@ Updated are primarily minor syntax changes to work with the most recent version 
 
 import itertools
 import networkx as nx
+import statsmodels.api as sm
 
 try:
     xrange
 except NameError:
     xrange = range
+
+
+class RobustRegressionTest:
+    def __init__(self, y, x, z, data, alpha):
+        self.regression = sm.RLM(data[y], data[x + z])
+        self.result = self.regression.fit()
+        self.coefficient = self.result.params[x][0]
+        confidence_interval = self.result.conf_int(alpha=alpha / 2.0)
+        self.upper = confidence_interval[1][x][0]
+        self.lower = confidence_interval[0][x][0]
+
+    def independent(self):
+        if self.coefficient > 0.0:
+            if self.lower > 0.0:
+                return False
+            else:
+                return True
+        else:
+            if self.upper < 0.0:
+                return False
+            else:
+                return True
 
 
 class SearchException(Exception):

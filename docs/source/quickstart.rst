@@ -37,7 +37,7 @@ property offers specific details about the experiment.
     >>> rct.description
     'Study effect of intervening in 1975 to decrease pollution generation on total population in 2050.'
 
-We can run the experiment using the experiment :meth:`~whynot.framework.DynamicsExperiment.run` function and specifying a desired sample size ``num_samples``. 
+We can run the experiment using the experiment :meth:`~whynot.dynamics.DynamicsExperiment.run` function and specifying a desired sample size ``num_samples``. 
 The experiment then returns a causal :class:`~whynot.framework.Dataset`
 consisting of the covariates for each unit, the treatment assignment, the
 outcome, and the ground truth causal effect for each unit. 

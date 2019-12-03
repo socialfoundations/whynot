@@ -1,7 +1,8 @@
 """Experiments on the Lotka-Volterra model."""
 import numpy as np
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import lotka_volterra
 
 
@@ -77,13 +78,13 @@ RCT = DynamicsExperiment(
     values=np.linspace(0.5, 0.99, 10),
     description="Probability of treatment for group with low fox population.",
 )
-def confounded_propensity_scores(run, propensity=0.9):
+def confounded_propensity_scores(untreated_run, propensity=0.9):
     """Return confounded treatment assignment probability.
 
     Treatment increases fox population growth. Therefore, we're assume
     treatment is more likely for runs with low initial fox population.
     """
-    if run.initial_state.foxes < 20:
+    if untreated_run.initial_state.foxes < 20:
         return propensity
     return 1.0 - propensity
 
