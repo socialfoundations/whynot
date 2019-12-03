@@ -15,7 +15,7 @@ def pretty_print(experiment, dataset, results):
 
     Parameters
     ----------
-        experiment: `whynot.framework.DynamicsExperiment` or `whynot.framework.GenericExperiment`
+        experiment: `whynot.dynamics.DynamicsExperiment` or `whynot.framework.GenericExperiment`
             Experiment object used to generate the causal dataset
         dataset: `whynot.framework.Dataset`
             Dataset object passed to the causal suite.
@@ -114,7 +114,7 @@ def sample_size_experiment(
 
     Parameters
     ----------
-        experiment: `whynot.DynamicsExperiment` or `whynot.framework.GenericExperiment`
+        experiment: `whynot.dynamics.DynamicsExperiment` or `whynot.framework.GenericExperiment`
             Instantiated experiment object.
         sample_sizes: list
             List of sample sizes to run the experiment
@@ -187,7 +187,7 @@ def parameter_sweep_experiment(
 
     Parameters
     ----------
-        experiment: `whynot.DynamicsExperiment` or `whynot.framework.GenericExperiment`
+        experiment: `whynot.dynamics.DynamicsExperiment` or `whynot.framework.GenericExperiment`
             Instantiated experiment object.
         sample_size: int
             Sample size to use for all experiments.

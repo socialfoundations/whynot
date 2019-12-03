@@ -20,13 +20,24 @@ Simulators
     simulator_configs/lalonde
 
 
+Dynamics
+--------
+.. autoclass:: whynot.dynamics.Run
+    :members: initial_state, __getitem__
+
+.. autoclass:: whynot.dynamics.DynamicsExperiment
+    :members: __init__, get_parameters, run
+
+
 Framework
 ---------
 
-.. autoclass:: whynot.framework.Run
-    :members: initial_state, __getitem__
+.. autoclass:: whynot.framework.Dataset
+
+.. autoclass:: whynot.framework.ExperimentParameter
 
 .. autoclass:: whynot.framework.ParameterCollection
+
 
 Estimators
 -----------
@@ -34,14 +45,4 @@ Estimators
 .. autofunction:: whynot.causal_suite
 
 .. autoclass:: whynot.framework.InferenceResult
-
-Experiments
------------
-
-.. autoclass:: whynot.framework.Dataset
-
-.. autoclass:: whynot.framework.DynamicsExperiment
-    :members: __init__, get_parameters, run
-
-.. autoclass:: whynot.framework.ExperimentParameter
 

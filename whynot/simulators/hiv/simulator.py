@@ -13,7 +13,7 @@ import numpy as np
 from scipy.integrate import odeint
 
 import whynot as wn
-from whynot.simulators.infrastructure import BaseConfig, BaseState, BaseIntervention
+from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
 
 
 @dataclasses.dataclass
@@ -262,7 +262,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     Returns
     -------
-        run: `whynot.framework.Run`
+        run: `whynot.dynamics.Run`
             Rollout of the model.
 
     """
@@ -282,7 +282,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
     )
 
     states = [initial_state] + [State(*state) for state in solution[1:]]
-    return wn.framework.Run(states=states, times=t_eval)
+    return wn.dynamics.Run(states=states, times=t_eval)
 
 
 if __name__ == "__main__":

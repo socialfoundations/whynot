@@ -21,7 +21,7 @@ from pyomo.environ import (
 )
 
 import whynot as wn
-from whynot.simulators.infrastructure import BaseConfig, BaseIntervention, BaseState
+from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 
 
 @dataclasses.dataclass
@@ -757,7 +757,7 @@ def simulate(initial_state, config, intervention=None, seed=None, stochastic=Tru
 
     Returns
     -------
-        run: whynot.framework.Run
+        run: whynot.dynamics.Run
             Sequence of states and corresponding timesteps generated during execution.
 
     """
@@ -812,7 +812,7 @@ def simulate(initial_state, config, intervention=None, seed=None, stochastic=Tru
         states.append(state)
         times.append(time)
 
-    return wn.framework.Run(states=states, times=times)
+    return wn.dynamics.Run(states=states, times=times)
 
 
 if __name__ == "__main__":

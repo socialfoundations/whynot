@@ -8,7 +8,7 @@ construct a new experiment for both dynamical system models. For more examples
 or inspiration for experiment creation and design, look at the many examples in
 :ref:`experiment-examples`.
 
-In WhyNot, the class :class:`~whynot.framework.DynamicsExperiment` encapsulates
+In WhyNot, the class :class:`~whynot.dynamics.DynamicsExperiment` encapsulates
 the logic necessary to define a causal inference experiment on a dynamical
 system simulator. For any causal inference experiment, we always need to
 specify:
@@ -24,7 +24,7 @@ In a dynamical system simulation, we need to further specify:
 - The initial state distribution.
 
 Once we specify these components, the
-:class:`~whynot.framework.DynamicsExperiment` does the rest of the work to
+:class:`~whynot.dynamics.DynamicsExperiment` does the rest of the work to
 efficiently run the simulations, assign treatment, and construct the
 observational dataset. Before launching into the details of each of these
 components, we first give an example on the :ref:`lotka-volterra-simulator`.
@@ -54,7 +54,7 @@ components, we first give an example on the :ref:`lotka-volterra-simulator`.
         outcome_extractor=observed_outcome,
         covariate_builder=lambda run: run.initial_state.values())
 
-Each of the arguments to :class:`~whynot.framework.DynamicsExperiment``
+Each of the arguments to :class:`~whynot.dynamics.DynamicsExperiment``
 determines one aspect of the causal experiment.
 
 - The ``simulator`` specifies that the experiment is run on the Lotka-Volterra
@@ -86,12 +86,12 @@ depends on the simulator state.
     
     import whynot as wn
 
-    def confounded_propensity_scores(run):
+    def confounded_propensity_scores(untreated_run):
         """Return confounded treatment assignment probability.
         Treatment increases fox population growth. Therefore, we're assume
         treatment is more likely for runs with low initial fox population.
         """
-        if run.initial_state.foxes < 20:
+        if untreated_run.initial_state.foxes < 20:
             return 0.8
         return 0.2
 
@@ -123,12 +123,12 @@ varied. In WhyNot, the ``@parameter`` decorator allows us to do precisely that.
     
     @wn.parameter(name="propensity", default=0.9, 
                description="Treatment prob for group with low fox counts.")
-    def confounded_propensity_scores(run, propensity):
+    def confounded_propensity_scores(untreated_run, propensity):
         """Return confounded treatment assignment probability.
         Treatment increases fox population growth. Therefore, we're assume
         treatment is more likely for runs with low initial fox population.
         """
-        if run.initial_state.foxes < 20:
+        if untreated_run.initial_state.foxes < 20:
             return propensity
         return 1. - propensity
 
@@ -156,7 +156,7 @@ sequence of observational datasets with as the parameter varies.
         datasets.append(dataset)
 
 
-As the above examples suggest, :class:`~whynot.framework.DynamicsExperiment` is
+As the above examples suggest, :class:`~whynot.dynamics.DynamicsExperiment` is
 very flexible. For all of the details of permissible specifications of the
 ``state_sampler``, ``propensity_scorer``, etc., please refer to the 
-:class:`API <whynot.framework.DynamicsExperiment>`.
+:class:`API <whynot.dynamics.DynamicsExperiment>`.

@@ -15,7 +15,7 @@ def test_framework_run():
     states = ["start_state", 2, 3, 4]
     times = [4, 5, 6, 10]
 
-    run = wn.framework.Run(states=states, times=times)
+    run = wn.dynamics.Run(states=states, times=times)
 
     assert run.initial_state == "start_state"
     assert run[6] == 3
@@ -153,7 +153,7 @@ class ToySimulator:
             states.append(copy.deepcopy(state))
             if intervention and time >= intervention.year:
                 state.val += intervention.effect_size
-        return wn.framework.Run(states=states, times=times)
+        return wn.dynamics.Run(states=states, times=times)
 
 
 TEST_SIMULATOR = ToySimulator()
@@ -209,7 +209,7 @@ def build_experiment(
     covariate_builder=basic_covariate_builder,
 ):
     """Construct a dynamics experiment instance with sane defaults."""
-    return wn.framework.DynamicsExperiment(
+    return wn.dynamics.DynamicsExperiment(
         name="basic_test",
         description="Sanity check.",
         simulator=TEST_SIMULATOR,
@@ -458,10 +458,10 @@ def test_propensity_scorer_observation():
 
     # Test that specificying control_run, treatment_run gives you the correct
     # runs from the model.
-    def crun_scorer(control_run):
+    def crun_scorer(untreated_run):
         # Control runs are constant
-        start = control_run.initial_state.val
-        assert np.allclose(np.array([s.val for s in control_run.states]), start)
+        start = untreated_run.initial_state.val
+        assert np.allclose(np.array([s.val for s in untreated_run.states]), start)
         return 0.5
 
     exp = build_experiment(
@@ -470,21 +470,9 @@ def test_propensity_scorer_observation():
     dataset = exp.run(num_samples=100, seed=1234)
     check_rct_assigment(dataset.treatments, 0.5)
 
-    def run_scorer(run):
-        # Run should default to control run
-        start = run.initial_state.val
-        assert np.allclose(np.array([s.val for s in run.states]), start)
-        return 0.5
-
-    exp = build_experiment(
-        state_sampler=correlated_state_sampler, propensity_scorer=run_scorer
-    )
-    dataset = exp.run(num_samples=100, seed=1234)
-    check_rct_assigment(dataset.treatments, 0.5)
-
-    def trun_scorer(treatment_run):
-        start = treatment_run.initial_state.val
-        run_vals = np.array([s.val for s in treatment_run.states])
+    def trun_scorer(treated_run):
+        start = treated_run.initial_state.val
+        run_vals = np.array([s.val for s in treated_run.states])
         assert np.allclose(start + np.arange(10), run_vals)
         return 0.5
 
@@ -495,20 +483,20 @@ def test_propensity_scorer_observation():
     check_rct_assigment(dataset.treatments, 0.5)
 
     # Check propensity scores with interference works
-    def cruns_scorer(control_runs):
+    def cruns_scorer(untreated_runs):
         # Make sure that we see all of the runs
         # control runs should start with 1, 2, 3, 4, ..., num_samples
-        start_vals = sorted([run.initial_state.val for run in control_runs])
-        assert np.allclose(np.arange(len(control_runs)), start_vals)
+        start_vals = sorted([run.initial_state.val for run in untreated_runs])
+        assert np.allclose(np.arange(len(untreated_runs)), start_vals)
 
         # Make sure they are control runs (i.e. all constant)
-        for run in control_runs:
+        for run in untreated_runs:
             assert np.allclose(
                 np.array([s.val for s in run.states]), run.initial_state.val
             )
 
         # Only treat first half of runs
-        n = len(control_runs)
+        n = len(untreated_runs)
         propensities = np.zeros((n,))
         propensities[: n // 2] = 1.0
         return propensities
@@ -521,32 +509,21 @@ def test_propensity_scorer_observation():
     assert np.allclose(dataset.treatments[: n // 2], 1)
     assert np.allclose(dataset.treatments[n // 2 :], 0)
 
-    def runs_scorer(runs):
-        # Runs should be the same as control runs
-        return cruns_scorer(runs)
-
-    exp = build_experiment(
-        state_sampler=correlated_state_sampler, propensity_scorer=runs_scorer
-    )
-    dataset = exp.run(num_samples=n, seed=1234)
-    assert np.allclose(dataset.treatments[: n // 2], 1)
-    assert np.allclose(dataset.treatments[n // 2 :], 0)
-
-    def truns_scorer(treatment_runs):
+    def truns_scorer(treated_runs):
         # Make sure that we see all of the runs
         # control runs should start with 1, 2, 3, 4, ..., num_samples
-        start_vals = sorted([run.initial_state.val for run in treatment_runs])
-        assert np.allclose(np.arange(len(treatment_runs)), start_vals)
+        start_vals = sorted([run.initial_state.val for run in treated_runs])
+        assert np.allclose(np.arange(len(treated_runs)), start_vals)
 
         # Make sure they are control runs (i.e. all constant)
-        for run in treatment_runs:
+        for run in treated_runs:
             assert np.allclose(
                 np.array([s.val for s in run.states]),
                 run.initial_state.val + np.arange(10),
             )
 
         # Only treat first half of runs
-        n = len(treatment_runs)
+        n = len(treated_runs)
         propensities = np.zeros((n,))
         propensities[: n // 2] = 1.0
         return propensities

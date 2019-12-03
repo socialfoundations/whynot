@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import whynot as wn
-from whynot.simulators.infrastructure import BaseConfig, BaseIntervention, BaseState
+from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 
 #################################
 # Basic dependency tracing tests.
@@ -196,7 +196,7 @@ class SimpleSimulator:
             state += delta
             states.append(SimpleState(*np.copy(state)))
             times.append(time + 1)
-        return wn.framework.Run(states=states, times=times)
+        return wn.dynamics.Run(states=states, times=times)
 
 
 def test_dynamics_tracer():
@@ -246,9 +246,10 @@ def test_ate_causal_graph_builder():
     def soft_threshold(x, tau, r=200):
         return 1.0 / (wnp.exp(tau * r - r * x) + 1)
 
-    def propensity_scores(run, intervention):
+    def propensity_scores(untreated_run, intervention):
         # Treat the run if x1 + x2 above some "soft-threshold"
         # at the intervention time
+        run = untreated_run
         return 1.0 - 0.9 * soft_threshold(run[0].x1 + run[4].x2, tau=4)
 
     intervention = SimpleIntervention(time=3, param=1.0)

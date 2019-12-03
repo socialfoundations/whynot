@@ -6,7 +6,7 @@ import numpy as np
 from py_mini_racer import py_mini_racer
 
 import whynot as wn
-from whynot.simulators.infrastructure import BaseConfig, BaseState, BaseIntervention
+from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
 
 
 # Load javascript file for execution
@@ -250,7 +250,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     Returns
     -------
-        run: whynot.framework.Run
+        run: whynot.dynamics.Run
             A single rollout from the simulator.
 
     """
@@ -274,4 +274,4 @@ def simulate(initial_state, config, intervention=None, seed=None):
     states, times = decode_states(ctx)
     # Ensure the user passed initial state appears in the run
     states = [initial_state] + states[1:]
-    return wn.framework.Run(states=states, times=times)
+    return wn.dynamics.Run(states=states, times=times)

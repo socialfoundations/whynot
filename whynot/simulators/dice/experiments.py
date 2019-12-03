@@ -1,7 +1,8 @@
 """Experiments on the DICE model."""
 import numpy as np
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import dice
 
 __all__ = ["get_experiments", "RCT"]
