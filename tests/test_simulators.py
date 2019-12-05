@@ -21,7 +21,7 @@ def check_shapes(dataset, num_samples):
     [wn.hiv, wn.lotka_volterra, wn.opioid, wn.world2, wn.world3],
     ids=["hiv", "lotka_volterra", "opioid", "world2", "world3",],
 )
-def test_initial_states(simulator):
+def test_dynamics_initial_state(simulator):
     """For ODE simulators, ensure the iniitial_state is returned by reference in run."""
     initial_state = simulator.State()
     config = simulator.Config()
@@ -42,7 +42,7 @@ def test_initial_states(simulator):
     ],
     ids=["hiv", "lotka_volterra", "opioid", "world2", "world3",],
 )
-def test_intervention(simulator, intervention_param, intervention_val):
+def test_dynamics_intervention(simulator, intervention_param, intervention_val):
     """For ODE simulators, ensure test config.intervention."""
     initial_state = simulator.State()
     config = simulator.Config(delta_t=1.0)
@@ -56,7 +56,8 @@ def test_intervention(simulator, intervention_param, intervention_val):
     intervention = simulator.Intervention(time=intervention_time, **kwargs)
 
     # Run the simulator with and without the intervention
-    # Ensure the states match up to the intervention time.
+    # Ensure the states match up to the intervention time and diverge
+    # thereafter.
     untreated_run = simulator.simulate(
         initial_state, config, intervention=None, seed=1234
     )
@@ -76,101 +77,45 @@ def test_intervention(simulator, intervention_param, intervention_val):
             )
 
 
-def integration_test(simulator, num_samples=15):
-    """Check if the simulator generates data that is well-formed and can be used for inference."""
+@pytest.mark.parametrize(
+    "simulator,num_samples",
+    [
+        (wn.civil_violence, 5),
+        (wn.dice, 10),
+        (wn.hiv, 10),
+        (wn.lalonde, 445),
+        (wn.lotka_volterra, 10),
+        (wn.opioid, 10),
+        (wn.schelling, 5),
+        (wn.world2, 10),
+        (wn.world3, 10),
+    ],
+    ids=[
+        "civil_violence",
+        "dice",
+        "hiv",
+        "lalonde",
+        "lotka_volterra",
+        "opioid",
+        "schelling",
+        "world2",
+        "world3",
+    ],
+)
+def test_simulator_experiments(simulator, num_samples):
+    """Test simulator experiments for determinism and proper outcome size."""
     for experiment in simulator.get_experiments():
         params = experiment.get_parameters()
         print(params)
-        dataset = experiment.run(num_samples=num_samples, seed=1234, **params.sample())
-        check_shapes(dataset, num_samples)
+        sampled_params = params.sample(seed=1234)
+        dataset1 = experiment.run(num_samples=num_samples, seed=1234, **sampled_params)
 
         # Sanity check to make sure data is well-formed.
-        _ = wn.algorithms.ols.estimate_treatment_effect(
-            dataset.covariates, dataset.treatments, dataset.outcomes
-        )
+        check_shapes(dataset1, num_samples)
 
-
-def determinism_test(simulator, num_samples=15):
-    """Check to make sure all experiments are deterministic."""
-    for experiment in simulator.get_experiments():
-        dataset1 = experiment.run(num_samples=num_samples, seed=1234)
-        dataset2 = experiment.run(num_samples=num_samples, seed=1234)
-
+        # Rerun the experiment for determinism.
+        dataset2 = experiment.run(num_samples=num_samples, seed=1234, **sampled_params)
         assert np.allclose(dataset1.covariates, dataset2.covariates)
         assert np.allclose(dataset1.treatments, dataset2.treatments)
         assert np.allclose(dataset1.outcomes, dataset2.outcomes)
         assert np.allclose(dataset1.true_effects, dataset2.true_effects)
-
-
-# pylint:disable-msg=missing-docstring
-def test_civil_violence_integration():
-    integration_test(wn.civil_violence, num_samples=5)
-
-
-def test_civil_violence_determinism():
-    determinism_test(wn.civil_violence, num_samples=5)
-
-
-def test_dice_integration():
-    integration_test(wn.dice)
-
-
-def test_dice_determinism():
-    determinism_test(wn.dice)
-
-
-def test_hiv_integration():
-    integration_test(wn.hiv)
-
-
-def test_hiv_determinism():
-    determinism_test(wn.hiv)
-
-
-def test_lalonde_integration():
-    # 445 units in the LaLonde dataset
-    integration_test(wn.lalonde, num_samples=445)
-
-
-def test_lalonde_determinism():
-    determinism_test(wn.lalonde)
-
-
-def test_lotka_volterra_integration():
-    integration_test(wn.lotka_volterra)
-
-
-def test_lotka_volterra_determinism():
-    determinism_test(wn.lotka_volterra)
-
-
-def test_opioid_integration():
-    integration_test(wn.opioid)
-
-
-def test_opioid_determinism():
-    determinism_test(wn.opioid)
-
-
-def test_schelling_integration():
-    integration_test(wn.schelling, num_samples=5)
-
-
-def test_schelling_determinism():
-    determinism_test(wn.schelling, num_samples=5)
-
-
-def test_world2_integration():
-    integration_test(wn.world2)
-
-
-def test_world2_determinism():
-    determinism_test(wn.world2)
-
-
-def test_world3_integration():
-    integration_test(wn.world3, num_samples=25)
-
-
-def test_world3_determinism():
-    determinism_test(wn.world3, num_samples=25)
