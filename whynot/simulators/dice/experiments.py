@@ -44,7 +44,7 @@ RCT = DynamicsExperiment(
     name="dice_rct",
     description="A RCT to determine effect of optimal carbon prices on atmospheric temperature.",
     simulator=dice,
-    simulator_config=dice.Config(ifopt=0),
+    simulator_config=dice.Config(ifopt=0, numPeriods=10),
     intervention=dice.Intervention(ifopt=1),
     state_sampler=sample_initial_states,
     propensity_scorer=rct_propensity,
