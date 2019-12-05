@@ -73,6 +73,10 @@ def test_framework_run():
     # Find the state closest to time 11
     assert run[11] == 4
 
+    # Throw error on construction if not the same length!
+    with pytest.raises(ValueError):
+        wn.dynamics.Run(states=[1, 2, 3], times=[0, 1])
+
 
 @dataclasses.dataclass
 class ToyConfig:

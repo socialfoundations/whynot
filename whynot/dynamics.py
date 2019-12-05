@@ -99,6 +99,12 @@ class Run:
     states: list
     times: list
 
+    def __post_init__(self):
+        """Error checking called after the constructor."""
+        if len(self.states) != len(self.times):
+            msg = "Input states and times must be the same length!  {} \neq {}"
+            raise ValueError(msg.format(len(self.states), len(self.times)))
+
     def __getitem__(self, time):
         """Return the state closest to the given time."""
         time_index = np.argmin(np.abs(np.array(self.times) - time))
