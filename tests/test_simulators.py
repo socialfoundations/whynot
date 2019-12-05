@@ -1,5 +1,6 @@
 """Simple integration and determinism tests for all simulators."""
 import numpy as np
+import pytest
 
 import whynot as wn
 
@@ -13,6 +14,66 @@ def check_shapes(dataset, num_samples):
     assert dataset.treatments.shape == (num_samples,)
     assert dataset.outcomes.shape == (num_samples,)
     assert dataset.true_effects.shape == (num_samples,)
+
+
+@pytest.mark.parametrize(
+    "simulator",
+    [wn.hiv, wn.lotka_volterra, wn.opioid, wn.world2, wn.world3],
+    ids=["hiv", "lotka_volterra", "opioid", "world2", "world3",],
+)
+def test_initial_states(simulator):
+    """For ODE simulators, ensure the iniitial_state is returned by reference in run."""
+    initial_state = simulator.State()
+    config = simulator.Config()
+    run = simulator.simulate(initial_state, config)
+    assert len(run.states) == len(run.times)
+    assert run.initial_state is initial_state
+    assert np.allclose(config.delta_t, run.times[1] - run.times[0])
+
+
+@pytest.mark.parametrize(
+    "simulator,intervention_param,intervention_val",
+    [
+        (wn.hiv, None, None),
+        (wn.lotka_volterra, None, None),
+        (wn.opioid, "nonmedical_incidence", -0.1),
+        (wn.world2, None, None),
+        (wn.world3, None, None),
+    ],
+    ids=["hiv", "lotka_volterra", "opioid", "world2", "world3",],
+)
+def test_intervention(simulator, intervention_param, intervention_val):
+    """For ODE simulators, ensure test config.intervention."""
+    initial_state = simulator.State()
+    config = simulator.Config(delta_t=1.0)
+    intervention_time = (config.start_time + config.end_time) / 2
+
+    if intervention_param is None:
+        intervention_param = config.parameter_names()[0]
+        intervention_val = 5.0 * getattr(config, intervention_param)
+
+    kwargs = {intervention_param: intervention_val}
+    intervention = simulator.Intervention(time=intervention_time, **kwargs)
+
+    # Run the simulator with and without the intervention
+    # Ensure the states match up to the intervention time.
+    untreated_run = simulator.simulate(
+        initial_state, config, intervention=None, seed=1234
+    )
+    treated_run = simulator.simulate(
+        initial_state, config, intervention=intervention, seed=1234
+    )
+
+    for idx, time in enumerate(untreated_run.times):
+        if time < intervention_time:
+            assert np.allclose(
+                untreated_run.states[idx].values(), treated_run.states[idx].values()
+            )
+        elif time >= intervention_time + config.delta_t:
+            # Should make sure the interventions have *some* effect
+            assert not np.allclose(
+                untreated_run.states[idx].values(), treated_run.states[idx].values()
+            )
 
 
 def integration_test(simulator, num_samples=15):
@@ -39,15 +100,6 @@ def determinism_test(simulator, num_samples=15):
         assert np.allclose(dataset1.treatments, dataset2.treatments)
         assert np.allclose(dataset1.outcomes, dataset2.outcomes)
         assert np.allclose(dataset1.true_effects, dataset2.true_effects)
-
-
-def initial_state_test(simulator):
-    """For ODE simulators, ensure the iniitial_state is returned in run."""
-    initial_state = simulator.State()
-    config = simulator.Config()
-    run = simulator.simulate(initial_state, config)
-    assert len(run.states) == len(run.times)
-    assert run.initial_state is initial_state
 
 
 # pylint:disable-msg=missing-docstring
@@ -122,11 +174,3 @@ def test_world3_integration():
 
 def test_world3_determinism():
     determinism_test(wn.world3, num_samples=25)
-
-
-def test_initial_state():
-    initial_state_test(wn.hiv)
-    initial_state_test(wn.lotka_volterra)
-    initial_state_test(wn.opioid)
-    initial_state_test(wn.world2)
-    initial_state_test(wn.world3)
