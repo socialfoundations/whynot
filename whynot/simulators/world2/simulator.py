@@ -240,29 +240,14 @@ def dynamics(state, time, config, intervention=None):
     if intervention and time >= intervention.time:
         config = config.update(intervention)
 
-    # (
-    #     population,
-    #     natural_resources,
-    #     capital_investment,
-    #     pollution,
-    #     capital_investment_in_agriculture,
-    #     initial_natural_resources,
-    # ) = state
-    state = (
+    (
         population,
         natural_resources,
         capital_investment,
         pollution,
         capital_investment_in_agriculture,
         initial_natural_resources,
-    ) = (
-        state.population,
-        state.natural_resources,
-        state.capital_investment,
-        state.pollution,
-        state.capital_investment_in_agriculture,
-        state.initial_natural_resources,
-    )
+    ) = state
 
     (
         capital_investment_ratio,
@@ -340,29 +325,16 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     assert initial_state.natural_resources == initial_state.initial_natural_resources
 
-    # solution = odeint(
-    #     dynamics,
-    #     y0=dataclasses.astuple(initial_state),
-    #     t=t_eval,
-    #     args=(config, intervention),
-    #     rtol=config.rtol,
-    #     atol=config.atol,
-    # )
-#
-    # states = [initial_state] + [State(*state) for state in solution[1:]]
+    solution = odeint(
+        dynamics,
+        y0=dataclasses.astuple(initial_state),
+        t=t_eval,
+        args=(config, intervention),
+        rtol=config.rtol,
+        atol=config.atol,
+    )
 
-    import copy
-    s = initial_state
-    states = [copy.deepcopy(s)]
-    for time in t_eval[:-1]:
-        s = copy.deepcopy(s)
-        ds_dt = dynamics(s, time, config, intervention)
-        s.population += config.delta_t * ds_dt[0]
-        s.natural_resources += config.delta_t * ds_dt[1]
-        s.capital_investment += config.delta_t * ds_dt[2]
-        s.pollution += config.delta_t * ds_dt[3]
-        s.capital_investment_in_agriculture += config.delta_t * ds_dt[4]
-        states.append(s)
+    states = [initial_state] + [State(*state) for state in solution[1:]]
     return wn.dynamics.Run(states=states, times=t_eval)
 
 
