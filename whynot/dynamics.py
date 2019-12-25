@@ -606,13 +606,10 @@ class DynamicsExperiment:
             kwargs["intervention"] = intervention
 
         def get_outcome(run):
-            print('kwargs: ', kwargs.keys())
             return self.outcome_extractor(run=run, **kwargs)
 
         untreated_outcomes = np.array([get_outcome(run) for run in untreated_runs])
         treated_outcomes = np.array([get_outcome(run) for run in treated_runs])
-
-        print(untreated_outcomes, treated_outcomes)
 
         return untreated_outcomes, treated_outcomes
 

@@ -21,6 +21,7 @@ def sample_initial_states(rng):
     state.capital_investment *= rng.uniform(0.5, 2.0)
     state.pollution *= rng.uniform(0.5, 2)
     state.capital_investment_in_agriculture *= rng.uniform(0.5, 1.5)
+    state.initial_natural_resources = state.natural_resources
     return state
 
 
@@ -141,7 +142,7 @@ def mediation_covariates(run, intervention, mediation_year, num_mediators):
     return np.concatenate([confounders, mediators[:num_mediators]])
 
 
-def mediation_outcome_extractor(run, config, intervention=None):
+def mediation_outcome_extractor(run, config, intervention):
     return world2.quality_of_life(
         state=run[2030],
         time=2030,

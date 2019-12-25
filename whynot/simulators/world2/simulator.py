@@ -58,9 +58,6 @@ class Config(BaseConfig):
     #:
     quality_of_life_standard: float = 1.0
 
-    #: Starting natural resources. Set automatically in dynamics to be consistent with initial state.
-    initial_natural_resources: float = 3.6e9 * 250
-
     #: Time to initialize the simulation (in years).
     start_time: float = 1900
     #: Time to end the simulation (in years).
@@ -116,6 +113,8 @@ class State(BaseState):
     pollution: float = 0.2e9
     #: Fraction of capital investment in agriculture
     capital_investment_in_agriculture: float = 0.2
+    #: Initial natural resources
+    initial_natural_resources: float = 3.6e9 * 250
 
 
 def world2_intermediate_variables(state, config):
@@ -140,6 +139,7 @@ def world2_intermediate_variables(state, config):
         capital_investment,
         pollution,
         capital_investment_in_agriculture,
+        initial_natural_resources,
     ) = state
 
     capital_investment_ratio = capital_investment / population
@@ -162,7 +162,7 @@ def world2_intermediate_variables(state, config):
         (
             capital_investment_ratio
             * tables.NATURAL_RESOURCE_EXTRACTION[
-                natural_resources / config.initial_natural_resources  # fraction of natural resources remaining
+                natural_resources / initial_natural_resources  # fraction of natural resources remaining
             ]  # natural resources extraction multiplier
             * (1.0 - capital_investment_in_agriculture)
             / (1.0 - config.capital_investment_agriculture)
@@ -246,6 +246,7 @@ def dynamics(state, time, config, intervention=None):
     #     capital_investment,
     #     pollution,
     #     capital_investment_in_agriculture,
+    #     initial_natural_resources,
     # ) = state
     state = (
         population,
@@ -253,12 +254,14 @@ def dynamics(state, time, config, intervention=None):
         capital_investment,
         pollution,
         capital_investment_in_agriculture,
+        initial_natural_resources,
     ) = (
         state.population,
         state.natural_resources,
         state.capital_investment,
         state.pollution,
         state.capital_investment_in_agriculture,
+        state.initial_natural_resources,
     )
 
     (
@@ -304,6 +307,7 @@ def dynamics(state, time, config, intervention=None):
         delta_capital_investment,
         delta_pollution,
         delta_capital_investment_in_agriculture,
+        1,  # initial_natural_resources does not change
     ]
     return ds_dt
 
@@ -334,7 +338,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
         config.start_time, config.end_time + config.delta_t, config.delta_t
     )
 
-    config.initial_natural_resources = initial_state.natural_resources
+    assert initial_state.natural_resources == initial_state.initial_natural_resources
 
     # solution = odeint(
     #     dynamics,
@@ -359,14 +363,6 @@ def simulate(initial_state, config, intervention=None, seed=None):
         s.pollution += config.delta_t * ds_dt[3]
         s.capital_investment_in_agriculture += config.delta_t * ds_dt[4]
         states.append(s)
-        # if np.isclose(time, 2030):
-            # print('time: {}, state: '.format(time), s)
-            # print('QOL, time={}, intervention={}: '.format(time, intervention), quality_of_life(s, time, config, intervention))
-            # 1/0
-    # print(wn.dynamics.Run(states=states, times=t_eval)[2030])
-    print('\nGOT RUN')
-    print('qol: ', quality_of_life(wn.dynamics.Run(states=states, times=t_eval)[2030], 2030, config, intervention))
-    print()
     return wn.dynamics.Run(states=states, times=t_eval)
 
 
@@ -391,12 +387,7 @@ def quality_of_life(state, time, config, intervention=None):
 
     """
     if intervention and time >= intervention.time:
-        # print('\nupdated config.')
-        # print('old: ', config)
         config = config.update(intervention)
-    print('state: ', state)
-    print('config: ', config)
-    print('intervention: ', intervention, '\n')
 
     if type(state) == wn.simulators.world2.State:
         state = (
@@ -405,15 +396,8 @@ def quality_of_life(state, time, config, intervention=None):
             state.capital_investment,
             state.pollution,
             state.capital_investment_in_agriculture,
+            state.initial_natural_resources,
         )
-
-    (
-        population,
-        natural_resources,
-        capital_investment,
-        pollution,
-        capital_investment_in_agriculture,
-    ) = state
 
     (
         _,
