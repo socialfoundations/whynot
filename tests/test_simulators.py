@@ -119,3 +119,40 @@ def test_simulator_experiments(simulator, num_samples):
         assert np.allclose(dataset1.treatments, dataset2.treatments)
         assert np.allclose(dataset1.outcomes, dataset2.outcomes)
         assert np.allclose(dataset1.true_effects, dataset2.true_effects)
+
+
+@pytest.mark.parametrize(
+    "simulator,num_samples",
+    [
+        (wn.civil_violence, 5),
+        (wn.dice, 10),
+        (wn.hiv, 10),
+        (wn.lalonde, 445),
+        (wn.lotka_volterra, 10),
+        (wn.opioid, 10),
+        (wn.schelling, 5),
+        (wn.world2, 10),
+        (wn.world3, 10),
+    ],
+    ids=[
+        "civil_violence",
+        "dice",
+        "hiv",
+        "lalonde",
+        "lotka_volterra",
+        "opioid",
+        "schelling",
+        "world2",
+        "world3",
+    ],
+)
+def test_parallelize(simulator, num_samples):
+    """Test that parallelized runs are identical to non-parallelized."""
+    for experiment in simulator.get_experiments():
+        unparallelized = experiment.run(num_samples=num_samples, parallelize=False, seed=1234)
+        parallelized = experiment.run(num_samples=num_samples, parallelize=True, seed=1234)
+
+        assert np.allclose(unparallelized.covariates, parallelized.covariates)
+        assert np.allclose(unparallelized.treatments, parallelized.treatments)
+        assert np.allclose(unparallelized.outcomes, parallelized.outcomes)
+        assert np.allclose(unparallelized.true_effects, parallelized.true_effects)

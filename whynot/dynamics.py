@@ -4,6 +4,7 @@ import dataclasses
 import inspect
 
 import numpy as np
+from tqdm.auto import tqdm
 
 from whynot.framework import Dataset, extract_params, ParameterCollection
 from whynot import causal_graphs, utils
@@ -499,9 +500,9 @@ class DynamicsExperiment:
                 self._run_dynamics_simulator, parallel_args, show_progress=show_progress
             )
         elif show_progress:
-            runs = [self.run_dynamics_simulator(*args) for args in tqdm(parallel_args)]
+            runs = [self._run_dynamics_simulator(*args) for args in tqdm(parallel_args)]
         else:
-            runs = [self.run_dynamics_simulator(*args) for args in parallel_args]
+            runs = [self._run_dynamics_simulator(*args) for args in parallel_args]
 
         untreated_runs, treated_runs = list(zip(*runs))
 
