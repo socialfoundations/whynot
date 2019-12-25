@@ -1,8 +1,9 @@
 """World 2 dynamics simulator."""
-import copy
-import dataclasses
 
+import dataclasses
 import numpy as np
+
+from scipy.integrate import odeint
 
 import whynot as wn
 from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
@@ -57,12 +58,19 @@ class Config(BaseConfig):
     #:
     quality_of_life_standard: float = 1.0
 
+    #: Starting natural resources. Set automatically in dynamics to be consistent with initial state.
+    initial_natural_resources: float = 3.6e9 * 250
+
     #: Time to initialize the simulation (in years).
     start_time: float = 1900
     #: Time to end the simulation (in years).
     end_time: float = 2100
-    #: Time (in years) elapsed on each update of the discrete dynamics (forward euler).
+    #: Time (in years) elapsed on each update of the discrete dynamics.
     delta_t: float = 0.2
+    #: solver relative tolerance
+    rtol: float = 1e-6
+    #: solver absolute tolerance
+    atol: float = 1e-6
 
 
 class Intervention(BaseIntervention):
@@ -108,284 +116,200 @@ class State(BaseState):
     pollution: float = 0.2e9
     #: Fraction of capital investment in agriculture
     capital_investment_in_agriculture: float = 0.2
-    #: (Derived) quality of life metric
-    quality_of_life: float = 1.0
 
 
-#################
-# Dynamics
-#################
-class WorldDynamics:
-    """Class encapsulating world2 dynamics."""
+def world2_intermediate_variables(state, config):
+    """Update equations for the world2 simulaton.
 
-    def __init__(self, config, intervention, initial_state):
-        """Initialize world2 dynamics at initial_state with config."""
-        self._state = copy.deepcopy(initial_state)
-        self.initial_natural_resources = initial_state.natural_resources
-        self.intervention = intervention
+    Parameters
+    ----------
+        state:  np.ndarray, list, or tuple
+            State of the dynamics
+        config: world2.Config
+            Simulator configuration object that determines the coefficients
 
-        config = copy.deepcopy(config)
-        self.preintervention_config = config
-        if intervention:
-            self.postintervention_config = config.update(intervention)
-        else:
-            self.postintervention_config = config
-        self.config = config
+    Returns
+    -------
+        intermediate_variables: list
+            Intermediate variables needed for world2 simulation.
 
-    def __str__(self):
-        """Print all of the state variables."""
-        template = "Population: {}\nNatural Resources: {}\nCapital Investment: {}\n"
-        template += "Pollution: {}\nFraction Capital Investment in Agriculture: {}\n"
+    """
+    (
+        population,
+        natural_resources,
+        capital_investment,
+        pollution,
+        capital_investment_in_agriculture,
+    ) = state
 
-        return template.format(*[f.name for f in dataclasses.fields(self._state)])
+    capital_investment_ratio = capital_investment / population
+    crowding_ratio = population / (config.land_area * config.population_density)
+    pollution_ratio = pollution / config.pollution_standard
+    food_ratio = (
+        tables.FOOD_POTENTIAL_FROM_CAPITAL_INVESTMENT[
+            (
+                capital_investment_ratio
+                * capital_investment_in_agriculture
+                / config.capital_investment_agriculture
+            )  # capital investment ratio in agriculture
+        ]  # capital investment food potential
+        * tables.FOOD_FROM_CROWDING[crowding_ratio]  # crowding multiplier
+        * tables.FOOD_FROM_POLLUTION[pollution_ratio]  # pollution multiplier
+        * config.food_coefficient
+        / config.food_normal
+    )
+    standard_of_living = (
+        (
+            capital_investment_ratio
+            * tables.NATURAL_RESOURCE_EXTRACTION[
+                natural_resources / config.initial_natural_resources  # fraction of natural resources remaining
+            ]  # natural resources extraction multiplier
+            * (1.0 - capital_investment_in_agriculture)
+            / (1.0 - config.capital_investment_agriculture)
+        )  # effective capital investment ratio
+        / config.effective_capital_investment_ratio
+    )
+    death_rate_per_year = (
+        config.death_rate
+        * tables.DEATH_RATE_FROM_MATERIAL[standard_of_living]  # material multiplier
+        * tables.DEATH_RATE_FROM_POLLUTION[pollution_ratio]  # pollution multiplier
+        * tables.DEATH_RATE_FROM_FOOD[food_ratio]  # food multiplier
+        * tables.DEATH_RATE_FROM_CROWDING[crowding_ratio]  # crowding multiplier
+    )
+    birth_rate_per_year = (
+        config.birth_rate
+        * tables.BIRTH_RATE_FROM_MATERIAL[standard_of_living]  # material multiplier
+        * tables.BIRTH_RATE_FROM_POLLUTION[pollution_ratio]  # pollution multiplier
+        * tables.BIRTH_RATE_FROM_FOOD[food_ratio]  # food multiplier
+        * tables.BIRTH_RATE_FROM_CROWDING[crowding_ratio]  # crowding multiplier
+    )
+    natural_resources_usage_rate = (
+        population
+        * config.natural_resources_usage
+        * tables.NATURAL_RESOURCES_FROM_MATERIAL[standard_of_living]  # material multiplier
+    )
+    capital_investment_rate = (
+        population
+        * tables.CAPITAL_INVESTMENT_MULTIPLIER_TABLE[standard_of_living]  # material multiplier
+        * config.capital_investment_generation
+    ) - capital_investment * config.capital_investment_discard
+    pollution_rate = (  # pollution generation
+        population
+        * tables.POLLUTION_FROM_CAPITAL[capital_investment_ratio]  # capital multiplier
+        * config.pollution
+    ) - (  # pollution absorption
+        pollution
+        / tables.POLLUTION_ABSORPTION_TIME_TABLE[pollution_ratio]  # absorption time
+    )
 
-    @property
-    def state(self):
-        """Return a copy of the current world2 state."""
-        return copy.deepcopy(self._state)
+    intermediate_variables = [
+        capital_investment_ratio,
+        crowding_ratio,
+        pollution_ratio,
+        food_ratio,
+        standard_of_living,
+        death_rate_per_year,
+        birth_rate_per_year,
+        natural_resources_usage_rate,
+        capital_investment_rate,
+        pollution_rate,
+    ]
+    return intermediate_variables
 
-    @property
-    def capital_investment_ratio(self):
-        """Return current capital investment ratio."""
-        return self._state.capital_investment / self._state.population
 
-    @property
-    def crowding_ratio(self):
-        """Return current crowding ratio."""
-        return self._state.population / (
-            self.config.land_area * self.config.population_density
-        )
+def dynamics(state, time, config, intervention=None):
+    """Update equations for the world2 simulaton.
 
-    @property
-    def pollution_ratio(self):
-        """Return current pollution ratio."""
-        return self._state.pollution / self.config.pollution_standard
+    Parameters
+    ----------
+        state:  np.ndarray, list, or tuple
+            State of the dynamics
+        time:   float
+        config: world2.Config
+            Simulator configuration object that determines the coefficients
+        intervention: world2.Intervention
+            Simulator intervention object that determines when/how to update the
+            dynamics.
 
-    @property
-    def food_ratio(self):
-        """Return current food ratio."""
-        capital_investment_ratio_in_agr = (
-            self.capital_investment_ratio
-            * self._state.capital_investment_in_agriculture
-            / self.config.capital_investment_agriculture
-        )
+    Returns
+    -------
+        ds_dt: list
+            Derivative of the dynamics with respect to time
 
-        pollution_multiplier = tables.FOOD_FROM_POLLUTION[self.pollution_ratio]
-        crowding_multiplier = tables.FOOD_FROM_CROWDING[self.crowding_ratio]
-        capital_investment_food_potential = tables.FOOD_POTENTIAL_FROM_CAPITAL_INVESTMENT[
-            capital_investment_ratio_in_agr
-        ]
+    """
+    if intervention and time >= intervention.time:
+        config = config.update(intervention)
 
-        food_ratio = (
-            capital_investment_food_potential
-            * crowding_multiplier
-            * pollution_multiplier
-            * self.config.food_coefficient
-            / self.config.food_normal
-        )
+    # (
+    #     population,
+    #     natural_resources,
+    #     capital_investment,
+    #     pollution,
+    #     capital_investment_in_agriculture,
+    # ) = state
+    state = (
+        population,
+        natural_resources,
+        capital_investment,
+        pollution,
+        capital_investment_in_agriculture,
+    ) = (
+        state.population,
+        state.natural_resources,
+        state.capital_investment,
+        state.pollution,
+        state.capital_investment_in_agriculture,
+    )
 
-        return food_ratio
+    (
+        capital_investment_ratio,
+        crowding_ratio,
+        pollution_ratio,
+        food_ratio,
+        standard_of_living,
+        death_rate_per_year,
+        birth_rate_per_year,
+        natural_resources_usage_rate,
+        capital_investment_rate,
+        pollution_rate,
+    ) = world2_intermediate_variables(state, config)
 
-    @property
-    def standard_of_living(self):
-        """Return the current standard of living."""
-        # Natural resources
-        frac_natural_resources_remaining = (
-            self._state.natural_resources / self.initial_natural_resources
-        )
-        natural_resources_extraction_multiplier = tables.NATURAL_RESOURCE_EXTRACTION[
-            frac_natural_resources_remaining
-        ]
+    # Population
+    delta_population = (birth_rate_per_year - death_rate_per_year) * population
 
-        effective_capital_investment_ratio = (
-            self.capital_investment_ratio
-            * natural_resources_extraction_multiplier
-            * (1.0 - self._state.capital_investment_in_agriculture)
-            / (1.0 - self.config.capital_investment_agriculture)
-        )
+    # Natural resources (negative since this is usage)
+    delta_natural_resources = -natural_resources_usage_rate
 
-        return (
-            effective_capital_investment_ratio
-            / self.config.effective_capital_investment_ratio
-        )
+    # Capital_investment
+    delta_capital_investment = capital_investment_rate
 
-    @property
-    def death_rate_per_year(self):
-        """Return the fraction of people who die in the current year."""
-        material_multiplier = tables.DEATH_RATE_FROM_MATERIAL[self.standard_of_living]
-        pollution_multiplier = tables.DEATH_RATE_FROM_POLLUTION[self.pollution_ratio]
-        food_multiplier = tables.DEATH_RATE_FROM_FOOD[self.food_ratio]
-        crowding_multiplier = tables.DEATH_RATE_FROM_CROWDING[self.crowding_ratio]
+    # Pollution
+    delta_pollution = pollution_rate
 
-        death_rate_per_year = (
-            self.config.death_rate
-            * material_multiplier
-            * pollution_multiplier
-            * food_multiplier
-            * crowding_multiplier
-        )
+    # Investment in agriculture
+    delta_capital_investment_in_agriculture = (
+        tables.CAPITAL_FRACTION_INDICATE_BY_FOOD_RATIO_TABLE[food_ratio]
+        * tables.CAPITAL_INVESTMENT_FROM_QUALITY[
+            (
+                tables.QUALITY_OF_LIFE_FROM_MATERIAL[standard_of_living]
+                / tables.QUALITY_OF_LIFE_FROM_FOOD[food_ratio]
+            )  # life quality ratio
+        ]  # capital investment from quality ratio
+        - capital_investment_in_agriculture
+    ) / config.capital_investment_in_agriculture_frac_adj_time
 
-        return death_rate_per_year
-
-    @property
-    def birth_rate_per_year(self):
-        """Return the fraction of people born in the current year."""
-        material_multiplier = tables.BIRTH_RATE_FROM_MATERIAL[self.standard_of_living]
-        pollution_multiplier = tables.BIRTH_RATE_FROM_POLLUTION[self.pollution_ratio]
-        food_multiplier = tables.BIRTH_RATE_FROM_FOOD[self.food_ratio]
-        crowding_multiplier = tables.BIRTH_RATE_FROM_CROWDING[self.crowding_ratio]
-
-        birth_rate_per_year = (
-            self.config.birth_rate
-            * material_multiplier
-            * pollution_multiplier
-            * food_multiplier
-            * crowding_multiplier
-        )
-
-        return birth_rate_per_year
-
-    @property
-    def natural_resources_usage_rate(self):
-        """Return the rate of natural resource usage at the current time."""
-        material_multiplier = tables.NATURAL_RESOURCES_FROM_MATERIAL[
-            self.standard_of_living
-        ]
-
-        natural_resources_usage_rate = (
-            self._state.population
-            * self.config.natural_resources_usage
-            * material_multiplier
-        )
-
-        return natural_resources_usage_rate
-
-    @property
-    def capital_investment_rate(self):
-        """Return the rate of capital investment at the current time."""
-        material_multiplier = tables.CAPITAL_INVESTMENT_MULTIPLIER_TABLE[
-            self.standard_of_living
-        ]
-
-        capital_investment_generation = (
-            self._state.population
-            * material_multiplier
-            * self.config.capital_investment_generation
-        )
-
-        capital_investment_discard = (
-            self._state.capital_investment * self.config.capital_investment_discard
-        )
-
-        return capital_investment_generation - capital_investment_discard
-
-    @property
-    def pollution_rate(self):
-        """Return the current rate of pollution."""
-        capital_multiplier = tables.POLLUTION_FROM_CAPITAL[
-            self.capital_investment_ratio
-        ]
-
-        pollution_generation = (
-            self._state.population * capital_multiplier * self.config.pollution
-        )
-
-        absorption_time = tables.POLLUTION_ABSORPTION_TIME_TABLE[self.pollution_ratio]
-        pollution_absorption = self._state.pollution / absorption_time
-
-        return pollution_generation - pollution_absorption
-
-    @property
-    def quality_of_life(self):
-        """Return the current quality of life meta-statistic."""
-        material_multiplier = tables.QUALITY_OF_LIFE_FROM_MATERIAL[
-            self.standard_of_living
-        ]
-        crowding_multiplier = tables.QUALITY_OF_LIFE_FROM_CROWDING[self.crowding_ratio]
-        food_multiplier = tables.QUALITY_OF_LIFE_FROM_FOOD[self.food_ratio]
-        pollution_multiplier = tables.QUALITY_OF_LIFE_FROM_POLLUTION[
-            self.pollution_ratio
-        ]
-
-        quality_of_life = (
-            self.config.quality_of_life_standard
-            * material_multiplier
-            * crowding_multiplier
-            * food_multiplier
-            * pollution_multiplier
-        )
-
-        return quality_of_life
-
-    def capital_invest_agr_frac_delta(self, delta_t):
-        """Return the change in the fraction of captial invested in agriculture."""
-        capital_fraction_indicated_by_food_ratio = tables.CAPITAL_FRACTION_INDICATE_BY_FOOD_RATIO_TABLE[
-            self.food_ratio
-        ]
-
-        quality_of_life_material = tables.QUALITY_OF_LIFE_FROM_MATERIAL[
-            self.standard_of_living
-        ]
-        quality_of_life_food = tables.QUALITY_OF_LIFE_FROM_FOOD[self.food_ratio]
-
-        life_quality_ratio = quality_of_life_material / quality_of_life_food
-        capital_investment_from_quality_ratio = tables.CAPITAL_INVESTMENT_FROM_QUALITY[
-            life_quality_ratio
-        ]
-
-        delta = (
-            delta_t / self.config.capital_investment_in_agriculture_frac_adj_time
-        ) * (
-            capital_fraction_indicated_by_food_ratio
-            * capital_investment_from_quality_ratio
-            - self._state.capital_investment_in_agriculture
-        )
-
-        return delta
-
-    def step(self, time, delta_t):
-        """Advance the simulation forward delta_t steps, starting at the given time."""
-        if self.intervention and time >= self.intervention.time:
-            self.config = self.postintervention_config
-        else:
-            self.config = self.preintervention_config
-
-        # Population
-        deaths = self.death_rate_per_year * self._state.population * delta_t
-        births = self.birth_rate_per_year * self._state.population * delta_t
-        population_delta = births - deaths
-
-        # Natural resources (negative since this is usage)
-        natural_resources_delta = -self.natural_resources_usage_rate * delta_t
-
-        # Capital_investment
-        capital_investment_delta = self.capital_investment_rate * delta_t
-
-        # Pollution
-        pollution_delta = self.pollution_rate * delta_t
-
-        # Investment in agriculture
-        capital_investment_in_agr_frac_delta = self.capital_invest_agr_frac_delta(
-            delta_t
-        )
-
-        # Update the state variables. Gather deltas first to ensure the updates
-        # are atomic, e.g. since changing the population will also change the
-        # resources delta.
-        self._state.population += population_delta
-        self._state.natural_resources += natural_resources_delta
-        self._state.capital_investment += capital_investment_delta
-        self._state.pollution += pollution_delta
-        self._state.capital_investment_in_agriculture += (
-            capital_investment_in_agr_frac_delta
-        )
-        self._state.quality_of_life = self.quality_of_life
+    ds_dt = [
+        delta_population,
+        delta_natural_resources,
+        delta_capital_investment,
+        delta_pollution,
+        delta_capital_investment_in_agriculture,
+    ]
+    return ds_dt
 
 
 def simulate(initial_state, config, intervention=None, seed=None):
     """Run a simulation of the world2 dynamics from the given initial state.
-
-    The system of ODEs is solved using the forward-euler method.
 
     Parameters
     ----------
@@ -401,17 +325,115 @@ def simulate(initial_state, config, intervention=None, seed=None):
     Returns
     -------
         run: whynot.dynamics.Run
-            Sequence of states and measurement times produced by the simulator.
+            Rollout sequence of states and measurement times produced by the simulator.
 
     """
-    # pylint: disable=unused-argument
-    world = WorldDynamics(config, intervention, initial_state)
-
-    states = [initial_state]
-    times = np.arange(
+    # Simulator is deterministic, so seed is ignored
+    # pylint: disable-msg=unused-argument
+    t_eval = np.arange(
         config.start_time, config.end_time + config.delta_t, config.delta_t
     )
-    for time in times[:-1]:
-        world.step(time, config.delta_t)
-        states.append(world.state)
-    return wn.dynamics.Run(states=states, times=times)
+
+    config.initial_natural_resources = initial_state.natural_resources
+
+    # solution = odeint(
+    #     dynamics,
+    #     y0=dataclasses.astuple(initial_state),
+    #     t=t_eval,
+    #     args=(config, intervention),
+    #     rtol=config.rtol,
+    #     atol=config.atol,
+    # )
+#
+    # states = [initial_state] + [State(*state) for state in solution[1:]]
+
+    import copy
+    s = initial_state
+    states = [copy.deepcopy(s)]
+    for time in t_eval[:-1]:
+        s = copy.deepcopy(s)
+        ds_dt = dynamics(s, time, config, intervention)
+        s.population += config.delta_t * ds_dt[0]
+        s.natural_resources += config.delta_t * ds_dt[1]
+        s.capital_investment += config.delta_t * ds_dt[2]
+        s.pollution += config.delta_t * ds_dt[3]
+        s.capital_investment_in_agriculture += config.delta_t * ds_dt[4]
+        states.append(s)
+        # if np.isclose(time, 2030):
+            # print('time: {}, state: '.format(time), s)
+            # print('QOL, time={}, intervention={}: '.format(time, intervention), quality_of_life(s, time, config, intervention))
+            # 1/0
+    # print(wn.dynamics.Run(states=states, times=t_eval)[2030])
+    print('\nGOT RUN')
+    print('qol: ', quality_of_life(wn.dynamics.Run(states=states, times=t_eval)[2030], 2030, config, intervention))
+    print()
+    return wn.dynamics.Run(states=states, times=t_eval)
+
+
+def quality_of_life(state, time, config, intervention=None):
+    """Get the world2 quality of life metric derived from a state.
+
+    Parameters
+    ----------
+        state:  np.ndarray, list, tuple, or whynot.simulators.world2.State
+            State of the dynamics
+        time:   float
+        config: world2.Config
+            Simulator configuration object that determines the coefficients
+        intervention: world2.Intervention
+            Simulator intervention object that determines when/how to update the
+            dynamics.
+
+    Returns
+    -------
+        qol: float
+            Quality of life metric, computed according to the world2 simulation.
+
+    """
+    if intervention and time >= intervention.time:
+        # print('\nupdated config.')
+        # print('old: ', config)
+        config = config.update(intervention)
+    print('state: ', state)
+    print('config: ', config)
+    print('intervention: ', intervention, '\n')
+
+    if type(state) == wn.simulators.world2.State:
+        state = (
+            state.population,
+            state.natural_resources,
+            state.capital_investment,
+            state.pollution,
+            state.capital_investment_in_agriculture,
+        )
+
+    (
+        population,
+        natural_resources,
+        capital_investment,
+        pollution,
+        capital_investment_in_agriculture,
+    ) = state
+
+    (
+        _,
+        crowding_ratio,
+        pollution_ratio,
+        food_ratio,
+        standard_of_living,
+        _,
+        _,
+        _,
+        _,
+        _,
+    ) = world2_intermediate_variables(state, config)
+
+    qol = (
+        config.quality_of_life_standard
+        * tables.QUALITY_OF_LIFE_FROM_MATERIAL[standard_of_living]  # material multiplier
+        * tables.QUALITY_OF_LIFE_FROM_CROWDING[crowding_ratio]  # crowding multiplier
+        * tables.QUALITY_OF_LIFE_FROM_FOOD[food_ratio]  # food multiplier
+        * tables.QUALITY_OF_LIFE_FROM_POLLUTION[pollution_ratio]  # pollution multiplier
+    )
+
+    return qol

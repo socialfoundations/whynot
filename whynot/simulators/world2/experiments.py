@@ -141,6 +141,15 @@ def mediation_covariates(run, intervention, mediation_year, num_mediators):
     return np.concatenate([confounders, mediators[:num_mediators]])
 
 
+def mediation_outcome_extractor(run, config, intervention=None):
+    return world2.quality_of_life(
+        state=run[2030],
+        time=2030,
+        config=config,
+        intervention=intervention
+    )
+
+
 # pylint: disable-msg=invalid-name
 #: Observational experiment with mediation for world2.
 Mediation = DynamicsExperiment(
@@ -151,7 +160,7 @@ Mediation = DynamicsExperiment(
     intervention=mediation_intervention,
     state_sampler=sample_initial_states,
     propensity_scorer=mediation_propensity_scores,
-    outcome_extractor=lambda run: run[2030].quality_of_life,
+    outcome_extractor=mediation_outcome_extractor,
     covariate_builder=mediation_covariates,
 )
 
