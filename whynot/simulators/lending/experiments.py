@@ -22,7 +22,7 @@ def sample_initial_states(rng):
     group = int(rng.uniform() < GROUP_SIZE_RATIO[1])
     # Compute score via inverse CDF trick
     score = INV_CDFS[group](rng.uniform())
-    return lending.State(group=group, score=score, profits=0)
+    return lending.State(group=group, score=score)
 
 
 def creditscore_threshold(score):
