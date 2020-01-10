@@ -20,8 +20,8 @@ register(
 
 
 register(
-    id='opioid-v0',
-    entry_point='whynot.simulators.opioid.environment:OpioidEnv',
+    id="opioid-v0",
+    entry_point="whynot.simulators.opioid.environment:OpioidEnv",
     # The simulator starts in 2002 and ends in 2030.
     max_episode_steps=28,
     reward_threshold=0,
