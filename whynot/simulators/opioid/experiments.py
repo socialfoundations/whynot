@@ -1,8 +1,17 @@
 """Basic experiments for opioid simulator."""
 import numpy as np
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import opioid
+
+__all__ = [
+    "get_experiments",
+    "RCT",
+    "Confounding",
+    "UnobservedConfounding",
+    "Mediation",
+]
 
 
 def get_experiments():
@@ -75,15 +84,15 @@ RCT = DynamicsExperiment(
     values=[0.5, 0.6, 0.7, 0.9, 0.99],
     description="Probability of treatment assignment in positive group.",
 )
-def confounded_propensity_scores(config, intervention, control_runs, propensity):
+def confounded_propensity_scores(config, intervention, untreated_runs, propensity):
     """Rollouts with top 10% of illicit deaths in 2015 more likely to receive treatment."""
-    num_samples = len(control_runs)
+    num_samples = len(untreated_runs)
 
     # More likely to assign treatment when illicit overdose
     # deaths are high in 2015
     illicit_deaths = [
         opioid.simulator.compute_illicit_deaths(run, 2015, config, intervention)
-        for run in control_runs
+        for run in untreated_runs
     ]
 
     # Get top 10% of cities based on illicit overdose deaths

@@ -9,6 +9,8 @@ from whynot.framework import GenericExperiment, parameter
 from whynot.simulators import schelling
 import whynot.utils as utils
 
+__all__ = ["get_experiments", "RCT"]
+
 
 def get_experiments():
     """Return all experiments for Schelling."""

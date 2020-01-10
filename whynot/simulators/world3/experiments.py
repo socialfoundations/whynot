@@ -1,8 +1,17 @@
 """Experiments for world3 simulator."""
 import numpy as np
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import world3
+
+__all__ = [
+    "get_experiments",
+    "PollutionRCT",
+    "PollutionConfounding",
+    "PollutionUnobservedConfounding",
+    "PollutionMediation",
+]
 
 
 def get_experiments():
@@ -68,7 +77,7 @@ PollutionRCT = DynamicsExperiment(
     values=np.linspace(0.5, 0.05, 1),
     description="Bias of probability of treatment between top and bottom pollution runs.",
 )
-def pollution_confounded_propensity(intervention, control_runs, treatment_bias):
+def pollution_confounded_propensity(intervention, untreated_runs, treatment_bias):
     """Probability of treating each unit.
 
     To generate confounding, we are more likely to treat worlds with high pollution.
@@ -77,7 +86,7 @@ def pollution_confounded_propensity(intervention, control_runs, treatment_bias):
     def persistent_pollution(run):
         return run[intervention.time].persistent_pollution
 
-    pollution = [persistent_pollution(run) for run in control_runs]
+    pollution = [persistent_pollution(run) for run in untreated_runs]
     upper_quantile = np.quantile(pollution, 0.9)
 
     def treatment_prob(idx):
@@ -85,7 +94,7 @@ def pollution_confounded_propensity(intervention, control_runs, treatment_bias):
             return treatment_bias
         return 1.0 - treatment_bias
 
-    return np.array([treatment_prob(idx) for idx in range(len(control_runs))])
+    return np.array([treatment_prob(idx) for idx in range(len(untreated_runs))])
 
 
 # pylint: disable-msg=invalid-name

@@ -128,7 +128,7 @@ t_3, \dots` The code snippet gives an example implementation.
         for time in timesteps:
             state = f(time, state, config, intervention, rng)
             states.append(state)
-        return wn.framework.Run(states=states, times=timesteps)
+        return wn.dynamics.Run(states=states, times=timesteps)
 
 
 .. _adding-estimators:

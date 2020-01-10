@@ -12,7 +12,7 @@ from scipy.integrate import odeint
 
 import whynot as wn
 import whynot.traceable_numpy as np
-from whynot.simulators.infrastructure import BaseConfig, BaseIntervention, BaseState
+from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 
 
 class TimeVaryingParam:  # pylint: disable=too-few-public-methods
@@ -278,7 +278,7 @@ def compute_overdose_deaths(run, start_year, end_year, config, intervention):
 
     Parameters
     ----------
-        run: whynot.framework.Run
+        run: whynot.dynamics.Run
             Run object produced by running simulate for the opioid simulator
         start_year: int
             Year to start counting overdose deaths
@@ -314,7 +314,7 @@ def compute_illicit_deaths(run, outcome_year, config, intervention):
 
     Parameters
     ----------
-        run: whynot.framework.Run
+        run: whynot.dynamics.Run
             Run object produced by running simulate for the opioid simulator
         outcome_year: int
             Year to measure illicit opioid use overdose deaths
@@ -414,7 +414,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     Returns
     -------
-        run: whynot.framework.Run
+        run: whynot.dynamics.Run
             Run object produced by running simulate for the opioid simulator
 
     """
@@ -434,4 +434,4 @@ def simulate(initial_state, config, intervention=None, seed=None):
     )
 
     states = [initial_state] + [State(*state) for state in solution[1:]]
-    return wn.framework.Run(states=states, times=t_eval)
+    return wn.dynamics.Run(states=states, times=t_eval)

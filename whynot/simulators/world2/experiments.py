@@ -1,8 +1,11 @@
 """Experiments for world2 simulator."""
 import numpy as np
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import world2
+
+__all__ = ["get_experiments", "RCT", "BiasedTreatment", "Mediation"]
 
 
 def get_experiments():
@@ -53,19 +56,19 @@ RCT = DynamicsExperiment(
     values=[0.05, 0.2, 0.5, 0.9],
     description="What fraction of the units should be treated.",
 )
-def biased_treatment_propensity(control_runs, treatment_bias, treatment_percentage):
+def biased_treatment_propensity(untreated_runs, treatment_bias, treatment_percentage):
     """Compute propensity scores as a function of the bias."""
     # Sort runs by initial quantity of natural resources
     sorted_idxs = sorted(
-        range(len(control_runs)),
-        key=lambda idx: control_runs[idx].initial_state.natural_resources,
+        range(len(untreated_runs)),
+        key=lambda idx: untreated_runs[idx].initial_state.natural_resources,
         reverse=True,
     )
 
     # More likely to treat units with top initial quantity of natural resources
     top_resource_idxs = sorted_idxs[int(treatment_percentage * len(sorted_idxs)) :]
 
-    propensities = (1.0 - treatment_bias) * np.ones(len(control_runs))
+    propensities = (1.0 - treatment_bias) * np.ones(len(untreated_runs))
     propensities[top_resource_idxs] = treatment_bias
 
     return propensities
@@ -106,14 +109,14 @@ def mediation_intervention(birth_rate_intervention):
     return world2.Intervention(time=1970, birth_rate=birth_rate_intervention)
 
 
-def mediation_propensity_scores(intervention, control_runs):
+def mediation_propensity_scores(intervention, untreated_runs):
     """Probability of treating each unit.
 
     Units with the largest populations are more likely to be treated.
     """
-    populations = [run[intervention.time].population for run in control_runs]
+    populations = [run[intervention.time].population for run in untreated_runs]
     upper_quantile = np.quantile(populations, 0.9)
-    propensities = 0.05 * np.ones(len(control_runs))
+    propensities = 0.05 * np.ones(len(untreated_runs))
     propensities[populations > upper_quantile] = 0.9
     return propensities
 

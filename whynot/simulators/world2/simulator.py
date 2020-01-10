@@ -5,7 +5,7 @@ import dataclasses
 import numpy as np
 
 import whynot as wn
-from whynot.simulators.infrastructure import BaseConfig, BaseState, BaseIntervention
+from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
 from whynot.simulators.world2 import tables
 
 
@@ -400,7 +400,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     Returns
     -------
-        run: whynot.framework.Run
+        run: whynot.dynamics.Run
             Sequence of states and measurement times produced by the simulator.
 
     """
@@ -414,4 +414,4 @@ def simulate(initial_state, config, intervention=None, seed=None):
     for time in times[:-1]:
         world.step(time, config.delta_t)
         states.append(world.state)
-    return wn.framework.Run(states=states, times=times)
+    return wn.dynamics.Run(states=states, times=times)

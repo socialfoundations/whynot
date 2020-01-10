@@ -1,8 +1,11 @@
 """Experiments on the DICE model."""
 import numpy as np
 
-from whynot.framework import DynamicsExperiment, parameter
+from whynot.dynamics import DynamicsExperiment
+from whynot.framework import parameter
 from whynot.simulators import dice
+
+__all__ = ["get_experiments", "RCT"]
 
 
 def get_experiments():
@@ -41,7 +44,7 @@ RCT = DynamicsExperiment(
     name="dice_rct",
     description="A RCT to determine effect of optimal carbon prices on atmospheric temperature.",
     simulator=dice,
-    simulator_config=dice.Config(ifopt=0),
+    simulator_config=dice.Config(ifopt=0, numPeriods=10),
     intervention=dice.Intervention(ifopt=1),
     state_sampler=sample_initial_states,
     propensity_scorer=rct_propensity,

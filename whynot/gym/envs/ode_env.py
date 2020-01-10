@@ -20,12 +20,12 @@ class ODEEnv(Env):
         Parameters
         ----------
             simulate_fn: A function with signature simulate(initial_state,
-                config, intervention=None, seed=None) -> whynot.framework.Run
-            config: An instance of whynot.simulators.infrastructure.BaseConfig.
+                config, intervention=None, seed=None) -> whynot.dynamics.Run
+            config: An instance of whynot.dynamics.BaseConfig.
             action_space: An instance of whynot.gym.spaces.Space.
             observation_space: An instance of whynot.gym.spaces.Space.
             initial_state: An instance of
-                whynot.simulators.infrastructure.BaseState.
+                whynot.dynamics.BaseState.
             timestep: A float.
 
         """
@@ -99,7 +99,7 @@ class ODEEnv(Env):
 
         Parameters
         ----------
-            state: An instance of whynot.simulators.infrastructure.BaseState.
+            state: An instance of whynot.dynamics.BaseState.
 
         Returns
         -------
@@ -118,7 +118,7 @@ class ODEEnv(Env):
 
         Returns
         -------
-            An instance of whynot.simulators.infrastructure.BaseIntervention.
+            An instance of whynot.dynamics.BaseIntervention.
 
         """
         raise NotImplementedError
@@ -129,8 +129,8 @@ class ODEEnv(Env):
         Parameters
         ----------
             intervention: An instance of
-                whynot.simulators.infrastructure.BaseIntervention.
-            state: An instance of whynot.simulators.infrastructure.BaseState.
+                whynot.dynamics.BaseIntervention.
+            state: An instance of whynot.dynamics.BaseState.
 
         Returns
         -------
