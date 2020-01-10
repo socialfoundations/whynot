@@ -6,19 +6,17 @@ from whynot.simulators import lending
 
 from whynot.simulators.lending.simulator import INV_CDFS, GROUP_SIZE_RATIO
 
-__all__ = ["get_experiments", "LendingRCT"]
+__all__ = ["get_experiments", "CreditBureauExperiment"]
 
 
 def get_experiments():
     """Return all experiments for lending simulator."""
-    return [LendingRCT]
+    return [CreditBureauExperiment]
 
 
 ################################
 # Credit Intervention Experiment
 ################################
-
-
 def sample_initial_states(rng):
     """Sample initial states according to FICO data on group membership."""
     group = int(rng.uniform() < GROUP_SIZE_RATIO[1])
@@ -32,21 +30,36 @@ def creditscore_threshold(score):
     return max(score, 600)
 
 
-def compute_score_changes(run):
-    """Compute the score change between the first and second states."""
+def extract_outcomes(run):
+    """Outcome is both the score change Delta after 1 step."""
     return run.states[1].score - run.states[0].score
 
 
-LendingRCT = DynamicsExperiment(
-    name="CreditScoreIntervention",
+@parameter(
+    name="threshold_g0", default=650, description="Lending threshold for group 0",
+)
+@parameter(
+    name="threshold_g1", default=650, description="Lending threshold for group 1",
+)
+def construct_config(threshold_g0, threshold_g1):
+    """Experimental config is parameterized by the lending thresholds."""
+    return lending.Config(
+        start_time=0, end_time=1, threshold_g0=threshold_g0, threshold_g1=threshold_g1
+    )
+
+
+CreditBureauExperiment = DynamicsExperiment(
+    name="CreditBureauExperiment",
     description="Intervention on the credit scoring mechanism.",
     simulator=lending,
     # Run for a single time step
-    simulator_config=lending.Config(start_time=0, end_time=1),
-    intervention=lending.Intervention(credit_scorer=creditscore_threshold),
+    simulator_config=construct_config,
+    # Change the threshold on the first step.
+    intervention=lending.Intervention(credit_scorer=creditscore_threshold, time=0),
     state_sampler=sample_initial_states,
-    propensity_scorer=0.5,
-    outcome_extractor=compute_score_changes,
+    # All units are treated
+    propensity_scorer=1.0,
+    outcome_extractor=extract_outcomes,
     # Only covariate is group membership
     covariate_builder=lambda run: run.initial_state.group,
 )

@@ -19,9 +19,8 @@ from whynot.simulators.lending.fico import get_data_args
 #################################
 # Globally accessible FICO params
 #################################
-dir_path = os.path.dirname(os.path.realpath(__file__))
-datapath = os.path.join(dir_path, "data")
-INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = get_data_args(datapath)
+DATAPATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
+INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = get_data_args(DATAPATH)
 
 
 def default_credit_scorer(score):
@@ -75,11 +74,11 @@ class State(BaseState):
     # pylint: disable-msg=too-few-public-methods
     """State of the lending simulator."""
     #: Group membership (sensitive attribute) 0 or 1
-    group: int
+    group: int = 0
     #: Agent credit score
-    score: int
+    score: int = 700
     #: Running total of the banks profit/loss for the agent
-    profits: list
+    profits: float = 0
 
 
 class Intervention(BaseIntervention):
@@ -88,6 +87,8 @@ class Intervention(BaseIntervention):
 
     Examples
     --------
+    >>> # Change the group 0 threshold to 700
+    >>> Intervention(time=0, threshold_g0=700)
 
     """
 
@@ -115,11 +116,12 @@ def lending_policy(config, group, score):
 
 
 def determine_repayment(rng, group, score):
-    """Determine whether or not the bank repays the loan."""
+    """Determine whether or not the agent repays the loan."""
     repayment_rate = (
         LOAN_REPAY_PROBS[0](score) ** (1 - group) * LOAN_REPAY_PROBS[1](score) ** group
     )
-    # Sample a Bernoulli with the Gumbel-max trick
+    # Sample a Bernoulli with the Gumbel-max trick to permit causal graph
+    # tracing
     uniform = rng.uniform()
     return (
         np.log(repayment_rate / (1 - repayment_rate)) + np.log(uniform / (1 - uniform))
@@ -127,18 +129,18 @@ def determine_repayment(rng, group, score):
 
 
 def update_score(config, score, loan_approved, repaid):
-    """Update the agent's score after a round."""
+    """Update the agent's credit score after a lending interaction."""
     score_change = (
         config.repayment_score_change ** repaid ** loan_approved
         * config.default_score_change ** (1 - repaid) ** loan_approved
         * 0.0 ** (1 - loan_approved)
     )
-
-    return score + score_change
+    new_score = score + score_change
+    return np.minimum(np.maximum(new_score, config.min_score), config.max_score)
 
 
 def update_profits(config, profits, loan_approved, repaid):
-    """Update the banks profit for the individual."""
+    """Update the running total bank profit for the individual."""
     profit_change = (
         config.repayment_utility ** repaid ** loan_approved
         * config.default_utility ** (1 - repaid) ** loan_approved
@@ -150,10 +152,27 @@ def update_profits(config, profits, loan_approved, repaid):
 def dynamics(rng, state, time, config, intervention=None):
     """Update equations for the lending simulaton.
 
+    Performs one round of interaction between the agent (represented
+    by the state) and the bank.
+
     Parameters
     ----------
+        rng: np.RandomState
+            Seed random number generator for all randomness.
+        state: whynot.simulators.lending.State
+            Agent state at the beginning of the interaction.
+        time: int
+            Current round of interaction
+        config: whynot.simulators.lending.Config
+            Configuration object controlling the interaction, e.g. lending
+            threshold and credit scoring
+        intervention: whynot.simulators.lending.Intervention
+            Intervention object specifying when and how to update the dynamics.
+
     Returns
     -------
+        state: whynot.simulators.lending.State
+            Agent state after one lending interaction.
 
     """
     if intervention and time >= intervention.time:
@@ -208,9 +227,9 @@ def simulate(initial_state, config, intervention=None, seed=None):
     rng = np.random.RandomState(seed)
 
     # Iterate the discrete dynamics
-    state = copy.deepcopy(initial_state)
     times = [config.start_time]
-    states = [state]
+    states = [initial_state]
+    state = copy.deepcopy(initial_state)
     for step in range(config.start_time, config.end_time):
         state = dynamics(rng, state, step, config, intervention)
         states.append(state)
