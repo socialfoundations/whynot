@@ -21,6 +21,7 @@ def sample_initial_states(rng):
     state.capital_investment *= rng.uniform(0.5, 2.0)
     state.pollution *= rng.uniform(0.5, 2)
     state.capital_investment_in_agriculture *= rng.uniform(0.5, 1.5)
+    state.initial_natural_resources = state.natural_resources
     return state
 
 
@@ -141,6 +142,15 @@ def mediation_covariates(run, intervention, mediation_year, num_mediators):
     return np.concatenate([confounders, mediators[:num_mediators]])
 
 
+def mediation_outcome_extractor(run, config, intervention):
+    return world2.quality_of_life(
+        state=run[2030],
+        time=2030,
+        config=config,
+        intervention=intervention
+    )
+
+
 # pylint: disable-msg=invalid-name
 #: Observational experiment with mediation for world2.
 Mediation = DynamicsExperiment(
@@ -151,7 +161,7 @@ Mediation = DynamicsExperiment(
     intervention=mediation_intervention,
     state_sampler=sample_initial_states,
     propensity_scorer=mediation_propensity_scores,
-    outcome_extractor=lambda run: run[2030].quality_of_life,
+    outcome_extractor=mediation_outcome_extractor,
     covariate_builder=mediation_covariates,
 )
 
