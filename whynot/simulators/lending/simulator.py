@@ -6,11 +6,27 @@ Learning. (https://arxiv.org/abs/1803.04383)
 """
 import copy
 import dataclasses
-import numpy as np
+import os
 from typing import Callable
+
+import numpy as np
 
 import whynot as wn
 from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
+from whynot.simulators.lending.fico import get_data_args
+
+
+#################################
+# Globally accessible FICO params
+#################################
+dir_path = os.path.dirname(os.path.realpath(__file__))
+datapath = os.path.join(dir_path, "data")
+INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = get_data_args(datapath)
+
+
+def default_credit_scorer(score):
+    """Default credit bureau reports the underlying score."""
+    return score
 
 
 @dataclasses.dataclass
@@ -22,11 +38,8 @@ class Config(BaseConfig):
     --------
 
     """
-    #: Repayment rate function p(A, X) \in [0, 1].
-    repayment_rate: Callable
-
     #: Maps the true credit score to the reported score
-    credit_scorer: Callable = lambda x: x
+    credit_scorer: Callable = default_credit_scorer
 
     #: Lending threshold for group 0
     threshold_g0: float = 650
@@ -101,11 +114,12 @@ def lending_policy(config, group, score):
     ) ** group
 
 
-def determine_repayment(rng, config, group, score):
+def determine_repayment(rng, group, score):
     """Determine whether or not the bank repays the loan."""
-    repayment_rate = config.repayment_rate(group, score)
-    # Sample a Bernouli with the Gumbel-max trick to allow
-    # dependency graph tracing.
+    repayment_rate = (
+        LOAN_REPAY_PROBS[0](score) ** (1 - group) * LOAN_REPAY_PROBS[1](score) ** group
+    )
+    # Sample a Bernoulli with the Gumbel-max trick
     uniform = rng.uniform()
     return (
         np.log(repayment_rate / (1 - repayment_rate)) + np.log(uniform / (1 - uniform))
@@ -154,7 +168,7 @@ def dynamics(rng, state, time, config, intervention=None):
     loan_approved = lending_policy(config, group, measured_score)
 
     # The user (potentially) repays the loan
-    repaid = determine_repayment(rng, config, group, score)
+    repaid = determine_repayment(rng, group, score)
 
     # The credit score updates in response
     new_score = update_score(config, score, loan_approved, repaid)
