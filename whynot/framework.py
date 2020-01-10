@@ -184,7 +184,12 @@ def extract_params(func, standard_args):
     method_args = inspect.signature(func).parameters
     for arg in method_args:
         if arg not in standard_args and arg not in specified_params:
-            raise ValueError(f"{arg} in signature, but is not a parameter!")
+            msg = (
+                f"'{arg}' is in the signature of function {func.__name__}, "
+                f"but '{arg}' is not a standard argument or a parameter. "
+                f"Standard arguments: {', '.join(standard_args)}."
+            )
+            raise ValueError(msg)
 
     return specified_params
 
