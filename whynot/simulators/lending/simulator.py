@@ -22,6 +22,9 @@ class Config(BaseConfig):
     --------
 
     """
+    #: Repayment rate function p(A, X) \in [0, 1].
+    repayment_rate: Callable
+
     #: Maps the true credit score to the reported score
     credit_scorer: Callable = lambda x: x
 
@@ -58,12 +61,12 @@ class Config(BaseConfig):
 class State(BaseState):
     # pylint: disable-msg=too-few-public-methods
     """State of the lending simulator."""
-    #: Group membership (sensitive attribute)
-    group: bool
+    #: Group membership (sensitive attribute) 0 or 1
+    group: int
     #: Agent credit score
-    score: float
+    score: int
     #: Running total of the banks profit/loss for the agent
-    individual_profits: list
+    profits: list
 
 
 class Intervention(BaseIntervention):
@@ -142,7 +145,7 @@ def dynamics(rng, state, time, config, intervention=None):
     if intervention and time >= intervention.time:
         config = config.update(intervention)
 
-    group, score, individual_profits = state
+    group, score, individual_profits = state.values()
 
     # Credit bureau measures the agent's score
     measured_score = config.credit_scorer(score)
