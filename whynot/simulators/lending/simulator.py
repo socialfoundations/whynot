@@ -110,8 +110,8 @@ def lending_policy(config, group, score):
     """Determine whether or not a bank gives a loan."""
     # P(T = 1 | X, A=j) = 1     if X >= tau_j
     #                     0     otherwise.
-    return (score > config.threshold_g0) ** (1 - group) * (
-        score > config.threshold_g1
+    return (score >= config.threshold_g0) ** (1 - group) * (
+        score >= config.threshold_g1
     ) ** group
 
 
@@ -124,8 +124,11 @@ def determine_repayment(rng, group, score):
     # tracing
     uniform = rng.uniform()
     return (
-        np.log(repayment_rate / (1 - repayment_rate)) + np.log(uniform / (1 - uniform))
-    ) > 0.5
+        np.log(repayment_rate)
+        - np.log(1.0 - repayment_rate)
+        + np.log(uniform)
+        - np.log(1.0 - uniform)
+    ) > 0.0
 
 
 def update_score(config, score, loan_approved, repaid):
