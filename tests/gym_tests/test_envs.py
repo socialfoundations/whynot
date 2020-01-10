@@ -43,7 +43,7 @@ def test_env(spec):
 
 
 def test_random_rollout():
-    for env in [envs.make("HIV-v0"), envs.make("world3-v0")]:
+    for env in [envs.make("HIV-v0"), envs.make("world3-v0"), envs.make("opioid-v0")]:
 
         def agent(ob):
             return env.action_space.sample()
