@@ -162,7 +162,8 @@ def world2_intermediate_variables(state, config):
         (
             capital_investment_ratio
             * tables.NATURAL_RESOURCE_EXTRACTION[
-                natural_resources / initial_natural_resources  # fraction of natural resources remaining
+                natural_resources
+                / initial_natural_resources  # fraction of natural resources remaining
             ]  # natural resources extraction multiplier
             * (1.0 - capital_investment_in_agriculture)
             / (1.0 - config.capital_investment_agriculture)
@@ -186,11 +187,15 @@ def world2_intermediate_variables(state, config):
     natural_resources_usage_rate = (
         population
         * config.natural_resources_usage
-        * tables.NATURAL_RESOURCES_FROM_MATERIAL[standard_of_living]  # material multiplier
+        * tables.NATURAL_RESOURCES_FROM_MATERIAL[
+            standard_of_living
+        ]  # material multiplier
     )
     capital_investment_rate = (
         population
-        * tables.CAPITAL_INVESTMENT_MULTIPLIER_TABLE[standard_of_living]  # material multiplier
+        * tables.CAPITAL_INVESTMENT_MULTIPLIER_TABLE[
+            standard_of_living
+        ]  # material multiplier
         * config.capital_investment_generation
     ) - capital_investment * config.capital_investment_discard
     pollution_rate = (  # pollution generation
@@ -323,8 +328,6 @@ def simulate(initial_state, config, intervention=None, seed=None):
         config.start_time, config.end_time + config.delta_t, config.delta_t
     )
 
-    assert initial_state.natural_resources == initial_state.initial_natural_resources
-
     solution = odeint(
         dynamics,
         y0=dataclasses.astuple(initial_state),
@@ -343,7 +346,7 @@ def quality_of_life(state, time, config, intervention=None):
 
     Parameters
     ----------
-        state:  np.ndarray, list, tuple, or whynot.simulators.world2.State
+        state:  whynot.simulators.world2.State or iterable representing a state.
             State of the dynamics
         time:   float
         config: world2.Config
@@ -386,7 +389,9 @@ def quality_of_life(state, time, config, intervention=None):
 
     qol = (
         config.quality_of_life_standard
-        * tables.QUALITY_OF_LIFE_FROM_MATERIAL[standard_of_living]  # material multiplier
+        * tables.QUALITY_OF_LIFE_FROM_MATERIAL[
+            standard_of_living
+        ]  # material multiplier
         * tables.QUALITY_OF_LIFE_FROM_CROWDING[crowding_ratio]  # crowding multiplier
         * tables.QUALITY_OF_LIFE_FROM_FOOD[food_ratio]  # food multiplier
         * tables.QUALITY_OF_LIFE_FROM_POLLUTION[pollution_ratio]  # pollution multiplier
