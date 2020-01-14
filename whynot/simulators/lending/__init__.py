@@ -9,4 +9,4 @@ from whynot.simulators.lending.simulator import (
 )
 from whynot.simulators.lending.experiments import *
 
-SUPPORTS_CAUSAL_GRAPHS = False
+SUPPORTS_CAUSAL_GRAPHS = True

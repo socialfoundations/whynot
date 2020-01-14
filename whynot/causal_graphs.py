@@ -1,13 +1,33 @@
 """Functions for constructing and analyzing causal graphs."""
 from collections.abc import Iterable
+import types
 
 import dataclasses
 
-from autograd.tracer import trace_stack, new_box, isbox, Node
+from autograd.extend import primitive
+from autograd.numpy.numpy_boxes import ArrayBox
+from autograd.tracer import Box, isbox, new_box, Node, trace_stack
 import networkx as nx
 import numpy as np
 
 import whynot as wn
+
+# Allow tracing to use ints and bools (since we only care about the forward
+# pass and not derivatives).
+for type_ in [bool, np.bool, np.bool_, int, np.int32, np.int64]:
+    ArrayBox.register(type_)
+
+
+class FunctionBox(Box):
+    """Generic box class to encapsulate functions and record their invocation."""
+
+    @primitive
+    def __call__(func, *args, **kwargs):
+        print(func, args, kwargs)
+        return func(*args, **kwargs)
+
+
+FunctionBox.register(types.FunctionType)
 
 
 class TracerNode(Node):
@@ -444,9 +464,9 @@ def build_dynamics_graph(simulator, runs, config, config_nodes=False):
     .. code-block:: python
 
         >>> import whynot as wn
-        >>> config = wn.hiv.Config(delta_1 = 1., end_time=1.)
-        >>> runs = [wn.hiv.simulate(wn.hiv.State(), 0, config)]
-        >>> graph = build_dynamics_graph(wn.hiv, runs, config)
+        >>> config = wn.hiv.Config(delta=1., end_time=1.)
+        >>> runs = [wn.hiv.simulate(wn.hiv.State(),  config)]
+        >>> graph = wn.causal_graphs.build_dynamics_graph(wn.hiv, runs, config)
         >>> print(list(graph.nodes))
         uninfected_T1_0.0, infected_T1_0.0, ..., immune_response1.0
 
@@ -456,11 +476,10 @@ def build_dynamics_graph(simulator, runs, config, config_nodes=False):
             "Simulator does not currently support causal graph construction."
         )
 
-    # Assert simulator has a dynamics tracer.
     dynamics_tracer = trace_dynamics(simulator.dynamics)
 
-    # Eventually we should take the union over all of the discovered edges.
-    # For now, just take the first one.
+    # TODO: Eventually we should take the union over all of the discovered
+    # edges.  For now, just take the edges from the first run.
     run = runs[0]
 
     graph = nx.DiGraph()
@@ -472,7 +491,7 @@ def build_dynamics_graph(simulator, runs, config, config_nodes=False):
     for time in run.times:
         graph.add_nodes_from([f"{name}_{time}" for name in state_names])
         if config_nodes:
-            graph.add_nodes_from([f"{name}_{time}" for name in config_name])
+            graph.add_nodes_from([f"PARAM:{name}_{time}" for name in config_name])
 
     # Add edges by tracing the dynamics. Assumes the connectivity pattern
     # is constant between each time step (but can generally vary with time).
@@ -490,7 +509,7 @@ def build_dynamics_graph(simulator, runs, config, config_nodes=False):
             if config_nodes:
                 graph.add_edges_from(
                     [
-                        (f"{conf_name}_{start_time}", output_name)
+                        (f"PARAM:{conf_name}_{start_time}", output_name)
                         for conf_name in dependencies["configs"]
                     ]
                 )
@@ -565,7 +584,7 @@ def ate_graph_builder(
     for time in run.times:
         if time >= intervention.time:
             intervention_nodes.extend(
-                [f"{param}_{time}" for param in intervention.updates]
+                [f"PARAM:{param}_{time}" for param in intervention.updates]
             )
     graph.add_edges_from([("Treatment", node) for node in intervention_nodes])
 

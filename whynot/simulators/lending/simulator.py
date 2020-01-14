@@ -9,18 +9,17 @@ import dataclasses
 import os
 from typing import Callable
 
-import numpy as np
-
 import whynot as wn
+import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
-from whynot.simulators.lending.fico import get_data_args
+import whynot.simulators.lending.fico as fico
 
 
 #################################
 # Globally accessible FICO params
 #################################
 DATAPATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
-INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = get_data_args(DATAPATH)
+INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = fico.get_data_args(DATAPATH)
 
 
 def default_credit_scorer(score):
@@ -31,12 +30,8 @@ def default_credit_scorer(score):
 @dataclasses.dataclass
 class Config(BaseConfig):
     # pylint: disable-msg=too-few-public-methods
-    """Parameters for the simulation dynamics.
+    """Parameters for the simulation dynamics."""
 
-    Examples
-    --------
-
-    """
     #: Maps the true credit score to the reported score
     credit_scorer: Callable = default_credit_scorer
 
@@ -76,7 +71,7 @@ class State(BaseState):
     #: Group membership (sensitive attribute) 0 or 1
     group: int = 0
     #: Agent credit score
-    score: int = 700
+    credit_score: int = 700
     #: Running total of the banks profit/loss for the agent
     profits: float = 0
 
@@ -124,10 +119,8 @@ def determine_repayment(rng, group, score):
     # tracing
     uniform = rng.uniform()
     return (
-        np.log(repayment_rate)
-        - np.log(1.0 - repayment_rate)
-        + np.log(uniform)
-        - np.log(1.0 - uniform)
+        np.log(repayment_rate / (1.0 - repayment_rate))
+        + np.log(uniform / (1.0 - uniform))
     ) > 0.0
 
 
@@ -152,7 +145,7 @@ def update_profits(config, profits, loan_approved, repaid):
     return profits + profit_change
 
 
-def dynamics(rng, state, time, config, intervention=None):
+def dynamics(state, time, config, intervention=None, rng=None):
     """Update equations for the lending simulaton.
 
     Performs one round of interaction between the agent (represented
@@ -160,8 +153,6 @@ def dynamics(rng, state, time, config, intervention=None):
 
     Parameters
     ----------
-        rng: np.RandomState
-            Seed random number generator for all randomness.
         state: whynot.simulators.lending.State
             Agent state at the beginning of the interaction.
         time: int
@@ -171,6 +162,8 @@ def dynamics(rng, state, time, config, intervention=None):
             threshold and credit scoring
         intervention: whynot.simulators.lending.Intervention
             Intervention object specifying when and how to update the dynamics.
+        rng: np.RandomState
+            Seed random number generator for all randomness (optional)
 
     Returns
     -------
@@ -181,7 +174,10 @@ def dynamics(rng, state, time, config, intervention=None):
     if intervention and time >= intervention.time:
         config = config.update(intervention)
 
-    group, score, individual_profits = state.values()
+    if rng is None:
+        rng = np.random.RandomState(None)
+
+    group, score, individual_profits = state
 
     # Credit bureau measures the agent's score
     measured_score = config.credit_scorer(score)
@@ -197,7 +193,7 @@ def dynamics(rng, state, time, config, intervention=None):
 
     new_profits = update_profits(config, individual_profits, loan_approved, repaid)
 
-    return State(group, new_score, new_profits)
+    return group, new_score, new_profits
 
 
 def simulate(initial_state, config, intervention=None, seed=None):
@@ -234,8 +230,8 @@ def simulate(initial_state, config, intervention=None, seed=None):
     states = [initial_state]
     state = copy.deepcopy(initial_state)
     for step in range(config.start_time, config.end_time):
-        state = dynamics(rng, state, step, config, intervention)
-        states.append(state)
+        state = dynamics(state.values(), step, config, intervention, rng)
+        states.append(State(*state))
         times.append(step + 1)
 
     return wn.dynamics.Run(states=states, times=times)
