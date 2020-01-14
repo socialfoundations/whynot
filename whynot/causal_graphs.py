@@ -23,7 +23,6 @@ class FunctionBox(Box):
 
     @primitive
     def __call__(func, *args, **kwargs):
-        print(func, args, kwargs)
         return func(*args, **kwargs)
 
 
