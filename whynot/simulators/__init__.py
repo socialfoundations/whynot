@@ -8,6 +8,7 @@ from whynot.simulators import lalonde
 from whynot.simulators import lending
 from whynot.simulators import lotka_volterra
 from whynot.simulators import opioid
+from whynot.simulators import repeated_classification
 from whynot.simulators import schelling
 from whynot.simulators import world2
 from whynot.simulators import world3
