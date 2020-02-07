@@ -249,6 +249,14 @@ def simulate(initial_state, config, intervention=None, seed=None):
         state = State(*dynamics(state.values(), step, config, intervention, rng))
         states.append(state)
         times.append(step + 1)
+        if step >= config.end_time - 20:
+            print('{}: expected pops {}, risks {}'.format(
+                step,
+                state.expected_populations,
+                state.risks,
+            ))
+        elif step % 50 == 0:
+            print(step)
 
     return wn.dynamics.Run(states=states, times=times)
 

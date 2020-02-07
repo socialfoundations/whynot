@@ -59,7 +59,7 @@ def left_gaussian_dist(population_size, rng):
     cov = 0.1 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
     labels = features[:, 1] >= 2/3 * (features[:, 0] + 1)
-    return features, labels
+    return features, labels.astype(int)
 
 
 def right_gaussian_dist(population_size, rng):
@@ -67,11 +67,12 @@ def right_gaussian_dist(population_size, rng):
     cov = 0.1 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
     labels = features[:, 1] >= -2/3 * (features[:, 0] - 1)
-    return features, labels
+    return features, labels.astype(int)
 
 
 def linear_classifier_2d(features, params, rng):
-    return features.T[1] >= params[1] * features.T[0] + params[0]
+    predictions = features.T[1] >= params[1] * features.T[0] + params[0]
+    return predictions.astype(int)
 
 
 def construct_config():
