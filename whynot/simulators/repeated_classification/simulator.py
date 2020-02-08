@@ -7,8 +7,7 @@ Conference on Machine Learning. (https://arxiv.org/abs/1806.08010)
 """
 import copy
 import dataclasses
-from typing import Callable, List
-from scipy.optimize import minimize
+from typing import Any, Callable, List
 
 import whynot as wn
 import whynot.traceable_numpy as np
@@ -19,19 +18,6 @@ def poisson_population_sampler(expected_populations, rng):
     """Poisson process to sample number of individuals in each group according
     to expected group populations"""
     return rng.poisson(expected_populations)
-
-
-def empirical_risk_minimization(classifier_func, loss, features, labels,
-                                init_params, rng):
-    # TODO: docstring
-    def objective(theta):
-        return np.mean(loss(classifier_func(features, theta, rng), labels))
-    result = minimize(
-        objective,
-        x0=init_params,
-        method='Powell'
-    )
-    return result.x
 
 
 @dataclasses.dataclass
@@ -58,7 +44,7 @@ class Config(BaseConfig):
     user_retention: Callable
 
     #: Algorithm to learn classifier parameters
-    train_classifier: Callable = empirical_risk_minimization
+    train_classifier: Callable
 
     #: Random process to determine group sizes from expected group sizes
     population_sampler: Callable = poisson_population_sampler
@@ -91,7 +77,7 @@ class State(BaseState):
     labels: np.ndarray
 
     #: Estimated parameters for classifier
-    classifier_params: np.ndarray
+    classifier_params: Any
 
     #: Average loss within group k, length K
     risks: np.ndarray
@@ -245,18 +231,17 @@ def simulate(initial_state, config, intervention=None, seed=None):
     times = [config.start_time]
     states = [initial_state]
     state = copy.deepcopy(initial_state)
+    np.set_printoptions(precision=4)
     for step in range(config.start_time, config.end_time):
         state = State(*dynamics(state.values(), step, config, intervention, rng))
         states.append(state)
         times.append(step + 1)
-        if step >= config.end_time - 20:
-            print('{}: expected pops {}, risks {}'.format(
-                step,
-                state.expected_populations,
-                state.risks,
-            ))
-        elif step % 50 == 0:
-            print(step)
+        print('{}: expected pops {}, risks {}, params {}'.format(
+            step,
+            state.expected_populations,
+            state.risks,
+            state.classifier_params,
+        ))
 
     return wn.dynamics.Run(states=states, times=times)
 

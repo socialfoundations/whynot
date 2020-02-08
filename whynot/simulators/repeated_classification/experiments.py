@@ -1,9 +1,12 @@
 """Experiments for repeated classification simulator."""
 
+from scipy.optimize import minimize
+from sklearn.svm import SVC
+
 from whynot.dynamics import DynamicsExperiment
 from whynot.simulators import repeated_classification
-
 import whynot.traceable_numpy as np
+
 
 __all__ = ["get_experiments", "TwoGaussiansExperiment"]
 
@@ -21,7 +24,7 @@ def sample_initial_states(rng):
     config = construct_config()
     features, labels, classifier_params, risks = repeated_classification.simulator.compute_state_values(
         populations=config.baseline_growth,
-        init_params=np.array([0, 0]),
+        init_params=np.array([0, 1, 0]),
         config=config,
         rng=rng,
     )
@@ -56,7 +59,7 @@ def linear_retention(x):
 
 def left_gaussian_dist(population_size, rng):
     mean = [-1, 0]
-    cov = 0.1 * np.eye(2)
+    cov = 0.15 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
     labels = features[:, 1] >= 2/3 * (features[:, 0] + 1)
     return features, labels.astype(int)
@@ -64,15 +67,35 @@ def left_gaussian_dist(population_size, rng):
 
 def right_gaussian_dist(population_size, rng):
     mean = [1, 0]
-    cov = 0.1 * np.eye(2)
+    cov = 0.15 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
     labels = features[:, 1] >= -2/3 * (features[:, 0] - 1)
     return features, labels.astype(int)
 
 
 def linear_classifier_2d(features, params, rng):
-    predictions = features.T[1] >= params[1] * features.T[0] + params[0]
+    predictions = np.dot(features, params[:-1]) + params[-1] >= 0
     return predictions.astype(int)
+
+
+def empirical_risk_minimization(classifier_func, loss, features, labels,
+                                init_params, rng, **kwargs):
+    # TODO: docstring
+    def objective(theta):
+        return np.mean(loss(classifier_func(features, theta, rng), labels))
+    if 'method' not in kwargs:
+        kwargs['method'] = 'Powell'
+    result = minimize(
+        objective,
+        x0=init_params,
+        **kwargs
+    )
+    return result.x
+
+
+def train_svm(classifier_func, loss, features, labels, init_params, rng):
+    model = SVC(C=0.1, kernel='linear').fit(features, labels)
+    return np.concatenate([model.coef_.flatten(), model.intercept_.flatten()])
 
 
 def construct_config():
@@ -84,6 +107,8 @@ def construct_config():
         classifier_func=linear_classifier_2d,
         loss=zero_one_loss,
         user_retention=linear_retention,
+        # train_classifier=empirical_risk_minimization,
+        train_classifier=train_svm,
     )
 
 
