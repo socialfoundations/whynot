@@ -186,9 +186,23 @@ def dynamics(state, time, config, intervention=None, rng=None):
     new_expected_populations = expected_populations * config.user_retention(risks) + config.baseline_growth
     new_populations = config.population_sampler(new_expected_populations, rng)
 
+    # n = len(classifier_params)
+    # init_params = [
+    #     classifier_params,  # previous parameters
+    #     classifier_params / np.linalg.norm(classifier_params + 1e-6),  # normalized previous params
+    #     np.zeros_like(classifier_params),  # zeros
+    #     rng.multivariate_normal(
+    #         np.zeros_like(classifier_params),
+    #         np.eye(n),
+    #     ),  # standard normals
+    #     rng.multivariate_normal(
+    #         classifier_params / np.linalg.norm(classifier_params + 1e-6),
+    #         np.eye(n) / np.sqrt(n),
+    #     ),  # normal centered at normalized previous params
+    # ]
     new_features, new_labels, new_classifier_params, new_risks = compute_state_values(
         populations=new_populations,
-        init_params=classifier_params,  # initialize using previous parameters
+        init_params=classifier_params,
         config=config,
         rng=rng,
     )
