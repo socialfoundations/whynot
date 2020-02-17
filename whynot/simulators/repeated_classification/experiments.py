@@ -152,7 +152,7 @@ def nonlinear_retention(x):
 
 def left_gaussian_dist(population_size, rng):
     mean = [-1, 0]
-    cov = 0.5 * np.eye(2)
+    cov = 0.15 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
     labels = features[:, 1] >= 2/3 * (features[:, 0] + 1)
     return features, labels.astype(int)
@@ -160,7 +160,7 @@ def left_gaussian_dist(population_size, rng):
 
 def right_gaussian_dist(population_size, rng):
     mean = [1, 0]
-    cov = 0.5 * np.eye(2)
+    cov = 0.15 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
     labels = features[:, 1] >= -2/3 * (features[:, 0] - 1)
     return features, labels.astype(int)
