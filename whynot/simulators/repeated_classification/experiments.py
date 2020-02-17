@@ -77,35 +77,32 @@ def linear_classifier_2d(features, params, rng):
     return predictions.astype(int)
 
 
-def empirical_risk_minimization(classifier_func, loss, features, labels,
-                                init_params, rng, **kwargs):
+def erm(config, features, labels, init_params, rng, **kwargs):
     # TODO: docstring
     def objective(theta):
-        return np.mean(loss(classifier_func(features, theta, rng), labels))
+        return np.mean(
+            config.loss(
+                config.classifier_func(features, theta, rng),
+                labels
+            )
+        )
 
     if 'method' not in kwargs:
         kwargs['method'] = 'Powell'
 
-    if len(np.shape(init_params)) == 1:
-        init_params = [init_params]
-    best_value = float('inf')
-    best_param = None
-    for param in init_params:
-        result = minimize(
-            objective,
-            x0=param,
-            **kwargs
-        )
-        if result.fun < best_value:
-            best_value, best_param = result.fun, result.x
+    result = minimize(
+        objective,
+        x0=init_params,
+        **kwargs
+    )
 
-    if not np.shape(best_param):
-        best_param = np.array([best_param])
-
-    return best_param
+    if not np.shape(result.x):
+        return np.array([result.x])
+    else:
+        return result.x
 
 
-def train_svm(classifier_func, loss, features, labels, init_params, rng):
+def train_svm(config, features, labels, init_params, rng):
     model = SVC(C=0.1, kernel='linear').fit(features, labels)
     return np.concatenate([model.coef_.flatten(), model.intercept_.flatten()])
 
@@ -114,12 +111,13 @@ def construct_config_gaussians():
     """Experimental config."""
     return repeated_classification.Config(
         K=2,
-        baseline_growth=np.array([1000, 800]),
+        min_proportion=0.4,
+        baseline_growth=np.array([1000, 1000]),
         group_distributions=[left_gaussian_dist, right_gaussian_dist],
         classifier_func=linear_classifier_2d,
         loss=zero_one_loss,
         user_retention=linear_retention,
-        train_classifier=empirical_risk_minimization,
+        train_classifier=erm,
         # train_classifier=train_svm,
     )
 
@@ -160,9 +158,14 @@ def sample_initial_states_median(rng):
     return init_state
 
 
-def l1_loss(predicted, actual):
-    """l1-norm loss."""
+def abs_loss(predicted, actual):
+    """Absolute difference."""
     return np.abs(predicted - actual)
+
+
+def squared_loss(predicted, actual):
+    """Square of difference."""
+    return (predicted - actual) ** 2
 
 
 def exponential_retention(x):
@@ -172,6 +175,30 @@ def exponential_retention(x):
 
 def constant(features, params, rng):
     return np.tile(params[0], len(features))
+
+
+def dro(config, features, labels, init_params, rng, **kwargs):
+    def objective(eta_theta):
+        C = (2 * (1 / config.min_proportion - 1) ** 2 + 1) ** 0.5
+        eta = eta_theta[0]
+        theta = eta_theta[1:]
+        vals = config.loss(
+            config.classifier_func(features, theta, rng),
+            labels
+        ) - eta
+        return C * np.mean((vals * (vals >= 0)) ** 2) ** 0.5 + eta
+
+    if 'method' not in kwargs:
+        kwargs['method'] = 'Powell'
+
+    eta_theta = np.concatenate([[0], init_params])
+    result = minimize(
+        objective,
+        x0=eta_theta,
+        **kwargs
+    )
+
+    return result.x[1:]
 
 
 def left_gaussian_dist_1d(population_size, rng):
@@ -188,12 +215,14 @@ def construct_config_median():
     """Experimental config."""
     return repeated_classification.Config(
         K=2,
+        min_proportion=0.3,
         baseline_growth=np.array([1000, 500]),
         group_distributions=[left_gaussian_dist_1d, right_gaussian_dist_1d],
         classifier_func=constant,
-        loss=l1_loss,
+        loss=abs_loss,
         user_retention=exponential_retention,
-        train_classifier=empirical_risk_minimization,
+        train_classifier=erm,
+        end_time=200,
     )
 
 
@@ -202,7 +231,7 @@ MedianEstimationExperiment = DynamicsExperiment(
     description="",  # TODO: description
     simulator=repeated_classification,
     simulator_config=construct_config_median,
-    intervention=repeated_classification.Intervention(time=0),  # TODO: change to DRO
+    intervention=repeated_classification.Intervention(time=0, train_classifier=dro),
     state_sampler=sample_initial_states_median,
     propensity_scorer=0.5,
     outcome_extractor=extract_outcomes,

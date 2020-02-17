@@ -28,6 +28,9 @@ class Config(BaseConfig):
     #: Number of groups
     K: int
 
+    #: Positive lower bound on smallest group proportion
+    min_proportion: float
+
     #: Expected group-k baseline population growth per step, length K
     baseline_growth: np.ndarray
 
@@ -119,8 +122,7 @@ def compute_state_values(populations, init_params, config, rng):
     labels = np.concatenate(labels, axis=0)
 
     classifier_params = config.train_classifier(
-        classifier_func=config.classifier_func,
-        loss=config.loss,
+        config=config,
         features=features,
         labels=labels,
         init_params=init_params,
@@ -186,23 +188,9 @@ def dynamics(state, time, config, intervention=None, rng=None):
     new_expected_populations = expected_populations * config.user_retention(risks) + config.baseline_growth
     new_populations = config.population_sampler(new_expected_populations, rng)
 
-    # n = len(classifier_params)
-    # init_params = [
-    #     classifier_params,  # previous parameters
-    #     classifier_params / np.linalg.norm(classifier_params + 1e-6),  # normalized previous params
-    #     np.zeros_like(classifier_params),  # zeros
-    #     rng.multivariate_normal(
-    #         np.zeros_like(classifier_params),
-    #         np.eye(n),
-    #     ),  # standard normals
-    #     rng.multivariate_normal(
-    #         classifier_params / np.linalg.norm(classifier_params + 1e-6),
-    #         np.eye(n) / np.sqrt(n),
-    #     ),  # normal centered at normalized previous params
-    # ]
     new_features, new_labels, new_classifier_params, new_risks = compute_state_values(
         populations=new_populations,
-        init_params=classifier_params,
+        init_params=classifier_params,  # initialize with previous parameters
         config=config,
         rng=rng,
     )
@@ -246,16 +234,18 @@ def simulate(initial_state, config, intervention=None, seed=None):
     states = [initial_state]
     state = copy.deepcopy(initial_state)
     np.set_printoptions(precision=4)
+    print()
     for step in range(config.start_time, config.end_time):
         state = State(*dynamics(state.values(), step, config, intervention, rng))
         states.append(state)
         times.append(step + 1)
-        print('{}: expected pops {}, risks {}, params {}'.format(
-            step,
-            state.expected_populations,
-            state.risks,
-            state.classifier_params,
-        ))
+        if step % 20 == 0:
+            print('{}: expected pops {}, risks {}, params {}'.format(
+                step,
+                state.expected_populations,
+                state.risks,
+                state.classifier_params,
+            ))
 
     return wn.dynamics.Run(states=states, times=times)
 
