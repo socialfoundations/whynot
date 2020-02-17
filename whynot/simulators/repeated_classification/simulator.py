@@ -208,8 +208,6 @@ def dynamics(state, time, config, intervention=None, rng=None):
 def simulate(initial_state, config, intervention=None, seed=None):
     """Simulate a run of the repeated classification simulator.
 
-    TODO: update docstring
-
     Parameters
     ----------
         initial_state:  `whynot.simulators.repeated_classification.State`
