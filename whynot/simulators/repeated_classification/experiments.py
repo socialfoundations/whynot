@@ -147,7 +147,7 @@ def nonlinear_retention(x):
     """Nonlinearly decreasing user retention function."""
     k = 20
     f = lambda x: np.exp(-np.log(1 + np.exp(k * (x - 0.2))))
-    return f(x)
+    return np.exp(-x)
 
 
 def left_gaussian_dist(population_size, rng):
@@ -203,11 +203,11 @@ TwoGaussiansExperiment = DynamicsExperiment(
     description="Classifying two 2d-Gaussian groups",
     simulator=repeated_classification,
     simulator_config=construct_config_gaussians,
-    intervention=repeated_classification.Intervention(train_classifier=dro),
+    intervention=repeated_classification.Intervention(time=0),
     state_sampler=sample_initial_states_gaussians,
     propensity_scorer=0.5,
     outcome_extractor=extract_outcomes,
-    covariate_builder=lambda run: 0,
+    covariate_builder=lambda run: run[-1].classifier_params,
 )
 
 
@@ -219,7 +219,7 @@ def sample_initial_states_median(rng):
     config = construct_config_median()
     features, labels, classifier_params, risks = repeated_classification.simulator.compute_state_values(
         populations=config.baseline_growth,
-        init_params=np.array([0]),
+        init_params=np.array([0, 0, 0]),
         config=config,
         rng=rng,
     )
@@ -251,7 +251,7 @@ def exponential_retention(x):
 
 def constant(features, params, rng):
     """Predict a constant value."""
-    return np.tile(params[0], len(features))
+    return np.tile(params, (len(features), 1))
 
 
 def left_gaussian_dist_1d(population_size, rng):
@@ -264,15 +264,31 @@ def right_gaussian_dist_1d(population_size, rng):
     return features, features.flatten()
 
 
+def median_dist_0(population_size, rng):
+    features = rng.multivariate_normal([1, 0, 0], 0.2 * np.eye(3), population_size)
+    return features, features
+
+
+def median_dist_1(population_size, rng):
+    features = rng.multivariate_normal([0, 1, 0], 0.2 * np.eye(3), population_size)
+    return features, features
+
+
+def median_dist_2(population_size, rng):
+    features = rng.multivariate_normal([0, 0, 1], 0.2 * np.eye(3), population_size)
+    return features, features
+
+
 def construct_config_median():
     """Experimental config."""
     return repeated_classification.Config(
-        K=2,
-        min_proportion=0.3,
-        baseline_growth=np.array([1000, 500]),
-        group_distributions=[left_gaussian_dist_1d, right_gaussian_dist_1d],
+        K=3,
+        min_proportion=0.15,
+        baseline_growth=np.array([1000, 300, 300]),
+        # group_distributions=[left_gaussian_dist_1d, right_gaussian_dist_1d],
+        group_distributions=[median_dist_0, median_dist_1, median_dist_2],
         classifier_func=constant,
-        loss=abs_loss,
+        loss=squared_loss,
         user_retention=exponential_retention,
         train_classifier=erm,
         end_time=200,
@@ -288,5 +304,5 @@ MedianEstimationExperiment = DynamicsExperiment(
     state_sampler=sample_initial_states_median,
     propensity_scorer=0.5,
     outcome_extractor=extract_outcomes,
-    covariate_builder=lambda run: 0,
+    covariate_builder=lambda run: run[-1].classifier_params,
 )
