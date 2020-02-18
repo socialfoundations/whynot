@@ -147,7 +147,7 @@ def nonlinear_retention(x):
     """Nonlinearly decreasing user retention function."""
     k = 20
     f = lambda x: np.exp(-np.log(1 + np.exp(k * (x - 0.2))))
-    return np.exp(-x)
+    return f(x)
 
 
 def left_gaussian_dist(population_size, rng):
@@ -207,7 +207,7 @@ TwoGaussiansExperiment = DynamicsExperiment(
     state_sampler=sample_initial_states_gaussians,
     propensity_scorer=0.5,
     outcome_extractor=extract_outcomes,
-    covariate_builder=lambda run: run[-1].classifier_params,
+    covariate_builder=lambda run: run.states[-1].classifier_params,
 )
 
 
@@ -285,13 +285,12 @@ def construct_config_median():
         K=3,
         min_proportion=0.15,
         baseline_growth=np.array([1000, 300, 300]),
-        # group_distributions=[left_gaussian_dist_1d, right_gaussian_dist_1d],
         group_distributions=[median_dist_0, median_dist_1, median_dist_2],
         classifier_func=constant,
         loss=squared_loss,
         user_retention=exponential_retention,
         train_classifier=erm,
-        end_time=200,
+        end_time=30,
     )
 
 
@@ -304,5 +303,5 @@ MedianEstimationExperiment = DynamicsExperiment(
     state_sampler=sample_initial_states_median,
     propensity_scorer=0.5,
     outcome_extractor=extract_outcomes,
-    covariate_builder=lambda run: run[-1].classifier_params,
+    covariate_builder=lambda run: run.states[-1].classifier_params,
 )
