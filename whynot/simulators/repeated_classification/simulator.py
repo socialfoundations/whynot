@@ -231,19 +231,10 @@ def simulate(initial_state, config, intervention=None, seed=None):
     times = [config.start_time]
     states = [initial_state]
     state = copy.deepcopy(initial_state)
-    np.set_printoptions(precision=4)
-    print()
     for step in range(config.start_time, config.end_time):
         state = State(*dynamics(state.values(), step, config, intervention, rng))
         states.append(state)
         times.append(step + 1)
-        if step % 20 == 0:
-            print('{}: expected pops {}, risks {}, params {}'.format(
-                step,
-                state.expected_populations,
-                state.risks,
-                state.classifier_params,
-            ))
 
     return wn.dynamics.Run(states=states, times=times)
 

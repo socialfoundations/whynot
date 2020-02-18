@@ -265,17 +265,17 @@ def right_gaussian_dist_1d(population_size, rng):
 
 
 def median_dist_0(population_size, rng):
-    features = rng.multivariate_normal([1, 0, 0], 0.2 * np.eye(3), population_size)
+    features = rng.multivariate_normal([1, 0, 0], 0.04 * np.eye(3), population_size)
     return features, features
 
 
 def median_dist_1(population_size, rng):
-    features = rng.multivariate_normal([0, 1, 0], 0.2 * np.eye(3), population_size)
+    features = rng.multivariate_normal([0, 1, 0], 0.04 * np.eye(3), population_size)
     return features, features
 
 
 def median_dist_2(population_size, rng):
-    features = rng.multivariate_normal([0, 0, 1], 0.2 * np.eye(3), population_size)
+    features = rng.multivariate_normal([0, 0, 1], 0.04 * np.eye(3), population_size)
     return features, features
 
 
