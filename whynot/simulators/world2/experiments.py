@@ -144,10 +144,7 @@ def mediation_covariates(run, intervention, mediation_year, num_mediators):
 
 def mediation_outcome_extractor(run, config, intervention):
     return world2.quality_of_life(
-        state=run[2030],
-        time=2030,
-        config=config,
-        intervention=intervention
+        state=run[2030], time=2030, config=config, intervention=intervention
     )
 
 

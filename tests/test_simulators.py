@@ -149,8 +149,12 @@ def test_simulator_experiments(simulator, num_samples):
 def test_parallelize(simulator, num_samples):
     """Test that parallelized runs are identical to non-parallelized."""
     for experiment in simulator.get_experiments():
-        unparallelized = experiment.run(num_samples=num_samples, parallelize=False, seed=1234)
-        parallelized = experiment.run(num_samples=num_samples, parallelize=True, seed=1234)
+        unparallelized = experiment.run(
+            num_samples=num_samples, parallelize=False, seed=1234
+        )
+        parallelized = experiment.run(
+            num_samples=num_samples, parallelize=True, seed=1234
+        )
 
         assert np.allclose(unparallelized.covariates, parallelized.covariates)
         assert np.allclose(unparallelized.treatments, parallelized.treatments)
