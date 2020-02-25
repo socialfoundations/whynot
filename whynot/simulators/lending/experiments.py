@@ -48,6 +48,7 @@ def construct_config(threshold_g0, threshold_g1):
     )
 
 
+#: Effects of interventions on credit scoring on group score changes
 CreditBureauExperiment = DynamicsExperiment(
     name="CreditBureauExperiment",
     description="Intervention on the credit scoring mechanism.",

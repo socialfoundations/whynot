@@ -30,6 +30,7 @@ Dynamical systems based simulators:
 * :ref:`world2-simulator`
 * :ref:`opioid-simulator`
 * :ref:`lotka-volterra-simulator`
+* :ref:`lending-simulator`
 
 Agent-based simulators:
 
@@ -289,6 +290,23 @@ For a complete description, see
 * Fox death factor
 * Fox growth factor
 
+.. _lending-simulator:
+
+Lending Simulator
+^^^^^^^^^^^^^^^^^
+The Lending simulator is based on the paper:
+
+    Liu, L., Dean, S., Rolf, E., Simchowitz, M., & Hardt, M. (2018, July).
+    Delayed Impact of Fair Machine Learning. In International Conference on
+    Machine Learning (pp. 3156-3164). Chicago.
+
+The paper proposes a simple lending model in which individuals apply for
+loans, a lending institution approves or denies the loan on the basis of the
+individual's credit score, and subsequent loan repayment or default in turn
+changes the individual's credit score. Credit scores and repayment probabilities
+are based on real FICO data. In this dynamic setting, the paper shows that
+static fairness criterion do not in genearl promote improvement over time and
+can indeed cause active harm.
 
 .. _schelling-simulator:
 
