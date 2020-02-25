@@ -32,7 +32,7 @@ def creditscore_threshold(score):
 
 def extract_outcomes(run):
     """Outcome is both the score change Delta after 1 step."""
-    return run.states[1].score - run.states[0].score
+    return run.states[1].credit_score - run.states[0].credit_score
 
 
 @parameter(
