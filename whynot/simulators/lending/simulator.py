@@ -23,7 +23,7 @@ INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = fico.get_data_args(DATAP
 
 
 def default_credit_scorer(score):
-    """Default credit bureau reports the underlying score."""
+    """Report the underlying score without modification."""
     return score
 
 
@@ -68,6 +68,7 @@ class Config(BaseConfig):
 class State(BaseState):
     # pylint: disable-msg=too-few-public-methods
     """State of the lending simulator."""
+
     #: Group membership (sensitive attribute) 0 or 1
     group: int = 0
     #: Agent credit score

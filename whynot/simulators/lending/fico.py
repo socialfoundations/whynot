@@ -1,7 +1,7 @@
-"""Utilities for loading data and manipulating FICO data.
+"""Utilities for loading and manipulating FICO data.
 
-Taken from
-https://github.com/ecreager/delayedimpact-scm-shareable
+Borrowed from:
+    https://github.com/ecreager/delayedimpact-scm-shareable
 """
 import os
 from typing import Callable, Iterable
@@ -26,14 +26,14 @@ FILES = dict(cdf_by_race=CDF_BY_RACE, performance_by_race=PERF, overview=OVERALL
 
 
 def cleanup_frame(frame):
-    """Make the columns have better names, and ordered in a better order"""
+    """Make the columns have better names, and ordered in a better order."""
     frame = frame.rename(columns={"Non- Hispanic white": "White"})
     frame = frame.reindex(columns=["Asian", "White", "Hispanic", "Black"])
     return frame
 
 
 def read_totals(data_dir):
-    """Read the total number of people of each race"""
+    """Read the total number of people of each race."""
     frame = cleanup_frame(
         pd.read_csv(os.path.join(data_dir, FILES["overview"]), index_col=0)
     )
@@ -41,7 +41,7 @@ def read_totals(data_dir):
 
 
 def convert_percentiles(idx):
-    """Convert percentiles"""
+    """Convert percentiles."""
     pdf = [
         (300, 2.1),
         (350, 4.2),
@@ -80,7 +80,7 @@ def parse_data(data_dir, filenames=None):
 
 
 def get_FICO_data(data_dir, do_convert_percentiles=True):
-    """Get FICO data in desired format"""
+    """Get FICO data in desired format."""
     data_pair = parse_data(data_dir)
     totals = read_totals(data_dir)
 
@@ -118,7 +118,7 @@ def _get_pmf(cdf):
 def _loan_repaid_probs_factory(
     repay_df: DataFrame, scores: Index
 ) -> Iterable[Callable[[Array], Array]]:
-    """Given performance pd.DataFrame, construct mapping from X to p(Y|X)"""
+    """Given performance pd.DataFrame, construct mapping from X to p(Y|X)."""
 
     def repaid_probs_fn(query_scores: Array) -> Array:
         if isinstance(query_scores, np.ndarray):
@@ -133,7 +133,7 @@ def _loan_repaid_probs_factory(
 
 
 def get_data_args(data_dir="data"):
-    """Returns objects that specify distns p(A), p(X|A), p(Y|X,A)."""
+    """Return objects that specify p(A), p(X|A), p(Y|X,A)."""
 
     all_cdfs, performance, totals = get_FICO_data(data_dir)
     # NOTE: we drop last column to make the CDFs invertible ####################
@@ -179,7 +179,7 @@ def get_inv_cdf_fns(cdfs: DataFrame) -> Iterable[Callable[[Array], Array]]:
     """Convert DataFrame of cdfs into list of (batched) inv. cdf lambda fns."""
 
     def inv_cdf_factory(cdfs_df: DataFrame, key: str) -> Callable[[Array], Array]:
-        """Given cdfs pd.DataFrame & key=A, make mapping from P(Y|X,A) to X"""
+        """Given cdfs pd.DataFrame & key=A, make mapping from P(Y|X,A) to X."""
         series = pd.Series(cdfs_df[key].index.values, index=cdfs[key].values)
         index = series.index
 
@@ -200,7 +200,7 @@ def get_inv_cdf_fns(cdfs: DataFrame) -> Iterable[Callable[[Array], Array]]:
 
 
 def get_marginal_loan_repaid_probs(data_dir="data"):
-    """Returns object that specifies distn p(Y|X)."""
+    """Return object that specifies distn p(Y|X)."""
 
     all_cdfs, performance, totals = fico.get_FICO_data(data_dir)
     # NOTE: we drop last column to make the CDFs invertible ####################

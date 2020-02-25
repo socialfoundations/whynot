@@ -23,6 +23,7 @@ class FunctionBox(Box):
 
     @primitive
     def __call__(func, *args, **kwargs):
+        """Execute function and record its invocation in the graph."""
         return func(*args, **kwargs)
 
 
