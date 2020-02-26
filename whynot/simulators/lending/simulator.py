@@ -12,14 +12,14 @@ from typing import Callable
 import whynot as wn
 import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
-import whynot.simulators.lending.fico as fico
+from whynot.simulators.lending.fico import get_data_args as get_FICO_data
 
 
 #################################
 # Globally accessible FICO params
 #################################
 DATAPATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
-INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = fico.get_data_args(DATAPATH)
+INV_CDFS, LOAN_REPAY_PROBS, _, GROUP_SIZE_RATIO, _, _ = get_FICO_data(DATAPATH)
 
 
 def default_credit_scorer(score):

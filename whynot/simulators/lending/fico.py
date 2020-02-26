@@ -202,7 +202,7 @@ def get_inv_cdf_fns(cdfs: DataFrame) -> Iterable[Callable[[Array], Array]]:
 def get_marginal_loan_repaid_probs(data_dir="data"):
     """Return object that specifies distn p(Y|X)."""
 
-    all_cdfs, performance, totals = fico.get_FICO_data(data_dir)
+    all_cdfs, performance, totals = get_FICO_data(data_dir)
     # NOTE: we drop last column to make the CDFs invertible ####################
     all_cdfs = all_cdfs.drop(all_cdfs.index[-1])
     performance = performance.drop(performance.index[-1])
