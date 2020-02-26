@@ -279,7 +279,7 @@ def test_ate_causal_graph_builder():
         for state in state_names:
             nodes.remove(f"{state}_{time}")
         for config_name in config_names:
-            nodes.remove(f"{config_name}_{time}")
+            nodes.remove(f"PARAM:{config_name}_{time}")
     assert len(nodes) == 0
 
     # Check the covariates are correct
@@ -296,7 +296,7 @@ def test_ate_causal_graph_builder():
     # Check outgoing treatment edges
     for time in times:
         if time >= intervention.time:
-            edges.remove(("Treatment", f"param_{time}"))
+            edges.remove(("Treatment", f"PARAM:param_{time}"))
 
     # Now check edges match the simulator dynamics.
     for time in times[:-1]:
@@ -305,12 +305,12 @@ def test_ate_causal_graph_builder():
             end_nodes = [f"{name}_{time+1}" for name in state_names]
             for edge in itertools.product(start_nodes, end_nodes):
                 edges.remove(edge)
-            edges.remove((f"param_{time}", f"x2_{time+1}"))
+            edges.remove((f"PARAM:param_{time}", f"x2_{time+1}"))
         elif time % 3 == 1:
             for name in state_names:
                 edges.remove((f"{name}_{time}", f"{name}_{time+1}"))
         else:
-            edges.remove((f"param_{time}", f"x1_{time+1}"))
+            edges.remove((f"PARAM:param_{time}", f"x1_{time+1}"))
             for name in state_names:
                 edges.remove((f"{name}_{time}", f"x2_{time+1}"))
 
