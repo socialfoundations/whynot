@@ -291,6 +291,7 @@ def construct_config_median():
     )
 
 
+#: Compare ERM and distributionally robust optimization for disparity amplification
 MedianEstimationExperiment = DynamicsExperiment(
     name="MedianEstimationExperiment",
     description="Median estimation experiment.",

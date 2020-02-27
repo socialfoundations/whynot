@@ -19,6 +19,7 @@ Simulators
     simulator_configs/schelling
     simulator_configs/lalonde
     simulator_configs/lending
+    simulator_configs/repeated_classification
 
 
 Dynamics
