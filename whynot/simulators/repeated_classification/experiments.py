@@ -43,22 +43,16 @@ def erm(config, features, labels, init_params, rng, **kwargs):
             Estimated parameters to minimize mean loss
 
     """
+
     def objective(theta):
         return np.mean(
-            config.loss(
-                config.classifier_func(features, theta, rng),
-                labels
-            )
+            config.loss(config.classifier_func(features, theta, rng), labels)
         )
 
-    if 'method' not in kwargs:
-        kwargs['method'] = 'Powell'
+    if "method" not in kwargs:
+        kwargs["method"] = "Powell"
 
-    result = minimize(
-        objective,
-        x0=init_params,
-        **kwargs
-    )
+    result = minimize(objective, x0=init_params, **kwargs)
 
     if not np.shape(result.x):
         return np.array([result.x])
@@ -67,45 +61,38 @@ def erm(config, features, labels, init_params, rng, **kwargs):
 
 
 def dro(config, features, labels, init_params, rng, **kwargs):
-    """Distributionally robust optimization to find parameters that minimize
-    the maximal single-group error.
+    """Distributionally robust optimization to minimize the maximal single-group error.
 
-        Parameters
-        ----------
-            config: whynot.simulators.repeated_classification.Config
-                Configuration object controlling the simulation parameters
-            features: np.ndarray
-                Intervention object specifying when and how to update the dynamics
-            init_params: np.ndarray
-                Initial parameters for iterative optimization
-            rng: np.RandomState
-                Seed random number generator for all randomness
+    Parameters
+    ----------
+        config: whynot.simulators.repeated_classification.Config
+            Configuration object controlling the simulation parameters
+        features: np.ndarray
+            Intervention object specifying when and how to update the dynamics
+        init_params: np.ndarray
+            Initial parameters for iterative optimization
+        rng: np.RandomState
+            Seed random number generator for all randomness
 
-        Returns
-        -------
-            params: np.ndarray
-                Estimated parameters to minimize max single-group loss
+    Returns
+    -------
+        params: np.ndarray
+            Estimated parameters to minimize max single-group loss
 
-        """
+    """
+
     def objective(eta_theta):
         C = (2 * (1 / config.min_proportion - 1) ** 2 + 1) ** 0.5
         eta = eta_theta[0]
         theta = eta_theta[1:]
-        vals = config.loss(
-            config.classifier_func(features, theta, rng),
-            labels
-        ) - eta
+        vals = config.loss(config.classifier_func(features, theta, rng), labels) - eta
         return C * np.mean((vals * (vals >= 0)) ** 2) ** 0.5 + eta
 
-    if 'method' not in kwargs:
-        kwargs['method'] = 'Powell'
+    if "method" not in kwargs:
+        kwargs["method"] = "Powell"
 
     eta_theta = np.concatenate([[0], init_params])
-    result = minimize(
-        objective,
-        x0=eta_theta,
-        **kwargs
-    )
+    result = minimize(objective, x0=eta_theta, **kwargs)
 
     return result.x[1:]
 
@@ -116,7 +103,12 @@ def dro(config, features, labels, init_params, rng, **kwargs):
 def sample_initial_states_gaussians(rng):
     """Sample initial states according to two Gaussians."""
     config = construct_config_gaussians()
-    features, labels, classifier_params, risks = repeated_classification.simulator.compute_state_values(
+    (
+        features,
+        labels,
+        classifier_params,
+        risks,
+    ) = repeated_classification.simulator.compute_state_values(
         populations=config.baseline_growth,
         init_params=np.array([0, 1, 0]),
         config=config,
@@ -154,7 +146,7 @@ def left_gaussian_dist(population_size, rng):
     mean = [-1, 0]
     cov = 0.15 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
-    labels = features[:, 1] >= 2/3 * (features[:, 0] + 1)
+    labels = features[:, 1] >= 2 / 3 * (features[:, 0] + 1)
     return features, labels.astype(int)
 
 
@@ -162,7 +154,7 @@ def right_gaussian_dist(population_size, rng):
     mean = [1, 0]
     cov = 0.15 * np.eye(2)
     features = rng.multivariate_normal(mean, cov, population_size)
-    labels = features[:, 1] >= -2/3 * (features[:, 0] - 1)
+    labels = features[:, 1] >= -2 / 3 * (features[:, 0] - 1)
     return features, labels.astype(int)
 
 
@@ -172,12 +164,12 @@ def linear_classifier_2d(features, params, rng):
 
 
 def train_svm(config, features, labels, init_params, rng):
-    model = SVC(C=0.1, kernel='linear').fit(features, labels)
+    model = SVC(C=0.1, kernel="linear").fit(features, labels)
     return np.concatenate([model.coef_.flatten(), model.intercept_.flatten()])
 
 
 def train_logreg(config, features, labels, init_params, rng):
-    model = LogisticRegression(penalty='l1').fit(features, labels)
+    model = LogisticRegression(penalty="l1").fit(features, labels)
     return np.concatenate([model.coef_.flatten(), model.intercept_.flatten()])
 
 
@@ -217,7 +209,12 @@ TwoGaussiansExperiment = DynamicsExperiment(
 def sample_initial_states_median(rng):
     """Sample initial states according to median estimation setup."""
     config = construct_config_median()
-    features, labels, classifier_params, risks = repeated_classification.simulator.compute_state_values(
+    (
+        features,
+        labels,
+        classifier_params,
+        risks,
+    ) = repeated_classification.simulator.compute_state_values(
         populations=config.baseline_growth,
         init_params=np.array([0, 0, 0]),
         config=config,

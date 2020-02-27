@@ -1,9 +1,10 @@
-"""Implementation of repeated loss minimization simulator based on Hashimoto et
-al.
+"""Implementation of repeated loss minimization simulator.
 
-Hashimoto, T., Srivastava, M., Namkoong, H., & Liang, P. (2018, July).
-Fairness without demographics in repeated loss minimization. In International
-Conference on Machine Learning. (https://arxiv.org/abs/1806.08010)
+The simulator is based on the following paper:
+
+    Hashimoto, T., Srivastava, M., Namkoong, H., & Liang, P. (2018, July).
+    Fairness without demographics in repeated loss minimization. In International
+    Conference on Machine Learning. (https://arxiv.org/abs/1806.08010)
 """
 import copy
 import dataclasses
@@ -15,8 +16,7 @@ from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
 
 
 def poisson_population_sampler(expected_populations, rng):
-    """Poisson process to sample number of individuals in each group according
-    to expected group populations"""
+    """Poisson process to sample number of individuals in each group."""
     return rng.poisson(expected_populations)
 
 
@@ -88,8 +88,7 @@ class State(BaseState):
 
 class Intervention(BaseIntervention):
     # pylint: disable-msg=too-few-public-methods
-    """Parametrization of an intervention in the repeated classification
-    model.
+    """Parametrization of an intervention in the repeated classification model.
 
     Examples
     --------
@@ -112,7 +111,8 @@ class Intervention(BaseIntervention):
         super(Intervention, self).__init__(Config, time, **kwargs)
 
 
-def compute_state_values(populations, init_params, config, rng):
+def compute_next_state(populations, init_params, config, rng):
+    """Compute state based on interaction with the classifier."""
     features, labels = [], []
     for pop, dist in zip(populations, config.group_distributions):
         features_k, labels_k = dist(pop, rng)
@@ -132,13 +132,12 @@ def compute_state_values(populations, init_params, config, rng):
     risks = np.array([])
     index = 0
     for i in populations:
-        features_k = features[index:index + i]
-        labels_k = labels[index:index + i]
+        features_k = features[index : index + i]
+        labels_k = labels[index : index + i]
         index += i
         risk_k = np.mean(
             config.loss(
-                config.classifier_func(features_k, classifier_params, rng),
-                labels_k
+                config.classifier_func(features_k, classifier_params, rng), labels_k
             )
         )
         risks = np.append(risks, risk_k)
@@ -185,10 +184,12 @@ def dynamics(state, time, config, intervention=None, rng=None):
         risks,
     ) = state
 
-    new_expected_populations = expected_populations * config.user_retention(risks) + config.baseline_growth
+    new_expected_populations = (
+        expected_populations * config.user_retention(risks) + config.baseline_growth
+    )
     new_populations = config.population_sampler(new_expected_populations, rng)
 
-    new_features, new_labels, new_classifier_params, new_risks = compute_state_values(
+    new_features, new_labels, new_classifier_params, new_risks = compute_next_state(
         populations=new_populations,
         init_params=classifier_params,  # initialize with previous parameters
         config=config,
