@@ -7,6 +7,5 @@ from whynot.simulators.credit.simulator import (
     simulate,
     State,
 )
-from whynot.simulators.credit.experiments import *
 
 SUPPORTS_CAUSAL_GRAPHS = True

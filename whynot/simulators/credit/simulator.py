@@ -2,7 +2,7 @@
 
 The data is from the Kaggle Give Me Some Credit dataset:
 
-    https://www.kaggle.com/c/GiveMeSomeCredit/data
+    https://www.kaggle.com/c/GiveMeSomeCredit/data,
 
 and the dynamics are taken from:
 
@@ -16,14 +16,17 @@ from typing import Callable, List
 import whynot as wn
 import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
-from whynot.simulators.credit import credit_data
+from whynot.simulators.credit.dataloader import DataLoader
+
+CREDIT_DATA = DataLoader()
 
 
 @dataclasses.dataclass
 class Config(BaseConfig):
     # pylint: disable-msg=too-few-public-methods
     """Parameterization of Credit simulator dynamics.
-Examples
+    
+    Examples
     --------
 
     """
@@ -35,13 +38,13 @@ Examples
     epsilon: float = 0.1
 
     #: Parameters for logistic regression classifier used by the institution
-    theta: np.ndarray = np.ones((credit_data.num_features, 1))
+    theta: np.ndarray = np.ones((11, 1))
 
     # Simulator book-keeping
     #: Start time of the simulator (in years).
     start_time: float = 0
     #: End time of the simulator (in years).
-    end_time: float = 100
+    end_time: float = 5
     #: Spacing of the evaluation grid
     delta_t: float = 1.0
 
@@ -52,10 +55,14 @@ class State(BaseState):
     """State of the Credit model."""
 
     #: Matrix of agent features (see https://www.kaggle.com/c/GiveMeSomeCredit/data)
-    features: np.ndarray = credit_data.features
+    features: np.ndarray = np.ones((13, 11))
 
     #: Vector indicating whether or not the agent experiences financial distress
-    labels: np.ndarray = credit_data.labels
+    labels: np.ndarray = np.zeros((13, 1))
+
+    def values(self):
+        """Return the state as a list of numpy array."""
+        return [getattr(self, name) for name in self.variable_names()]
 
 
 class Intervention(BaseIntervention):
@@ -86,6 +93,41 @@ class Intervention(BaseIntervention):
         super(Intervention, self).__init__(Config, time, **kwargs)
 
 
+def logistic_loss(features, labels, config, l2_penalty=0.0):
+    """Evaluate the performative loss for logistic regression"""
+
+    # Compute adjusted data
+    strategic_features = agent_model(features, config)
+
+    # compute log likelihood
+    logits = strategic_features @ config.theta
+    log_likelihood = np.sum(
+        -1.0 * np.multiply(labels, logits) + np.log(1 + np.exp(logits))
+    )
+
+    log_likelihood /= strategic_features.shape[0]
+
+    # Add regularization (without considering the bias)
+    regularization = l2_penalty / 2.0 * np.linalg.norm(config.theta[:-1]) ** 2
+
+    return log_likelihood + regularization
+
+
+def agent_model(features, config):
+    """Compute agent reponse to the classifier and adapt features accordingly.
+
+    TODO: For now, the best-response model corresponds to best-response with
+    linear utility and quadratic costs. We should expand this to cover a rich
+    set of agent models beyond linear/quadratic, and potentially beyond
+    best-response.
+    """
+    # Move everything by epsilon in the direction towards better classification
+    strategic_features = np.copy(features)
+    theta_strat = config.theta[config.changeable_features].flatten()
+    strategic_features[:, config.changeable_features] += -config.epsilon * theta_strat
+    return strategic_features
+
+
 def dynamics(state, time, config, intervention=None):
     """Performs one round of interaction between the agents and the credit scorer.
     
@@ -100,8 +142,6 @@ def dynamics(state, time, config, intervention=None):
             and agent model
         intervention: whynot.simulators.credit.Intervention
             Intervention object specifying when and how to update the dynamics.
-        rng: np.RandomState
-            Seed random number generator for all randomness (optional)
 
     Returns
     -------
@@ -112,19 +152,10 @@ def dynamics(state, time, config, intervention=None):
     if intervention and time >= intervention.time:
         config = config.update(intervention)
 
-    if rng is None:
-        rng = np.random.RandomState(None)
-
     features, labels = state
 
-    # Update features in response to classifier
-    # Move everything by epsilon in the direction towards better classification
-    # Corresponds to best-response model with linear utility and quadratic costs
-    strategic_features = np.copy(features)
-
-    theta_strat = config.theta[config.changeable_features]
-    strategic_features[:, config.changeable_features] += -config.epsilon * theta_strat
-
+    # Update features in response to classifier. Labels are fixed.
+    strategic_features = agent_model(features, config)
     return strategic_features, labels
 
 
@@ -154,12 +185,15 @@ def simulate(initial_state, config, intervention=None, seed=None):
     states = [initial_state]
     state = copy.deepcopy(initial_state)
     for step in range(config.start_time, config.end_time):
-        state = dynamics(state.values(), step, config, intervention, rng)
-        states.append(State(*state))
+        next_state = dynamics(state.values(), step, config, intervention)
+        state = State(*next_state)
+        states.append(state)
         times.append(step + 1)
 
     return wn.dynamics.Run(states=states, times=times)
 
 
 if __name__ == "__main__":
-    print(simulate(State(), Config()))
+    print(simulate(State(), Config(end_time=2)))
+    features, labels = State().values()
+    print(logistic_loss(features, labels, Config(), l2_penalty=0.1))
