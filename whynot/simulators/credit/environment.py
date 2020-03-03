@@ -24,7 +24,7 @@ class CreditEnv(ODEEnv):
         # The initial state is the baseline features and labels in the credit dataset
         initial_state = State(features=CreditData.features, labels=CreditData.labels)
         action_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(CreditData.num_features, 1)
+            low=-np.inf, high=np.inf, shape=(CreditData.num_features,)
         )
 
         # Observation space is the strategically adapted features and labels
@@ -34,7 +34,7 @@ class CreditEnv(ODEEnv):
         ]
 
         super(CreditEnv, self).__init__(
-            simulate, config, action_space, observation_space, initial_state
+            simulate, config, action_space, observation_space, initial_state, timestep=1
         )
 
     def _get_intervention(self, action):

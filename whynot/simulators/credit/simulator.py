@@ -16,9 +16,6 @@ from typing import Callable, List
 import whynot as wn
 import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
-from whynot.simulators.credit.dataloader import DataLoader
-
-CreditData = DataLoader()
 
 
 @dataclasses.dataclass
@@ -41,12 +38,12 @@ class Config(BaseConfig):
     theta: np.ndarray = np.ones((11, 1))
 
     # Simulator book-keeping
-    #: Start time of the simulator (in years).
-    start_time: float = 0
-    #: End time of the simulator (in years).
-    end_time: float = 5
+    #: Start time of the simulator
+    start_time: int = 0
+    #: End time of the simulator
+    end_time: int = 5
     #: Spacing of the evaluation grid
-    delta_t: float = 1.0
+    delta_t: int = 1
 
 
 @dataclasses.dataclass
@@ -184,6 +181,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
     times = [config.start_time]
     states = [initial_state]
     state = copy.deepcopy(initial_state)
+
     for step in range(config.start_time, config.end_time):
         next_state = dynamics(state.values(), step, config, intervention)
         state = State(*next_state)

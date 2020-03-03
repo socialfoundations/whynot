@@ -13,7 +13,7 @@ class DataLoader(object):
         cur_dir = os.path.abspath(os.path.dirname(__file__))
         datapath = os.path.join(cur_dir, datafile)
 
-        self.datafile = datapath
+        self.datapath = datapath
         self._features = None
         self._labels = None
         self.seed = seed
@@ -70,3 +70,6 @@ class DataLoader(object):
         # shuffle arrays
         shuffled = rng.permutation(len(indices))
         return features_balanced[shuffled], outcomes_balanced[shuffled]
+
+
+CreditData = DataLoader()

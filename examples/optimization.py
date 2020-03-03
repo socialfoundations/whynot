@@ -1,21 +1,10 @@
 import numpy as np
-from strategic import best_response
-
-# optimization code
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
 
 
-def evaluate_loss(X, Y, theta, lam, strat_features=[], epsilon=0):
-    # if epsilon>0 we evaluate the perfromative loss
-
+def evaluate_loss(X, Y, theta, lam):
     n = X.shape[0]
 
-    # compute adjusted data
-    if epsilon > 0:
-        X_perf = best_response(X, theta, epsilon, strat_features)
-    else:
-        X_perf = np.copy(X)
+    X_perf = np.copy(X)
 
     # compute log likelihood
     t1 = (
@@ -27,7 +16,7 @@ def evaluate_loss(X, Y, theta, lam, strat_features=[], epsilon=0):
     )
 
     # add regularization (without considering the bias)
-    t2 = lam / 2.0 * np.linalg.norm(theta[:-1])
+    t2 = lam / 2.0 * np.linalg.norm(theta[:-1]) ** 2
     loss = t1 + t2
 
     return loss
@@ -81,15 +70,7 @@ def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
         new_theta = theta - eta * gradient
 
         # compute new loss
-        t1 = (
-            1.0
-            / n
-            * np.sum(
-                -1 * np.multiply(Y, X @ new_theta) + np.log(1 + np.exp(X @ new_theta))
-            )
-        )
-        t2 = lam / 2 * np.linalg.norm(new_theta[:-1])
-        loss = t1 + t2
+        loss = evaluate_loss(X, Y, new_theta, lam)
 
         # do backtracking line search
         if loss > prev_loss and method == "Exact":

@@ -2,10 +2,13 @@
 
 from whynot.simulators.credit.simulator import (
     Config,
-    Intervention,
+    evaluate_loss,
     dynamics,
+    Intervention,
     simulate,
     State,
 )
+
+from whynot.simulators.credit.dataloader import CreditData
 
 SUPPORTS_CAUSAL_GRAPHS = True
