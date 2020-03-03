@@ -18,7 +18,7 @@ import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 from whynot.simulators.credit.dataloader import DataLoader
 
-CREDIT_DATA = DataLoader()
+CreditData = DataLoader()
 
 
 @dataclasses.dataclass
@@ -93,7 +93,7 @@ class Intervention(BaseIntervention):
         super(Intervention, self).__init__(Config, time, **kwargs)
 
 
-def logistic_loss(features, labels, config, l2_penalty=0.0):
+def evaluate_loss(features, labels, config, l2_penalty=0.0):
     """Evaluate the performative loss for logistic regression"""
 
     # Compute adjusted data
@@ -196,4 +196,4 @@ def simulate(initial_state, config, intervention=None, seed=None):
 if __name__ == "__main__":
     print(simulate(State(), Config(end_time=2)))
     features, labels = State().values()
-    print(logistic_loss(features, labels, Config(), l2_penalty=0.1))
+    print(evaluate_loss(features, labels, Config(), l2_penalty=0.1))
