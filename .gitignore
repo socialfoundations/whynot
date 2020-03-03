@@ -35,3 +35,6 @@ src/
 
 # PyCharm
 .idea/
+
+# Data associated with credit simulator
+*cs-training.csv
