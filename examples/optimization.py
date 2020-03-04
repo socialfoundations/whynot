@@ -9,13 +9,8 @@ def evaluate_loss(X, Y, theta, lam):
     X_perf = np.copy(X)
 
     # compute log likelihood
-    t1 = (
-        1.0
-        / n
-        * np.sum(
-            -1.0 * np.multiply(Y, X_perf @ theta) + np.log(1 + np.exp(X_perf @ theta))
-        )
-    )
+    logits = X_perf @ theta
+    t1 = 1.0 / n * np.sum(-1.0 * np.multiply(Y, logits) + np.log(1 + np.exp(logits)))
 
     # add regularization (without considering the bias)
     t2 = lam / 2.0 * np.linalg.norm(theta[:-1]) ** 2
@@ -24,7 +19,6 @@ def evaluate_loss(X, Y, theta, lam):
     return loss
 
 
-@jit(nopython=True)
 def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
 
     # assumes that the last coordinate is the bias term
@@ -33,7 +27,7 @@ def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
     n, d = X.shape
 
     # compute smoothness of the logistic loss
-    smoothness = np.sum(np.square(np.linalg.norm(X, axis=1))) / (4.0 * n)
+    smoothness = np.sum(X ** 2) / (4.0 * n)
 
     if method == "Exact":
         eta_init = 1 / (smoothness + lam)  # true smoothness
