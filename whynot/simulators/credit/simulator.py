@@ -22,11 +22,14 @@ from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 class Config(BaseConfig):
     # pylint: disable-msg=too-few-public-methods
     """Parameterization of Credit simulator dynamics.
-    
+
     Examples
     --------
+    >>> # Configure simulator for run for 10 iterations
+    >>> config = Config(start_time=0, end_time=10, delta_t=1)
 
     """
+
     # Dynamics parameters
     #: Subset of the features that can be manipulated by the agent
     changeable_features: np.ndarray = np.array([0, 5, 7])
@@ -72,7 +75,8 @@ class Intervention(BaseIntervention):
     Examples
     --------
     >>> # Starting at time 25, update the classifier to random chance.
-    >>> Intervention(time=25, classifier=lambda x: return 0.5)
+    >>> config = Config()
+    >>> Intervention(time=25, theta=np.zeros_like(config.theta))
 
     """
 
@@ -88,26 +92,6 @@ class Intervention(BaseIntervention):
 
         """
         super(Intervention, self).__init__(Config, time, **kwargs)
-
-
-def evaluate_loss(features, labels, config, l2_penalty=0.0):
-    """Evaluate the performative loss for logistic regression"""
-
-    # Compute adjusted data
-    strategic_features = agent_model(features, config)
-
-    # compute log likelihood
-    logits = strategic_features @ config.theta
-    log_likelihood = np.sum(
-        -1.0 * np.multiply(labels, logits) + np.log(1 + np.exp(logits))
-    )
-
-    log_likelihood /= strategic_features.shape[0]
-
-    # Add regularization (without considering the bias)
-    regularization = l2_penalty / 2.0 * np.linalg.norm(config.theta[:-1]) ** 2
-
-    return log_likelihood + regularization
 
 
 def agent_model(features, config):
@@ -126,7 +110,7 @@ def agent_model(features, config):
 
 
 def dynamics(state, time, config, intervention=None):
-    """Performs one round of interaction between the agents and the credit scorer.
+    """Perform one round of interaction between the agents and the credit scorer.
     
     Parameters
     ----------
@@ -175,8 +159,6 @@ def simulate(initial_state, config, intervention=None, seed=None):
             Simulator rollout
 
     """
-    rng = np.random.RandomState(seed)
-
     # Iterate the discrete dynamics
     times = [config.start_time]
     states = [initial_state]
@@ -193,5 +175,3 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
 if __name__ == "__main__":
     print(simulate(State(), Config(end_time=2)))
-    features, labels = State().values()
-    print(evaluate_loss(features, labels, Config(), l2_penalty=0.1))

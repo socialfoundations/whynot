@@ -34,12 +34,12 @@ class DataLoader(object):
 
     @property
     def num_agents(self):
-        """Number of agents in the dataset."""
+        """Compute number of agents in the dataset."""
         return self.features.shape[0]
 
     @property
     def num_features(self):
-        """Number of features for each agent."""
+        """Compute number of features for each agent."""
         return self.features.shape[1]
 
     def load_data(self):

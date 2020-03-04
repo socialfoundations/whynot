@@ -1,8 +1,8 @@
 """Credit simulator initialization."""
 
 from whynot.simulators.credit.simulator import (
+    agent_model,
     Config,
-    evaluate_loss,
     dynamics,
     Intervention,
     simulate,

@@ -11,6 +11,7 @@
 
 # Vim extras
 *.swp
+*.swo
 
 # Python extras
 __pycache__
@@ -35,6 +36,3 @@ src/
 
 # PyCharm
 .idea/
-
-# Data associated with credit simulator
-*cs-training.csv
