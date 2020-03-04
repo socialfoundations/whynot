@@ -93,7 +93,6 @@ class ODEEnvBuilder(Env):
             info_dict: An empty dict.
 
         """
-        print(action)
         if not self.action_space.contains(action):
             raise ValueError("%r (%s) invalid" % (action, type(action)))
         intervention = self.intervention_fn(action, self.time)

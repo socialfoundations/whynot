@@ -1,6 +1,8 @@
+from numba import jit
 import numpy as np
 
 
+@jit(nopython=True)
 def evaluate_loss(X, Y, theta, lam):
     n = X.shape[0]
 
@@ -22,6 +24,7 @@ def evaluate_loss(X, Y, theta, lam):
     return loss
 
 
+@jit(nopython=True)
 def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
 
     # assumes that the last coordinate is the bias term
