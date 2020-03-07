@@ -1,5 +1,7 @@
+"""Helper functions for the heterogeneous treatment effect example."""
 import os
 import json
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -15,6 +17,7 @@ from whynot.simulators.opioid.experiments import (
     opioid_intervention,
     overdose_deaths,
 )
+
 from whynot_estimators import causal_forest
 
 
