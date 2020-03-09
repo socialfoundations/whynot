@@ -1,4 +1,6 @@
 """Base environment class for ODE simulator based environments."""
+import inspect
+
 from whynot.gym import Env
 from whynot.gym.utils import seeding
 
@@ -13,20 +15,36 @@ class ODEEnv(Env):
         action_space,
         observation_space,
         initial_state,
+        intervention_fn,
+        reward_fn,
+        observation_fn=None,
         timestep=1.0,
     ):
         """Initialize an environment class.
 
         Parameters
         ----------
-            simulate_fn: A function with signature simulate(initial_state,
-                config, intervention=None, seed=None) -> whynot.dynamics.Run
-            config: An instance of whynot.dynamics.BaseConfig.
-            action_space: An instance of whynot.gym.spaces.Space.
-            observation_space: An instance of whynot.gym.spaces.Space.
-            initial_state: An instance of
-                whynot.dynamics.BaseState.
-            timestep: A float.
+            simulate_fn:  Callable
+                A function with signature
+                simulate(initial_state, config, intervention=None, seed=None)
+                -> whynot.dynamics.Run
+            config: whynot.dynamics.BaseConfig.
+            action_space: whynot.gym.spaces.Space.
+            observation_space: whynot.gym.spaces.Space.
+            initial_state: whynot.dynamics.BaseState.
+            intervention_fn: Callable
+                A function that maps actions to simulator interventions with signature
+                get_intervention(action, time) -> whynot.dynamics.BaseState
+            reward_fn: Callable
+                A function that computes the cost/reward of taking
+                an intervention in a particular state state with signature
+                get_reward(intervention, state) -> float
+            observation_fn: Callable
+                (Optional) A function that computes the observed state for the
+                state of the simulator with signature
+                    observation_fn(state) -> np.ndarray.
+                If ommitted, the entire simulator state is returned.
+            timestep: float.
 
         """
         self.config = config
@@ -42,6 +60,9 @@ class ODEEnv(Env):
         self.terminal_time = self.config.end_time
         self.timestep = timestep
         self.time = self.start_time
+
+        self.intervention_fn = intervention_fn
+        self.reward_fn = reward_fn
 
         self.seed()
 
@@ -74,7 +95,7 @@ class ODEEnv(Env):
         """
         if not self.action_space.contains(action):
             raise ValueError("%r (%s) invalid" % (action, type(action)))
-        intervention = self._get_intervention(action)
+        intervention = self.intervention_fn(action, self.time)
         # Set the start and end time in config to simulate one timestep.
         self.config.start_time = self.time
         self.config.end_time = self.time + self.timestep
@@ -108,33 +129,22 @@ class ODEEnv(Env):
         """
         return state.values()
 
-    def _get_intervention(self, action):
-        """Convert a numpy array action to an intervention.
-
-        Parameters
-        ----------
-            action: A numpy array reprsenting an action of shape
-                [1, action_dim].
-
-        Returns
-        -------
-            An instance of whynot.dynamics.BaseIntervention.
-
-        """
-        raise NotImplementedError
+    @staticmethod
+    def _get_args(func):
+        """Return the arguments to the function."""
+        return inspect.signature(func).parameters
 
     def _get_reward(self, intervention, state):
-        """Calculate reward from intervention and the next state.
+        """Return the reward function."""
+        reward_args = self._get_args(self.reward_fn)
+        kwargs = {}
+        if "config" in reward_args:
+            kwargs["config"] = self.config
+        if "time" in reward_args:
+            kwargs["time"] = self.time
+        return self.reward_fn(intervention=intervention, state=state, **kwargs)
 
-        Parameters
-        ----------
-            intervention: An instance of
-                whynot.dynamics.BaseIntervention.
-            state: An instance of whynot.dynamics.BaseState.
-
-        Returns
-        -------
-            A numpy array of shape [1, 1].
-
-        """
-        raise NotImplementedError
+    def __call__(self):
+        """Return the class, as if this function were calling the constructor."""
+        self.reset()
+        return self

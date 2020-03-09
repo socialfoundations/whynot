@@ -6,8 +6,6 @@ def should_skip_env_spec_for_tests(spec):
     # We skip tests for envs that require dependencies or are otherwise
     # troublesome to run frequently
     ep = spec.entry_point
-    if ep.startswith("gym.envs.ode.hiv"):
-        return True
     return False
 
 

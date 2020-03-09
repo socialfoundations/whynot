@@ -8,5 +8,6 @@ from whynot.simulators.opioid.simulator import (
     State,
 )
 from whynot.simulators.opioid.experiments import *
+from whynot.simulators.opioid.environments import *
 
 SUPPORTS_CAUSAL_GRAPHS = True
