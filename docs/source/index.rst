@@ -1,9 +1,10 @@
 .. image:: _static/WhyNot_fullcolor.svg
 
 WhyNot is a Python package that provides an experimental sandbox for causal
-inference. Starting with a suite of dynamic simulations that present realistic
-technical challenges, WhyNot makes it easy for researchers to develop, test, and
-benchmark causal inference methods.
+inference and decision making in dynamics. Starting with a suite of dynamic
+simulations that present realistic technical challenges, WhyNot makes it easy
+for researchers to develop, test, and benchmark methods for causal inference and
+reinforcement learning.
 
 What does this look like? The following code generates an observational dataset
 using an HIV treatment simulator and then runs linear regression to estimate the
@@ -28,13 +29,16 @@ against ground truth.
     # Benchmark the average treatment effect results against the
     # ground truth in the dataset
     ate = np.mean(dataset.true_effects)
-    rel_error = np.abs((estimate.ate - ate) / ate)
+    relative_error = np.abs((estimate.ate - ate) / ate)
 
 
 
 WhyNot also supports benchmarking and investigation of causal inference tools
-for heterogenous treatment effects, causal graph discovery, and sequential
-decision making.
+for heterogenous treatment effects and causal graph discovery. Beyond causal
+inference, WhyNot provides simulators and environments to study decision making
+in dynamics, both in the context of reinforcement learning, as well as from
+recent perspectives like delayed impact, strategic classification, and
+performative prediction.
 
 
 Documentation
