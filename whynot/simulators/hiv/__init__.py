@@ -8,5 +8,6 @@ from whynot.simulators.hiv.simulator import (
     State,
 )
 from whynot.simulators.hiv.experiments import *
+from whynot.simulators.hiv.environments import *
 
 SUPPORTS_CAUSAL_GRAPHS = True

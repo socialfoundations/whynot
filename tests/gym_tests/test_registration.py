@@ -22,7 +22,7 @@ gym.register(
 def test_make():
     env = envs.make("HIV-v0")
     assert env.spec.id == "HIV-v0"
-    assert isinstance(env.unwrapped, simulators.hiv.environment.HIVEnv)
+    assert isinstance(env.unwrapped, envs.ODEEnvBuilder)
 
 
 def test_make_with_kwargs():
