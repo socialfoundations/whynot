@@ -2,7 +2,7 @@
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnv, register
+from whynot.gym.envs import ODEEnvBuilder, register
 from whynot.simulators.opioid import Config, Intervention, simulate, State
 
 
@@ -42,7 +42,7 @@ def observation_space():
     return spaces.Box(state_space_low, state_space_high)
 
 
-OpioidEnv = ODEEnv(
+OpioidEnv = ODEEnvBuilder(
     simulate_fn=simulate,
     config=Config(),
     initial_state=State(),

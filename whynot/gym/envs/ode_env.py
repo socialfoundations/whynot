@@ -1,12 +1,12 @@
-"""Base environment class for ODE simulator based environments."""
+"""Environment builder for simulators based on dynamical systems."""
 import inspect
 
 from whynot.gym import Env
 from whynot.gym.utils import seeding
 
 
-class ODEEnv(Env):
-    """Base environment class for ODE simulator based environments."""
+class ODEEnvBuilder(Env):
+    """Environment builder for simulators derived from dynamical systems."""
 
     def __init__(
         self,
@@ -135,7 +135,7 @@ class ODEEnv(Env):
         return inspect.signature(func).parameters
 
     def _get_reward(self, intervention, state):
-        """Return the reward function."""
+        """Return the reward obtained by intervening in the given state."""
         reward_args = self._get_args(self.reward_fn)
         kwargs = {}
         if "config" in reward_args:

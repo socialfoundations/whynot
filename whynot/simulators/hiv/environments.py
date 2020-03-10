@@ -9,7 +9,7 @@ https://pdfs.semanticscholar.org/c030/127238b1dbad2263fba6b64b5dec7c3ffa20.pdf
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import register, ODEEnv
+from whynot.gym.envs import ODEEnvBuilder, register
 from whynot.simulators.hiv import Config, Intervention, simulate, State
 
 
@@ -46,7 +46,7 @@ def observation_space():
     return spaces.Box(state_space_low, state_space_high)
 
 
-HivEnv = ODEEnv(
+HivEnv = ODEEnvBuilder(
     simulate_fn=simulate,
     config=Config(),
     initial_state=State(),

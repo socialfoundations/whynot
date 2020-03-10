@@ -4,7 +4,7 @@ from itertools import product
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnv, register
+from whynot.gym.envs import ODEEnvBuilder, register
 from whynot.simulators.world3 import Config, Intervention, simulate, State
 
 
@@ -49,7 +49,7 @@ def observation_space():
     return spaces.Box(state_space_low, state_space_high)
 
 
-World3Env = ODEEnv(
+World3Env = ODEEnvBuilder(
     simulate_fn=simulate,
     # Smaller delta_t improves numerical stability
     config=Config(delta_t=0.5),
