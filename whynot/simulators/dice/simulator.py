@@ -804,7 +804,7 @@ def simulate(initial_state, config, intervention=None, seed=None, stochastic=Tru
         )
 
     # Read out values from the optimized model
-    states, times = [], []
+    states, times = [initial_state], [0]
     for time in range(1, config.numPeriods + 1):
         state = State()
         for var in state.variables:

@@ -22,7 +22,7 @@ def test_gams():
 
     # Run without randomness over the config parameters.
     sim_dict = {
-        var: [getattr(state, var) for state in run.states]
+        var: [getattr(state, var) for state in run.states[1:]]
         for var in initial_state.variables
     }
     sim = (
