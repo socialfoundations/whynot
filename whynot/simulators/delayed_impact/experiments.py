@@ -2,15 +2,14 @@
 
 from whynot.dynamics import DynamicsExperiment
 from whynot.framework import parameter
-from whynot.simulators import lending
-
-from whynot.simulators.lending.simulator import INV_CDFS, GROUP_SIZE_RATIO
+from whynot.simulators import delayed_impact
+from whynot.simulators.delayed_impact.simulator import INV_CDFS, GROUP_SIZE_RATIO
 
 __all__ = ["get_experiments", "CreditBureauExperiment"]
 
 
 def get_experiments():
-    """Return all experiments for lending simulator."""
+    """Return all experiments for delayed impact simulator."""
     return [CreditBureauExperiment]
 
 
@@ -22,7 +21,7 @@ def sample_initial_states(rng):
     group = int(rng.uniform() < GROUP_SIZE_RATIO[1])
     # Compute score via inverse CDF trick
     score = INV_CDFS[group](rng.uniform())
-    return lending.State(group=group, credit_score=score)
+    return delayed_impact.State(group=group, credit_score=score)
 
 
 def creditscore_threshold(score):
@@ -43,7 +42,7 @@ def extract_outcomes(run):
 )
 def construct_config(threshold_g0, threshold_g1):
     """Experimental config is parameterized by the lending thresholds."""
-    return lending.Config(
+    return delayed_impact.Config(
         start_time=0, end_time=1, threshold_g0=threshold_g0, threshold_g1=threshold_g1
     )
 
@@ -52,11 +51,13 @@ def construct_config(threshold_g0, threshold_g1):
 CreditBureauExperiment = DynamicsExperiment(
     name="CreditBureauExperiment",
     description="Intervention on the credit scoring mechanism.",
-    simulator=lending,
+    simulator=delayed_impact,
     # Run for a single time step
     simulator_config=construct_config,
     # Change the threshold on the first step.
-    intervention=lending.Intervention(credit_scorer=creditscore_threshold, time=0),
+    intervention=delayed_impact.Intervention(
+        credit_scorer=creditscore_threshold, time=0
+    ),
     state_sampler=sample_initial_states,
     # All units are treated
     propensity_scorer=1.0,

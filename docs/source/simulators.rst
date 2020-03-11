@@ -30,7 +30,7 @@ Dynamical systems based simulators:
 * :ref:`world2-simulator`
 * :ref:`opioid-simulator`
 * :ref:`lotka-volterra-simulator`
-* :ref:`lending-simulator`
+* :ref:`delayed-impact-simulator`
 * :ref:`repeated-classification`
 
 Agent-based simulators:
@@ -291,11 +291,11 @@ For a complete description, see
 * Fox death factor
 * Fox growth factor
 
-.. _lending-simulator:
+.. _delayed-impact-simulator:
 
-Lending Simulator
-^^^^^^^^^^^^^^^^^
-The Lending simulator is based on the paper:
+Delayed Impact Simulator
+^^^^^^^^^^^^^^^^^^^^^^^^
+The Delayed Impact is a lending simulator is based on the paper:
 
     Liu, L., Dean, S., Rolf, E., Simchowitz, M., & Hardt, M. (2018, July).
     Delayed Impact of Fair Machine Learning. In International Conference on

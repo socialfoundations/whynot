@@ -18,8 +18,8 @@ def check_shapes(dataset, num_samples):
 
 @pytest.mark.parametrize(
     "simulator",
-    [wn.hiv, wn.lending, wn.lotka_volterra, wn.opioid, wn.world2, wn.world3],
-    ids=["hiv", "lending", "lotka_volterra", "opioid", "world2", "world3",],
+    [wn.delayed_impact, wn.hiv, wn.lotka_volterra, wn.opioid, wn.world2, wn.world3],
+    ids=["delayed_impact", "hiv", "lotka_volterra", "opioid", "world2", "world3",],
 )
 def test_dynamics_initial_state(simulator):
     """For ODE simulators, ensure the iniitial_state is returned by reference in run."""
@@ -34,14 +34,14 @@ def test_dynamics_initial_state(simulator):
 @pytest.mark.parametrize(
     "simulator,intervention_param,intervention_val",
     [
+        (wn.delayed_impact, "credit_scorer", lambda score: min(score, 600)),
         (wn.hiv, None, None),
-        (wn.lending, "credit_scorer", lambda score: min(score, 600)),
         (wn.lotka_volterra, None, None),
         (wn.opioid, "nonmedical_incidence", -0.1),
         (wn.world2, None, None),
         (wn.world3, None, None),
     ],
-    ids=["hiv", "lending", "lotka_volterra", "opioid", "world2", "world3",],
+    ids=["delayed_impact", "hiv", "lotka_volterra", "opioid", "world2", "world3",],
 )
 def test_dynamics_intervention(simulator, intervention_param, intervention_val):
     """For ODE simulators, ensure test config.intervention."""
@@ -82,10 +82,10 @@ def test_dynamics_intervention(simulator, intervention_param, intervention_val):
     "simulator,num_samples",
     [
         (wn.civil_violence, 5),
+        (wn.delayed_impact, 10),
         (wn.dice, 10),
         (wn.hiv, 10),
         (wn.lalonde, 445),
-        (wn.lending, 10),
         (wn.lotka_volterra, 10),
         (wn.opioid, 10),
         (wn.schelling, 5),
@@ -94,10 +94,10 @@ def test_dynamics_intervention(simulator, intervention_param, intervention_val):
     ],
     ids=[
         "civil_violence",
+        "delayed_impact",
         "dice",
         "hiv",
         "lalonde",
-        "lending",
         "lotka_volterra",
         "opioid",
         "schelling",

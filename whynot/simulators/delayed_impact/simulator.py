@@ -1,4 +1,4 @@
-"""Implementation of lending in dynamics simulator based on Liu et al.
+"""Implementation of delayed impact lending simulator based on Liu et al.
 
 Liu, L., Dean, S., Rolf, E., Simchowitz, M., & Hardt, M. (2018, July). Delayed
 Impact of Fair Machine Learning. In International Conference on Machine
@@ -12,7 +12,7 @@ from typing import Callable
 import whynot as wn
 import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
-from whynot.simulators.lending.fico import get_data_args as get_FICO_data
+from whynot.simulators.delayed_impact.fico import get_data_args as get_FICO_data
 
 
 #################################
@@ -154,21 +154,21 @@ def dynamics(state, time, config, intervention=None, rng=None):
 
     Parameters
     ----------
-        state: whynot.simulators.lending.State
+        state: whynot.simulators.delayed_impact.State
             Agent state at the beginning of the interaction.
         time: int
             Current round of interaction
-        config: whynot.simulators.lending.Config
+        config: whynot.simulators.delayed_impact.Config
             Configuration object controlling the interaction, e.g. lending
             threshold and credit scoring
-        intervention: whynot.simulators.lending.Intervention
+        intervention: whynot.simulators.delayed_impact.Intervention
             Intervention object specifying when and how to update the dynamics.
         rng: np.RandomState
             Seed random number generator for all randomness (optional)
 
     Returns
     -------
-        state: whynot.simulators.lending.State
+        state: whynot.simulators.delayed_impact.State
             Agent state after one lending interaction.
 
     """
@@ -209,11 +209,11 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
     Parameters
     ----------
-        initial_state:  `whynot.simulators.lending.State`
+        initial_state:  `whynot.simulators.delayed_impact.State`
             Initial State object, which is used as x_{t_0} for the simulator.
-        config:  `whynot.simulators.lending.Config`
+        config:  `whynot.simulators.delayed_impact.Config`
             Config object that encapsulates the parameters that define the dynamics.
-        intervention: `whynot.simulators.lending.Intervention`
+        intervention: `whynot.simulators.delayed_impact.Intervention`
             Intervention object that specifies what, if any, intervention to perform.
         seed: int
             Seed to set internal randomness.

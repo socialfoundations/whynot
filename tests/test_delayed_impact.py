@@ -1,8 +1,8 @@
-"""Unit tests for setup and intervention in lending simulator."""
+"""Unit tests for setup and intervention in delayed impact simulator."""
 import numpy as np
 import statsmodels
 
-from whynot.simulators.lending.simulator import *
+from whynot.simulators.delayed_impact.simulator import *
 
 
 def test_lending_policy():

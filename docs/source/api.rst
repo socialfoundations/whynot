@@ -18,7 +18,7 @@ Simulators
     simulator_configs/lotka_volterra
     simulator_configs/schelling
     simulator_configs/lalonde
-    simulator_configs/lending
+    simulator_configs/delayed_impact
     simulator_configs/repeated_classification
 
 
