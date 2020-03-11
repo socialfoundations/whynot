@@ -72,4 +72,4 @@ class DataLoader(object):
         return features_balanced[shuffled], outcomes_balanced[shuffled]
 
 
-CreditData = DataLoader()
+CreditData = DataLoader(seed=0)

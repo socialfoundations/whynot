@@ -40,6 +40,9 @@ class Config(BaseConfig):
     #: Parameters for logistic regression classifier used by the institution
     theta: np.ndarray = np.ones((11, 1))
 
+    #: L2 penalty on the logistic regression loss
+    l2_penalty: float = 0.0
+
     # Simulator book-keeping
     #: Start time of the simulator
     start_time: int = 0
@@ -94,6 +97,28 @@ class Intervention(BaseIntervention):
         super(Intervention, self).__init__(Config, time, **kwargs)
 
 
+def strategic_logistic_loss(config, features, labels, theta):
+    """Evaluate the performative loss for logistic regression classifier."""
+
+    config = config.update(Intervention(theta=theta))
+
+    # Compute adjusted data
+    strategic_features = agent_model(features, config)
+
+    # compute log likelihood
+    logits = strategic_features @ config.theta
+    log_likelihood = np.sum(
+        -1.0 * np.multiply(labels, logits) + np.log(1 + np.exp(logits))
+    )
+
+    log_likelihood /= strategic_features.shape[0]
+
+    # Add regularization (without considering the bias)
+    regularization = config.l2_penalty / 2.0 * np.linalg.norm(config.theta[:-1]) ** 2
+
+    return log_likelihood + regularization
+
+
 def agent_model(features, config):
     """Compute agent reponse to the classifier and adapt features accordingly.
 
@@ -111,7 +136,7 @@ def agent_model(features, config):
 
 def dynamics(state, time, config, intervention=None):
     """Perform one round of interaction between the agents and the credit scorer.
-    
+
     Parameters
     ----------
         state: whynot.simulators.credit.State
