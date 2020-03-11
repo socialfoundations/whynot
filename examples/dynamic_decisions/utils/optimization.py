@@ -1,8 +1,6 @@
-from numba import jit
 import numpy as np
 
 
-@jit(nopython=True)
 def evaluate_loss(X, Y, theta, lam):
     n = X.shape[0]
 
