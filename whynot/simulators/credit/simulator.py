@@ -16,7 +16,7 @@ from typing import Callable, List
 import whynot as wn
 import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
-
+from whynot.simulators.credit.dataloader import CreditData
 
 @dataclasses.dataclass
 class Config(BaseConfig):
@@ -42,6 +42,9 @@ class Config(BaseConfig):
 
     #: L2 penalty on the logistic regression loss
     l2_penalty: float = 0.0
+
+    #: Whether or not dynamics have memory
+    memory: bool = False
 
     # Simulator book-keeping
     #: Start time of the simulator
@@ -106,15 +109,14 @@ def strategic_logistic_loss(config, features, labels, theta):
     strategic_features = agent_model(features, config)
 
     # compute log likelihood
+    num_samples = strategic_features.shape[0]
     logits = strategic_features @ config.theta
-    log_likelihood = np.sum(
+    log_likelihood = (1. / num_samples) * np.sum(
         -1.0 * np.multiply(labels, logits) + np.log(1 + np.exp(logits))
     )
 
-    log_likelihood /= strategic_features.shape[0]
-
     # Add regularization (without considering the bias)
-    regularization = config.l2_penalty / 2.0 * np.linalg.norm(config.theta[:-1]) ** 2
+    regularization = (config.l2_penalty / 2.0) * np.linalg.norm(config.theta[:-1]) ** 2
 
     return log_likelihood + regularization
 
@@ -130,7 +132,7 @@ def agent_model(features, config):
     # Move everything by epsilon in the direction towards better classification
     strategic_features = np.copy(features)
     theta_strat = config.theta[config.changeable_features].flatten()
-    strategic_features[:, config.changeable_features] += -config.epsilon * theta_strat
+    strategic_features[:, config.changeable_features] -= config.epsilon * theta_strat
     return strategic_features
 
 
@@ -158,7 +160,10 @@ def dynamics(state, time, config, intervention=None):
     if intervention and time >= intervention.time:
         config = config.update(intervention)
 
-    features, labels = state
+    if config.memory:
+        features, labels = state
+    else:
+        features, labels = CreditData.features, CreditData.labels
 
     # Update features in response to classifier. Labels are fixed.
     strategic_features = agent_model(features, config)
