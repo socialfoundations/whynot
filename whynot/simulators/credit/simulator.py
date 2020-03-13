@@ -18,6 +18,7 @@ import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 from whynot.simulators.credit.dataloader import CreditData
 
+
 @dataclasses.dataclass
 class Config(BaseConfig):
     # pylint: disable-msg=too-few-public-methods
@@ -111,7 +112,7 @@ def strategic_logistic_loss(config, features, labels, theta):
     # compute log likelihood
     num_samples = strategic_features.shape[0]
     logits = strategic_features @ config.theta
-    log_likelihood = (1. / num_samples) * np.sum(
+    log_likelihood = (1.0 / num_samples) * np.sum(
         -1.0 * np.multiply(labels, logits) + np.log(1 + np.exp(logits))
     )
 

@@ -13,11 +13,12 @@ from whynot.simulators.credit import (
     State,
 )
 
+
 def compute_reward(intervention, state, config):
     """Compute the reward based on the observed state and choosen intervention."""
     return strategic_logistic_loss(
         config, state.features, state.labels, intervention.updates["theta"],
-        )
+    )
 
 
 def compute_intervention(action, time):
@@ -32,9 +33,7 @@ CreditEnv = ODEEnvBuilder(
     initial_state=State(features=CreditData.features, labels=CreditData.labels),
     # Action space is classifiers with the same number of parameters are
     # features.
-    action_space=spaces.Box(
-        low=-np.inf, high=np.inf, shape=(CreditData.num_features,)
-    ),
+    action_space=spaces.Box(low=-np.inf, high=np.inf, shape=(CreditData.num_features,)),
     # Observation space is the strategically adapted features and labels
     observation_space=[
         spaces.Box(low=-np.inf, high=np.inf, shape=CreditData.features.shape),
@@ -46,8 +45,5 @@ CreditEnv = ODEEnvBuilder(
 )
 
 register(
-    id="Credit-v0", 
-    entry_point=CreditEnv, 
-    max_episode_steps=100,
-    reward_threshold=0,
+    id="Credit-v0", entry_point=CreditEnv, max_episode_steps=100, reward_threshold=0,
 )
