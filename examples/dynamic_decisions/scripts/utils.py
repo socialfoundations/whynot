@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def evaluate_loss(X, Y, theta, lam):
+def evaluate_logistic_loss(X, Y, theta, lam):
     n = X.shape[0]
 
     X_perf = np.copy(X)
@@ -17,7 +17,9 @@ def evaluate_loss(X, Y, theta, lam):
     return loss
 
 
-def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
+def fit_logistic_regression(
+    X_orig, Y_orig, lam, method="Exact", tol=1e-7, theta_init=None
+):
 
     # assumes that the last coordinate is the bias term
     X = np.copy(X_orig)
@@ -44,7 +46,7 @@ def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
         theta = np.zeros(d)
 
     # evaluate initial loss
-    prev_loss = evaluate_loss(X, Y, theta, lam)
+    prev_loss = evaluate_logistic_loss(X, Y, theta, lam)
 
     loss_list = [prev_loss]
     is_gd = False
@@ -65,7 +67,7 @@ def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
         new_theta = theta - eta * gradient
 
         # compute new loss
-        loss = evaluate_loss(X, Y, new_theta, lam)
+        loss = evaluate_logistic_loss(X, Y, new_theta, lam)
 
         # do backtracking line search
         if loss > prev_loss and method == "Exact":
@@ -86,4 +88,4 @@ def logistic_regression(X_orig, Y_orig, lam, method, tol=1e-7, theta_init=None):
 
         i += 1
 
-    return theta, loss_list, smoothness
+    return theta
