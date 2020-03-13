@@ -231,12 +231,13 @@ def simulate(initial_state, config, intervention=None, seed=None):
     states = [initial_state]
     state = copy.deepcopy(initial_state)
     for step in range(config.start_time, config.end_time):
-        state = dynamics(state.values(), step, config, intervention, rng)
-        states.append(State(*state))
+        next_state = dynamics(state.values(), step, config, intervention, rng)
+        state = State(*next_state)
+        states.append(state)
         times.append(step + 1)
 
     return wn.dynamics.Run(states=states, times=times)
 
 
 if __name__ == "__main__":
-    print(simulate(State(), Config()))
+    print(simulate(State(), Config(end_time=20)))

@@ -238,7 +238,3 @@ def simulate(initial_state, config, intervention=None, seed=None):
         times.append(step + 1)
 
     return wn.dynamics.Run(states=states, times=times)
-
-
-if __name__ == "__main__":
-    print(simulate(State(), Config()))

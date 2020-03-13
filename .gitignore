@@ -11,6 +11,7 @@
 
 # Vim extras
 *.swp
+*.swo
 
 # Python extras
 __pycache__

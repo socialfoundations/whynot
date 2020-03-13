@@ -31,7 +31,8 @@ Dynamical systems based simulators:
 * :ref:`opioid-simulator`
 * :ref:`lotka-volterra-simulator`
 * :ref:`delayed-impact-simulator`
-* :ref:`repeated-classification`
+* :ref:`repeated-classification-simulator`
+* :ref:`credit-simulator`
 
 Agent-based simulators:
 
@@ -309,7 +310,7 @@ are based on real FICO data. In this dynamic setting, the paper shows that
 static fairness criterion do not in genearl promote improvement over time and
 can indeed cause active harm.
 
-.. _repeated-classification:
+.. _repeated-classification-simulator:
 
 Repeated Classification Simulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -326,6 +327,24 @@ cause individuals to exit the system, further decreasing accuracy in these
 subgroups and creating a negative feedback loop. The paper shows that, when
 combined with repeated empirical risk minimization, even initially fair models
 can become unfair over time if this dynamic is not accounted for.
+
+.. _credit-simulator:
+
+Credit Simulator
+^^^^^^^^^^^^^^^^
+The credit simulator is based on the paper:
+
+    Perdomo, Juan C., Tijana Zrnic, Celestine Mendler-Dünner, and Moritz Hardt.
+    "Performative Prediction." arXiv preprint arXiv:2002.06673 (2020).
+
+The simulator reprises on a model of strategic classification in which
+an institution classifies the creditworthiness of loan applicants, and agents
+react to the institution’s classifier by manipulating their features to increase
+the likelihood that they receive a favorable classification. The underlying
+data comes from a Kaggle credit scoring dataset, though the agent response model
+is synthetic.  The model was originally used to qualitatively analyze the
+long-run properties of repeated retraining of classifiers in the face of
+strategic adaptation.
 
 
 .. _schelling-simulator:

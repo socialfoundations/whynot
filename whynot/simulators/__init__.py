@@ -1,6 +1,7 @@
 """Simulator initialization."""
 
 from whynot.simulators import civil_violence
+from whynot.simulators import credit
 from whynot.simulators import delayed_impact
 from whynot.simulators import dice
 from whynot.simulators import hiv
