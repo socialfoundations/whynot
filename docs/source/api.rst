@@ -20,6 +20,7 @@ Simulators
     simulator_configs/lalonde
     simulator_configs/delayed_impact
     simulator_configs/repeated_classification
+    simulator_configs/credit
 
 
 Dynamics
