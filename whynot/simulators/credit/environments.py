@@ -35,10 +35,16 @@ CreditEnv = ODEEnvBuilder(
     # features.
     action_space=spaces.Box(low=-np.inf, high=np.inf, shape=(CreditData.num_features,)),
     # Observation space is the strategically adapted features and labels
-    observation_space=[
-        spaces.Box(low=-np.inf, high=np.inf, shape=CreditData.features.shape),
-        spaces.Box(low=-np.inf, high=np.inf, shape=CreditData.labels.shape),
-    ],
+    observation_space=spaces.Dict(
+        {
+            "features": spaces.Box(
+                low=-np.inf, high=np.inf, shape=CreditData.features.shape
+            ),
+            "labels": spaces.Box(
+                low=-np.inf, high=np.inf, shape=CreditData.labels.shape
+            ),
+        }
+    ),
     timestep=1,
     intervention_fn=compute_intervention,
     reward_fn=compute_reward,

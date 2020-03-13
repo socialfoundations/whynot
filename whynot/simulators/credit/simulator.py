@@ -68,8 +68,8 @@ class State(BaseState):
     labels: np.ndarray = np.zeros((13, 1))
 
     def values(self):
-        """Return the state as a list of numpy array."""
-        return [getattr(self, name) for name in self.variable_names()]
+        """Return the state as a dictionary of numpy arrays."""
+        return {name: getattr(self, name) for name in self.variable_names()}
 
 
 class Intervention(BaseIntervention):
