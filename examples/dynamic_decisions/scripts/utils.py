@@ -1,90 +1,112 @@
+"""Utility functions for performative prediction demo."""
 import numpy as np
 
 
-def evaluate_logistic_loss(X, Y, theta, lam):
+def evaluate_logistic_loss(X, Y, theta, l2_penalty):
+    """Compute the l2-penalized logistic loss function
+
+    Parameters
+    ----------
+        X: np.ndarray
+            A [num_samples, num_features] matrix of features. The last
+            feature dimension is assumed to be the bias term.
+        Y: np.ndarray
+            A [num_samples] vector of binary labels.
+        theta: np.ndarray
+            A [num_features] vector of classifier parameters
+        l2_penalty: float
+            Regularization coefficient. Use l2_penalty=0 for no regularization.
+
+    Returns
+    -------
+        loss: float
+
+    """
     n = X.shape[0]
 
-    X_perf = np.copy(X)
+    logits = X @ theta
+    log_likelihood = (
+        1.0 / n * np.sum(-1.0 * np.multiply(Y, logits) + np.log(1 + np.exp(logits)))
+    )
 
-    # compute log likelihood
-    logits = X_perf @ theta
-    t1 = 1.0 / n * np.sum(-1.0 * np.multiply(Y, logits) + np.log(1 + np.exp(logits)))
+    regularization = (l2_penalty / 2.0) * np.linalg.norm(theta[:-1]) ** 2
 
-    # add regularization (without considering the bias)
-    t2 = lam / 2.0 * np.linalg.norm(theta[:-1]) ** 2
-    loss = t1 + t2
-
-    return loss
+    return log_likelihood + regularization
 
 
-def fit_logistic_regression(
-    X_orig, Y_orig, lam, method="Exact", tol=1e-7, theta_init=None
-):
+def fit_logistic_regression(X, Y, l2_penalty, tol=1e-7, theta_init=None):
+    """Fit a logistic regression model via gradient descent.
 
-    # assumes that the last coordinate is the bias term
-    X = np.copy(X_orig)
-    Y = np.copy(Y_orig)
+    Parameters
+    ----------
+        X: np.ndarray
+            A [num_samples, num_features] matrix of features.
+            The last feature dimension is assumed to be the bias term.
+        Y: np.ndarray
+            A [num_samples] vector of binary labels.
+        l2_penalty: float
+            Regularization coefficient. Use l2_penalty=0 for no regularization.
+        tol: float
+            Stopping criteria for gradient descent
+        theta_init: np.ndarray
+            A [num_features] vector of classifier parameters to use a
+            initialization
+
+    Returns
+    -------
+        theta: np.ndarray
+            The optimal [num_features] vector of classifier parameters.
+
+    """
+    X = np.copy(X)
+    Y = np.copy(Y)
     n, d = X.shape
 
-    # compute smoothness of the logistic loss
+    # Smoothness of the logistic loss
     smoothness = np.sum(X ** 2) / (4.0 * n)
 
-    if method == "Exact":
-        eta_init = 1 / (smoothness + lam)  # true smoothness
-
-    elif method == "GD":
-        assert theta_init is not None
-        eta_init = 2 / (smoothness + 2 * lam)
-
-    else:
-        print("method must be Exact or GD")
-        raise ValueError
+    # Optimal initial learning rate
+    eta_init = 1 / (smoothness + l2_penalty)
 
     if theta_init is not None:
         theta = np.copy(theta_init)
     else:
         theta = np.zeros(d)
 
-    # evaluate initial loss
-    prev_loss = evaluate_logistic_loss(X, Y, theta, lam)
+    # Evaluate loss at initialization
+    prev_loss = evaluate_logistic_loss(X, Y, theta, l2_penalty)
 
     loss_list = [prev_loss]
-    is_gd = False
     i = 0
     gap = 1e30
 
     eta = eta_init
-
-    while gap > tol and not is_gd:
+    while gap > tol:
 
         # take gradients
         exp_tx = np.exp(X @ theta)
         c = exp_tx / (1 + exp_tx) - Y
-        gradient = 1.0 / n * np.sum(X * c[:, np.newaxis], axis=0) + lam * np.append(
-            theta[:-1], 0
-        )
+        gradient = 1.0 / n * np.sum(
+            X * c[:, np.newaxis], axis=0
+        ) + l2_penalty * np.append(theta[:-1], 0)
 
         new_theta = theta - eta * gradient
 
         # compute new loss
-        loss = evaluate_logistic_loss(X, Y, new_theta, lam)
+        loss = evaluate_logistic_loss(X, Y, new_theta, l2_penalty)
 
         # do backtracking line search
-        if loss > prev_loss and method == "Exact":
+        if loss > prev_loss:
             eta = eta * 0.1
             gap = 1e30
             continue
-        else:
-            eta = eta_init
 
+        eta = eta_init
         theta = np.copy(new_theta)
 
         loss_list.append(loss)
         gap = prev_loss - loss
         prev_loss = loss
-
-        if method == "GD":
-            is_gd = True
 
         i += 1
 
