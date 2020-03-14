@@ -1,7 +1,7 @@
 .. _reinforcement-learning:
 
-Sequential Decision and Reinforcement Learning
-=====================================================
+Sequential Decision Making
+==========================
 WhyNot is also an excellent test bed for sequential decision making and
 reinforcement learning in diverse dynamic environments. WhyNot offers RL
 environments compatible with the OpenAI Gym API style, so that existing code for

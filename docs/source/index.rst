@@ -54,7 +54,6 @@ usage patterns.
    installation
    quickstart
    simulators
-   estimators
    usage
    examples
    develop
