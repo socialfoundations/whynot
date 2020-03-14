@@ -32,6 +32,12 @@ Dynamics
     :members: __init__, get_parameters, run
 
 
+Reinforcement learning
+----------------------
+.. autoclass:: whynot.gym.envs.ODEEnvBuilder
+    :members: __init__, reset, seed, step
+
+
 Framework
 ---------
 

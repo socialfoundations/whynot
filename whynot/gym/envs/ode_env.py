@@ -28,10 +28,14 @@ class ODEEnvBuilder(Env):
                 A function with signature
                 simulate(initial_state, config, intervention=None, seed=None)
                 -> whynot.dynamics.Run
-            config: whynot.dynamics.BaseConfig.
-            action_space: whynot.gym.spaces.Space.
-            observation_space: whynot.gym.spaces.Space.
-            initial_state: whynot.dynamics.BaseState.
+            config: whynot.dynamics.BaseConfig
+                The base simulator configuration
+            action_space: whynot.gym.spaces.Space
+                The action space for the reinforcement learner
+            observation_space: whynot.gym.spaces.Space
+                The space of observations for the agent
+            initial_state: whynot.dynamics.BaseState
+                The initial state of the simulator
             intervention_fn: Callable
                 A function that maps actions to simulator interventions with signature
                 get_intervention(action, time) -> whynot.dynamics.BaseState
@@ -42,9 +46,10 @@ class ODEEnvBuilder(Env):
             observation_fn: Callable
                 (Optional) A function that computes the observed state for the
                 state of the simulator with signature
-                    observation_fn(state) -> np.ndarray.
+                observation_fn(state) -> np.ndarray.
                 If ommitted, the entire simulator state is returned.
-            timestep: float.
+            timestep: float
+                Time between successive observations in the dynamical system.
 
         """
         self.config = config
