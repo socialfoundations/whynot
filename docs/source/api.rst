@@ -28,6 +28,12 @@ Dynamics
 .. autoclass:: whynot.dynamics.Run
     :members: initial_state, __getitem__
 
+.. autoclass:: whynot.dynamics.BaseState
+
+.. autoclass:: whynot.dynamics.BaseConfig
+
+.. autoclass:: whynot.dynamics.BaseIntervention
+
 .. autoclass:: whynot.dynamics.DynamicsExperiment
     :members: __init__, get_parameters, run
 
