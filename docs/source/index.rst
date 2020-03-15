@@ -34,11 +34,48 @@ against ground truth.
 
 
 WhyNot also supports benchmarking and investigation of causal inference tools
-for heterogenous treatment effects and causal graph discovery. Beyond causal
-inference, WhyNot provides simulators and environments to study decision making
-in dynamics, both in the context of reinforcement learning, as well as from
-recent perspectives like delayed impact, strategic classification, and
-performative prediction.
+for heterogenous treatment effects and causal graph discovery. 
+
+Beyond causal inference, WhyNot provides simulators and environments to study
+decision making in dynamics, both in the context of reinforcement learning, as
+well as from recent perspectives like delayed impact, strategic classification,
+and performative prediction. The following code uses the same HIV treatment
+simulator to construct a reinforcement learning environment.
+
+.. code:: python
+
+    import whynot.gym as gym
+
+    env = gym.make("HIV-v0")
+    
+    observation = env.reset()
+    for _ in range(100):
+        # Random treatment policy
+        action = env.action_space.sample()
+        observation, reward, done, info = env.step(action)
+        if done:
+            observation = env.reset()
+
+The code below uses a different environment to study the dynamics of
+classification when individuals *strategically adapt* to the decision rule.
+
+.. code:: python
+
+    import whynot.gym as gym
+
+    env = gym.make("Credit-v0")
+    
+    # A credit dataset collected without strategic adaptation
+    dataset = env.reset()
+    for _ in range(100):
+        # Random classifier
+        # Replace with your favorite machine learning algorithm!
+        classifier = env.action_space.sample()
+        
+        # New dataset, accounting for strategic response to the classifier
+        dataset, loss, done, info = env.step(classifier)
+        if done:
+            dataset = env.reset()
 
 
 Documentation

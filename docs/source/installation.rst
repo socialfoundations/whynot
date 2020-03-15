@@ -3,7 +3,7 @@
 Installation
 ============
 
-Basic installation instructions
+Basic Installation Instructions
 -------------------------------
 
 WhyNot supports Python3 on both OS X and Linux systems. We recommend using `pip`
@@ -24,7 +24,7 @@ for installation and isolating the installation inside a `virtualenv`_.
 
 
 
-Installing other estimators
+Installing Other Estimators
 ---------------------------
 By default, WhyNot ships with a small set of causal estimators written in pure
 Python. Because many state-of-the-art causal inference routines are implemented
