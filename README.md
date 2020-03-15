@@ -174,7 +174,7 @@ Observations in this environment correspond to a dataset of features for each
 individual and a label indicating whether they experience financial distress
 from the Kaggle [GiveMeSomeCredit dataset](https://www.kaggle.com/c/GiveMeSomeCredit).
 ```py
-[features, labels] = env.reset()
+dataset = env.reset()
 ```
 Actions in the environment correspond to choosing a classifier to predict
 default. In response, individuals then *strategically adapt* their features in
@@ -182,7 +182,7 @@ order to obtain a more favorable credit score. The subsequent observation is the
 adapted features, and the reward is the classifier's loss on this distribution
 ```py
 theta = env.action_space.sample() # Your classifier
-[adapted_features, Y], loss, done, info = env.step(theta)
+dataset, loss, done, info = env.step(theta)
 ```
 We can then experiment with the long-term equilibrium arising from repeatedly
 updating the classifier to cope with strategic response.
@@ -191,10 +191,10 @@ def learn_classifier(features, labels):
     # Replace with your learning algorithm
     return env.action_space.sample()
 
-[features, labels] = env.reset()
+dataset = env.reset()
 for _ in range(100):
-    theta = learn_classifier(features, labels)
-    [features, labels], loss, _ = env.step(theta)
+    theta = learn_classifier(dataset["features"], dataset["labels"])
+    dataset, loss, _ = env.step(theta)
 ```
 For more details on the simulation and a complete example showing the
 standard retraining procedures perform in a strategic setting, see [this
