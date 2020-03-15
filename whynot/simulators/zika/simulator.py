@@ -64,13 +64,13 @@ class Config(BaseConfig):
 
     # Treatment parameters
     #: Control measure through use of treated bednets
-    treated_bednet_control: float = 0.
+    treated_bednet_use: float = 0.
     #: Control measure through use of condoms
-    condom_use_control: float = 0.
+    condom_use: float = 0.
     #: Control measure through treatment of infected humans
-    treatment_control: float = 0.
+    treatment_of_infected: float = 0.
     #: Control measure through use of indoor residual spray
-    indoor_spray_control: float = 0.
+    indoor_spray_use: float = 0.
 
     #: Simulation start time (in day)
     start_time: float = 0
@@ -82,6 +82,49 @@ class Config(BaseConfig):
     rtol: float = 1e-6
     #: solver absolute tolerance
     atol: float = 1e-6
+    
+    @property
+    def recovery_rate(self):
+        """Rate of recovery from Zika."""
+        # spontaneous recovery + recovery from treatment
+        return self.phi + self.tau * self.treatment_of_infected
+    
+    @property
+    def mosquito_human_infection_rate(self):
+        """Infection rate of humans from mosquito bites."""
+        return (
+            self.beta_1       # probability of disease transmission from mosquitoes
+            * self.epsilon    # mosquito biting rate
+            * self.rho        # human/mosquito contact rate
+            * (1. - self.treated_bednet_use)
+        )
+
+    @property
+    def human_mosquito_infection_rate(self):
+        """Infection rate of mosquitos from humans."""
+        return (
+            self.beta_2       # probability of disease transmission to mosquitoes
+            * self.epsilon    # mosquito biting rate
+            * self.rho        # human/mosquito contact rate
+            * (1. - self.treated_bednet_use)
+        )
+    
+    @property
+    def asymptomatic_infection_rate(self):
+        """Infection from sexual contact with asymptomatic infected humans."""
+        return (
+            self.beta_a   # prob of transmission from sexual contact with asymptomatic
+            * self.c      # relative human/human contact rate of asymptomatic infected
+            * (1. - self.condom_use))
+
+    @property
+    def symptomatic_infection_rate(self):
+        """Infection from sexual contact with symptomatic infected humans."""
+        return (
+            self.beta_s   # prob of transmission from sexual contact with symptomatic
+            * self.kappa  # relative human/human contact rate of symptomatic infected
+            * (1. - self.condom_use)
+        )
 
 
 @dataclasses.dataclass
@@ -89,7 +132,10 @@ class State(BaseState):
     # pylint: disable-msg=too-few-public-methods
     """State of the Zika simulator.
 
-    The default state corresponds 
+    The default state corresponds to a small community with
+    a Zika outbreak. Most of the inhabitants are susceptible, a small number
+    are exposed, but asymptomatic, and a tiny fraction ~1% are infected and
+    symptomatic.
     """
     #: sh, ah, ih, rh, sv, ev, iv, nh, nv
     #: Number of susceptible humans
@@ -101,7 +147,7 @@ class State(BaseState):
     #: Number of recovered humans
     recovered_humans: float = 20.
     #: Number of susceptible mosquitoes
-    susceptible_humans: float = 10000.
+    susceptible_mosquitos: float = 10000.
     #: Number of exposed mosquitoes
     exposed_mosquitos: float = 500.
     #: Number of infectious mosquitoes
@@ -173,18 +219,71 @@ def dynamics(state, time, config, intervention=None):
         N_h,  # total number of humans
         N_v,  # total number of mosquitoes
     ) = state
-
-    # mu_1, mu_2, mu_3, mu_4 (
-    #treated_bednet_control: float = 0.
-    ##: Control measure through use of condoms
-    #condom_use_control: float = 0.
-    ##: Control measure through treatment of infected humans
-    #treatment_control: float = 0.
-    ##: Control measure through use of indoor residual spray
-    #indoor_spray_control: float = 0.
     
-    # Suspectible humans 
+    
+    ## Human dynamics ##
+    newly_susceptible = (
+        config.lambda_h  # recruitment rate
+        + config.recovery_rate * (1. - config.nu) * I_h  # recovery without immunity
+        + config.varphi_h  * R_h  # loss of immunity after recovery
+    )
 
+    exposure_rate = (
+        config.mosquito_human_infection_rate * I_v * S_h / N_h
+        + config.asymptomatic_infection_rate * A_h * S_h / N_h
+        + config.symptomatic_infection_rate * I_h * S_h / N_h
+    )
+
+    dS_h = newly_susceptible - exposure_rate
+
+    # decrease due to exposed -> infected and natural human death
+    dA_h = exposure_rate - config.alpha_h * A_h - config.mu_h * A_h
+
+    # increase to due exposed -> infected and decrease due to recovery,
+    # natural human death, and death from Zika
+    dI_h = (
+        config.alpha_h * A_h
+        - (config.recovery_rate + config.mu_h + config.delta_h) * I_h
+    )
+
+    # Increase due to recovery with immunity and decrease due to death
+    # and gradual loss of immunity after recovery
+    dR_h = (
+        config.recovery_rate * config.nu * I_h
+        - (config.varphi_h + config.mu_h) * R_h
+    )
+    
+    dN_h = (
+        config.lambda_h
+        - config.delta_h * I_h
+        - config.mu_h * N_h
+    )
+
+    ## Mosquito dynamics ##
+    dS_v = (
+        config.lambda_v                                     # Recruiment rate
+        - config.human_mosquito_infection_rate * I_h * S_v / N_h   # Newly exposed mosquitos
+        - config.mu_v * S_v                                 # Natural death rate
+        - config.theta * config.indoor_spray_use * S_v      # Death due to indoor spray
+    )
+
+    dE_v = (
+        config.human_mosquito_infection_rate * I_h * S_v / N_h   # Newly exposed mosquitos
+        - config.alpha_v * E_v                            # Newly infected mosquitos
+        - config.mu_v * E_v                               # Natural death rate
+        - config.theta * config.indoor_spray_use * E_v    # Death due to indoor spray
+    )
+
+    dI_v = (
+        config.alpha_v * E_v                            # Newly infected mosquitos
+        - config.mu_v * I_v                             # Natural death rate
+        - config.theta * config.indoor_spray_use * I_v  # Death due to indoor spray
+    )
+
+    dN_v = (
+        config.lambda_v
+        - (config.mu_v + config.theta * config.indoor_spray_use) * N_v
+    )
 
     ds_dt = [
         dS_h,
@@ -244,4 +343,5 @@ def simulate(initial_state, config, intervention=None, seed=None):
 
 
 if __name__ == "__main__":
+    print(State())
     print(simulate(State(), Config()))

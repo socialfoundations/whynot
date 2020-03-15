@@ -58,7 +58,3 @@ HivEnv = ODEEnvBuilder(
     intervention_fn=get_intervention,
     reward_fn=get_reward,
 )
-
-register(
-    id="HIV-v0", entry_point=HivEnv, max_episode_steps=400, reward_threshold=1e10,
-)
