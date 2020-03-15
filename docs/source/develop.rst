@@ -9,7 +9,7 @@ of tasks.
 
 .. _adding-a-simulator:
 
-Adding A Simulator
+Adding a Simulator
 ------------------
 
 Adding a simulator to the package is straightforward. WhyNot is agnostic to the
@@ -181,7 +181,7 @@ implementation.
 
 .. _adding-estimators:
 
-Adding An Estimator
+Adding an Estimator
 -------------------
 WhyNot ships with a small number of causal estimators, with a larger number
 available through the companion package ``whynot_estimators``. Most users will
