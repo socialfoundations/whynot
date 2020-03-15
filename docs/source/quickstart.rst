@@ -2,13 +2,14 @@
 
 Quickstart
 ==========
-WhyNot makes it easy to define and run causal inference experiments, and it
-provides a suite of ready-made benchmark experiments for new methods.
+WhyNot makes it easy to define and run causal inference and reinforcement
+learning experiments in challenging simulated environments, and it provides a
+suite of ready-made benchmark experiments for new methods.
 
 The first step to using WhyNot is installing the package (see :ref:`installation`).
 
-Basic Concepts - Running an Experiment
---------------------------------------
+Basic Concepts - Causal Inference
+---------------------------------
 Every simulator in WhyNot comes equipped with a set of experiments probing
 different aspects of causal inference. In this section, we show how to run
 experiments probing average treatment effect estimation on the :ref:`World 3
@@ -37,7 +38,8 @@ property offers specific details about the experiment.
     >>> rct.description
     'Study effect of intervening in 1975 to decrease pollution generation on total population in 2050.'
 
-We can run the experiment using the experiment :meth:`~whynot.dynamics.DynamicsExperiment.run` function and specifying a desired sample size ``num_samples``. 
+We can run the experiment using the experiment :meth:`~whynot.dynamics.DynamicsExperiment.run` 
+function and specifying a desired sample size ``num_samples``. 
 The experiment then returns a causal :class:`~whynot.framework.Dataset`
 consisting of the covariates for each unit, the treatment assignment, the
 outcome, and the ground truth causal effect for each unit. 
@@ -61,12 +63,12 @@ control trial, we compare the difference in means with the true effect.
     >>> print("Relative Error in causal estimate: {}".format(relative_error))
     'Relative Error in causal estimate: 1.33'
 
-Basic Concepts - Running Causal Estimators
-------------------------------------------
+Basic Concepts - Causal Estimators
+----------------------------------
 After generating the dataset, WhyNot enables you to run a large collection of
-causal estimators on the data for benchmarking and comparison. The main
-function to do this is the :func:`~whynot.causal_suite` which, given the causal
-dataset, runs all of the estimators on the dataset and returns an
+causal estimators for benchmarking and comparison. The main function to do this
+is the :func:`~whynot.causal_suite` which, given the causal dataset, runs all of
+the available estimators on the dataset and returns an
 :class:`~whynot.framework.InferenceResult` for each estimator containing its
 estimated treatment effects and uncertainty estimates like confidence intervals.
 For a full list of supported estimators for average treatment effects see
@@ -95,3 +97,48 @@ For a full list of supported estimators for average treatment effects see
     matching: 0.75
     causal_forest: 0.06
     tmle: 0.06
+
+Basic Concepts - Reinforcement Learning
+---------------------------------------
+Beyond causal inference, the simulators in WhyNot provide a ready collection of
+environments for reinforcement learning. Each of these environments is
+accessible through an `OpenAI gym interface <https://gym.openai.com>`_, which
+makes it easy to test existing methods on the simulators in WhyNot. In this
+section, we showcase how to get started running reinforcement learning
+experiments on the :ref:`adams-hiv-simulator`.
+
+First, we examine all of the environments available in WhyNot.
+
+.. code:: python
+
+    >>> import whynot.gym as gym
+    >>> for env in gym.envs.registry.all():
+    >>>     print(env.id)
+
+Then, we initialize the environment and set the random seed.
+
+.. code:: python
+
+    >>> import whynot.gym as gym
+    >>> env = gym.make('HIV-v0')
+    >>> env.seed(1)
+
+Finally, we run a single rollout of the simulator in exactly the same way
+as experiments on the OpenAI gym.
+
+.. code:: python
+
+    >>> import whynot.gym as gym
+
+    >>> observation = env.reset()
+    >>> for _ in range(100):
+    >>>     # Replace with your treatment policy!
+    >>>     action = env.action_space.sample()
+    >>>     observation, reward, done, info = env.step(action)
+    >>>     if done:
+    >>>         observation = env.reset()
+
+For a complete worked example on the HIV simulator, as well as more details
+about the action space, the observation space, and the reward function see 
+`this example notebook <https://github.com/zykls/whynot/blob/master/examples/reinforcement_learning/hiv_simulator.ipynb>`_
+and the :ref:`documentation <adams-hiv-simulator>`.

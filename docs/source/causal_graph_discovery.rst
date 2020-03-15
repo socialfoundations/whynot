@@ -16,9 +16,9 @@ very fast, extremely flexible, and significantly less error-prone than tracking
 the simulator dynamics and experimental setup by hand.
 
 *Automatic graph generation is still experimental, and it is likely there are
-remaining rough edges. Graph generation is currently supported only on the HIV,
-Lotka Volterra, and Opioid Epidemic simulators. Support for the remaining
-simulators (world2 and world3) is forthcoming.*
+remaining rough edges. Graph generation is currently supported on most, but not
+all, simulators. Support for the remaining simulators (world3 and DICE) is
+forthcoming.*
 
 
 Generating Causal Graphs for Dynamical System Simulators
@@ -145,7 +145,7 @@ threshold` rather than a hard threshold to make graph construction possible.
 
 .. code:: python
     
-    # BAD 
+    # BAD: Not traceable
     # Hard IF statement: Graph tracing cannot discover that treatment
     # assignment depends on the fox population at the time of intervention.
     def confounded_propensity_scores(untreated_run, intervention):
@@ -153,7 +153,7 @@ threshold` rather than a hard threshold to make graph construction possible.
             return 0.7
         return 0.4
 
-    # GOOD
+    # GOOD: Traceable
     # Soft/continuous variant: Graph tracing discovers treatment depends on 
     # the fox population at the time of intervention.
     def confounded_propensity_scores(untreated_run, intervention):

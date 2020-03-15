@@ -1,7 +1,7 @@
 .. _delayed_impact:
 
 Delayed Impact
-=======
+==============
 
 State
 -----

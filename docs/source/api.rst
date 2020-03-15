@@ -20,6 +20,7 @@ Simulators
     simulator_configs/lalonde
     simulator_configs/delayed_impact
     simulator_configs/repeated_classification
+    simulator_configs/credit
 
 
 Dynamics
@@ -27,8 +28,20 @@ Dynamics
 .. autoclass:: whynot.dynamics.Run
     :members: initial_state, __getitem__
 
+.. autoclass:: whynot.dynamics.BaseState
+
+.. autoclass:: whynot.dynamics.BaseConfig
+
+.. autoclass:: whynot.dynamics.BaseIntervention
+
 .. autoclass:: whynot.dynamics.DynamicsExperiment
     :members: __init__, get_parameters, run
+
+
+Reinforcement learning
+----------------------
+.. autoclass:: whynot.gym.envs.ODEEnvBuilder
+    :members: __init__, reset, seed, step
 
 
 Framework

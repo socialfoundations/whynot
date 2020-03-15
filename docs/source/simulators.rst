@@ -68,9 +68,9 @@ reader to the API documentation (:ref:`dice`) for more details.
 
 .. _adams-hiv-simulator:
 
-Adams HIV (ODE-based HIV simulator)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Differential equation simulator of HIV based on
+Adams HIV Simulator 
+^^^^^^^^^^^^^^^^^^^
+The Adams HIV simulator is a differential equation simulator of HIV treatment based on
 
 Adams, Brian Michael, et al.  *Dynamic multidrug therapies for HIV: Optimal and
 STI control approaches.* North Carolina State University. Center for Research in Scientific Computation, 2004.  APA.

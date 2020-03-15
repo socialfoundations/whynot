@@ -4,9 +4,10 @@ WhyNot supports multiple use cases, some technical, some pedagogical, each
 suited for a different group of users. We envision at least five primary use
 cases.
 
-*Developing*: Researchers can use WhyNot in the process of developing new causal
-inference methods. WhyNot can serve as a substitute for ad-hoc synthetic data
-where needed, providing a greater set of challenging test cases.
+*Developing*: Researchers can use WhyNot in the process of developing new
+methods for causal inference and decision making in dynamics. WhyNot can serve
+as a substitute for ad-hoc synthetic data where needed, providing a greater set
+of challenging test cases.
 
 *Testing*: Researchers can use WhyNot to design robustness checks for methods
 and gain insight into the failure cases of these methods.
@@ -16,9 +17,9 @@ same set of tasks. WhyNot does not dictate any particular benchmark. Rather
 is an experimental platform for creating challenging test cases using computer
 simulations, supporting the community in creating useful benchmarks.
 
-*Learning*: Students of causality might find WhyNot to be a helpful training
-resource. WhyNot is easy-to-use and it does not require much prior experience to
-get started.
+*Learning*: Students of causality and sequential decision making might find
+WhyNot to be a helpful training resource. WhyNot is easy-to-use and it does not
+require much prior experience to get started.
 
 *Teaching*: Instructors can use WhyNot as a tool students engage with to learn
 and solve problems.
@@ -29,60 +30,52 @@ WhyNot provides:
 * A diverse set of complex simulated environments (:ref:`simulators`)
 * A suite of state-of-the-art causal inference methods (:ref:`estimators`)
 * An extensive collection of experimental design examples (:ref:`experiment-examples`)
-* An extensible, easy-to-use framework that makes it easy to add more experiments, estimators, and simulators
+* An extensible, easy-to-use framework that makes it easy to add more experiments, estimators, and simulators.
 
 Why Simulations?
 ----------------
-Does additional low income housing cause an increase in urban crime?
-Does lowering pollution have a long term impact on world population?
-How does the use of reverse-transcriptase inhibitors affect immune response in
-HIV treatment?
+Almost as old as the digital computer is the idea of computer simulation of
+mathematical models designed to capture aspects of the real world. Dating back
+to the mid-1950s, a field known as system dynamics sought to derive policy
+recommendations from computer simulations of dynamical systems in a variety of
+domains, ranging from industrial management and urban planning to environmental
+forecasting.  Similarly, agent-based modeling—an active research area with
+applications ranging from economics to epidemiology—simulates the collective
+interactions of many agents. Robotics, control theory, and reinforcement
+learning all actively deploy simulated environments to improve systems and
+anticipate their failure points. *As computational resources continue to grow,
+simulation will become an increasingly powerful tool.*
 
-Causal questions like these have long been a subject of active research.
+While the realism and utility of these simulations can (and do) vary, they
+possess characteristics useful for researchers asking causal questions: They do
+not encode predetermined causal questions or answers, and they exhibit many of
+the same properties of dynamical systems in the real world.
 
-Since the earliest days of digital computing, researchers have used computer
-simulations to understand the dynamics of complex systems and to measure the
-effects of interventions into those systems. While the realism and utility
-of these simulations can (and do) vary, they possess characteristics useful
-for reasearchers asking causal questions: They do not encode predetermined
-causal questions or answers and they exhibit many of the same properties of
-dynamical systems in the real world.
+Beyond causal inference, machine learning to date struggles to perform well
+inside social dynamics. The reasons are numerous and fundamental in their
+nature. Static training data sets poorly capture the complexity of how social
+dynamics evolve. Strategic responses to decision rules can render statistical
+regularities obsolete. Correlations observed in data may not be robust enough to
+support meaningful interventions. Fairness concerns arise when the negative
+externalities of classification disproportionately affect some groups in the
+population. Where mathematical analysis is not possible, simulation offers a
+powerful tool to model and understand the interplay between machine learning and
+dynamics.
 
-Today, researchers increasingly tackle such questions with the growing technical
-repertoire of statistical causal inference from observational and experimental
-data. High stakes interventions in domains including climate, development,
-education, health and finance often start with causal reasoning. Policy-making
-based on formal analysis puts pressure on the validity and the robustness of the
-analysis. Yet, the validity of causal inference is a matter of formal
-assumptions that are often subtle and untestable.
+WhyNot connects computer simulation and causal inference and decision making in
+dynamics by using the former as a testbed for the latter. Simulation inevitably
+shows discrepancies with the real world. `But even when a simulator fails to
+faithfully represent the real world, it can nonetheless provide a valuable
+environment in which causal questions have non-trivial answers`. Ground truth is
+available through simulation where formal analysis is impenetrable. Each
+simulator we consider naturally leads to a range of dynamics and causal
+questions by varying which variables to include, what time horizons to consider,
+and how to generate data from the simulator. With this powerful tool at hand, we
+can investigate how today's practice of machine learning and causal inference
+fares in challenging simulated environments.
 
-Causal inference has not been the only route by which scientists have attempted
-to anticipate the effect of interventions. Almost as old as the digital computer
-is the idea of computer simulation of mathematical models designed to capture
-aspects of the real world. Dating back to the mid-1950s, a field known as system
-dynamics sought to derive policy recommendations from computer simulations of
-dynamical systems in a variety of domains, ranging from industrial management
-and urban planning to environmental forecasting. Similarly, agent-based
-modeling—an active research area with applications ranging from economics to
-epidemiology—simulates the collective interactions of many agents. Robotics,
-control theory, and reinforcement learning all actively deploy simulated
-environments to improve systems and anticipate their failure points. *As
-computational resources continue to grow, simulation will become an increasingly
-powerful tool.*
-
-WhyNot connects computer simulation and causal inference by using the former as
-a testbed for the latter. Simulation inevitably shows discrepancies with the
-real world. `But even when a simulator fails to faithfully represent the real
-world, it can nonetheless provide a valuable environment in which causal
-questions have non-trivial answers`. Ground truth is available through
-simulation where formal analysis is impenetrable. Each simulator we consider
-naturally leads to a range of causal questions by varying which variables to
-include, what time horizons to consider, and how to generate data from the
-simulator. With this powerful tool at hand, we can investigate how today's
-practice of causal inference fares in challenging simulated environments.
-
-Why Dynamical Systems based Simulators?
----------------------------------------
+Dynamical Systems and Causal Inference
+--------------------------------------
 Causal inference inevitably has to grapple with data generated by some dynamical
 process, since the physical universe is itself a dynamical system. Dynamical
 system models provide a natural and convenient setting for researchers to study
@@ -127,9 +120,9 @@ array of non-trivial causal inference problems.
 
 Related Projects
 ----------------
-
-* DoWhy: `<https://github.com/Microsoft/dowhy>`_
-* CauseMe: `<https://causeme.uv.es>`_
-* CausalML: `<https://github.com/uber/causalml>`_
-* EconML: `<https://github.com/microsoft/EconML>`_
-* ACC Causal Inference Competitions: `<https://arxiv.org/abs/1707.02641>`_
+* `DoWhy <https://github.com/Microsoft/dowhy>`_
+* `CauseMe <https://causeme.uv.es>`_
+* `CausalML <https://github.com/uber/causalml>`_
+* `EconML <https://github.com/microsoft/EconML>`_
+* `ACC Causal Inference Competitions <https://arxiv.org/abs/1707.02641>`_
+* `ML-fairness-gym <https://github.com/google/ml-fairness-gym>`_

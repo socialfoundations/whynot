@@ -1,7 +1,7 @@
 .. _designing-new-experiments:
 
-Creating Experiments
-====================
+Creating New Experiments
+========================
 WhyNot easily and flexibly supports the creation of new causal experiments and
 new experiment designs. Below, we describe how to use primitives in WhyNot to
 construct a new experiment for both dynamical system models. For more examples

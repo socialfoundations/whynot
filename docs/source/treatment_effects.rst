@@ -1,69 +1,51 @@
-Treatment Effect Estimation
-===========================
-Estimating treatment effects is a core problem in causal inference. WhyNot
-provides a powerful framework that generates data to stress-test methods for
-estimating both :ref:`average-treatment-effects` and
-:ref:`heterogeneous-treatment-effects` in a wide variety of simulated
-environments.
 
-All of the :ref:`simulators` implemented in WhyNot come equipped with
-experiments in both of these settings. Moreover, WhyNot provides a clean
-framework to allow the user to implement new experiments to explore issues not
-addressed by the fixed set of benchmarks. See :ref:`designing-new-experiments`
-for a detailed discussed of framework and API for creating new benchmarks.
-
+Treatment Effects
+=================
 
 .. _average-treatment-effects:
 
 Average Treatment Effects
 -------------------------
 In the simplest setting, we are interested in estimating the causal effect of a
-binary variable :math:`A` on an outcome variable :math:`Y`. Specifically, we
+binary variable :math:`W` on an outcome variable :math:`Y`. Specifically, we
 are interested in the *average treatment effect*
 
 .. math::
 
-    \mathrm{ATE} = \mathbb{E}[Y \mid \mathrm{do}(A = 1)] - \mathbb{E}[Y \mid \mathrm{do}(A = 0)].
+    \mathrm{ATE} = \mathbb{E}[Y \mid \mathrm{do}(W = 1)] - \mathbb{E}[Y \mid \mathrm{do}(W = 0)].
 
-The mathematical operator :math:`\mathrm{do}(A = a)` denotes an intervention
-that holds the value of :math:`A` constant at level :math:`a` (see `Pearl 2009`_
+The mathematical operator :math:`\mathrm{do}(W = w)` denotes an intervention
+that holds the value of :math:`W` constant at level :math:`w` (see `Pearl 2009`_
 for more details). The average treatment effect can also be defined using the
 Neyman-Rubin potential outcomes framework (`Imbens and Rubin 2015`_).
 *WhyNot is agnostic to which framework the practitioner applies.*
 
-Due to the possibility of *confounding*, it is not generally possible to
-identify the :math:`\mathrm{ATE}` from observations of treatment :math:`A` and
-outcome :math:`Y` alone. In some cases, however, when additional measured
-*covariates* :math:`X` are available, the :math:`\mathrm{ATE}` is identifiable
-(`Pearl 2009`_ or `Imbens and Rubin 2015`_).
 
-WhyNot allows the user to generate observational datasets :math:`(X_i, A_i,
+WhyNot allows the user to generate observational datasets :math:`(X_i, W_i,
 Y_i)_{i=1}^n` consisting of :math:`n` samples of covariates :math:`X_i`,
-treatment assignment :math:`A_i`, and observed outcome :math:`Y_i`.
+treatment assignment :math:`W_i`, and observed outcome :math:`Y_i`.
 Importantly, WhyNot also also returns the ground truth (sample) average
 treatment effect.
 
 **Case-study: Opioid Epidemic Simulation**
 
 The :ref:`opioid-simulator` is a system dynamics model of the US opioid
-epidemic. In the model, we wish to study the effect of reducing prescription
-opioid use on the total number of opioid overdose death. Concretely, we ask:
+epidemic. In the model, we ask:
 
-    What is the effect of lowering non-medical prescription opioid use by 10%
+    *What is the effect of lowering non-medical prescription opioid use by 10%
     in 2015 on the number of opioid overdose deaths in the United States in
-    2025?
+    2025?*
 
-In our setup, each *unit* is a run of the simulator from a different intial
-state. Using the notions developed above, treatment assignment :math:`A`
-corresponds to whether or not the run receives the policy intervention to reduce
-opioid use in 2015, and the outcome :math:`Y` is the number of overdose deaths
+Each *unit* is a run of the simulator from a different initial state. Treatment
+assignment :math:`W` corresponds to whether the run receives the policy
+intervention in 2015, and the outcome :math:`Y` is the number of overdose deaths
 in 2025.
 
 To generate confounding, we imagine governments are more likely to intervene to
 reduce opioid abuse if the number of opioid overdose deaths is high.  Therefore,
 runs with high levels of opioid overdose deaths in 2015 are more likely to
-receive treatment. A sufficient set of covariates :math:`X` is the entire system
-state in 2015.
+receive treatment. A set of covariates :math:`X` sufficient to estimate the
+treatment effect is the entire system state in 2015.
 
 The ``OverdoseConfounding`` experiment implements this logic. The code below
 calls the experiment class and generates the causal inference
@@ -71,15 +53,25 @@ calls the experiment class and generates the causal inference
 
 .. code:: python
 
-    import whynot as wn
-    import numpy as np
+    >>> import whynot as wn
+    >>> import numpy as np
 
-    overdose_experiment = wn.opioid.Confounding
+    >>> overdose_experiment = wn.opioid.Confounding
 
-    dataset  = overdose_experiment.run(num_samples=500)
+    >>> dataset  = overdose_experiment.run(num_samples=500)
 
-    # Average over the population
-    sample_ate = dataset.sate
+    # True average treatment over the sample
+    >>> sample_ate = dataset.sate
+    >>> print(f"{sample_ate:.2f")
+    -16601.53
+    
+    >>> X, W, Y = dataset.covariates, dataset.treatments, dataset.outcomes
+    
+    # Replace with your favorite causal estimator
+    # Confounding significantly biases unadjusted estimates!
+    >>> estimate = np.mean(Y[W == 1.0]) - np.mean(Y[W == 0.0])
+    >>> print(f"{estimate:.2f}")
+    101444.41
 
 
 One key parameter in the ``Confounding`` experiment is the *strength* of
@@ -91,6 +83,7 @@ check this since :math:`p` is a :class:`Parameter <whynot.framework.ExperimentPa
 
 .. code:: python
 
+    >>> import whynot as wn
     >>> overdose_experiment = wn.opioid.Confounding
     >>> overdose_experiment.get_parameters()
 	Params:
@@ -120,14 +113,20 @@ ATE, as well as a confidence interval (if provided by the estimator).
 
 .. code:: python
 
-    data = overdose_experiment.run(num_samples=100)
+    >>> import whynot as wn
+    >>> import numpy as np
+
+    >>> overdose_experiment = wn.opioid.Confounding
+    >>> data = overdose_experiment.run(num_samples=100)
     
+    # Replace with your favorite causal estimator
     # Estimate ATE using a linear model
-    estimate = wn.algorithms.ols.estimate_treatment_effect(data.covariates, data.treatments, data.outcomes)
+    >>> estimate = wn.algorithms.ols.estimate_treatment_effect(data.covariates, data.treatments, data.outcomes)
 
     # Compare estimate with ground truth
-    relative_error = np.abs((estimate.ate - data.sate) / data.sate)
-
+    >>> relative_error = np.abs((estimate.ate - data.sate) / data.sate)
+    >>> print(f"{relative_error:.2f}")
+    0.01
 
 .. _heterogeneous-treatment-effects:
 
@@ -141,30 +140,31 @@ for covariates :math:`x` is defined as
 
 .. math::
 
-    \mathrm{CATE}(x) = \mathbb{E}[Y \mid X = x, \mathrm{do}(A = 1)] - \mathbb{E}[Y \mid X = x, \mathrm{do}(A = 0)].
+    \mathrm{CATE}(x) = \mathbb{E}[Y \mid X = x, \mathrm{do}(W = 1)] - \mathbb{E}[Y \mid X = x, \mathrm{do}(W = 0)].
 
 Given an observational dataset :math:`(X_i, A_i, Y_i)_{i=1}^n`, it is a
 challenging problem to estimate heterogeneous effects. WhyNot allows
-benchmarking of individual treatment effect estimations by returning indivudal
-level counterfactuals, i.e. both :math:`Y_{i, \mathrm{do}(A=0)}` and
-:math:`Y_{i, \mathrm{do}(A=1)}` for each sample :math:`i`.
+benchmarking of individual treatment effect estimations by returning individual
+level counterfactuals, i.e. both :math:`Y_{i, \mathrm{do}(W=0)}` and
+:math:`Y_{i, \mathrm{do}(W=1)}` for each sample :math:`i`.
 
 **Case-study: Opioid Epidemic Simulator**
 To illustrate this, we consider the same study using the opioid epidemic
-simulator presented in the section on :ref:`average-treatment-effects`.
+simulator presented in the previous section.
 
 .. code:: python
 
-    import whynot as wn
-    import numpy as np
+    >>> import whynot as wn
 
-    overdose_experiment = wn.opioid.Confounding
+    >>> overdose_experiment = wn.opioid.Confounding
 
-    dataset = overdose_experiment.run(num_samples=500)
+    >>> dataset = overdose_experiment.run(num_samples=200)
 
     # True effects is a n x 1 vector of individual
     # level contrasts Y_i(1) - Y_i(0)
-    dataset.true_effects
+    >>> dataset.true_effects
+    # array([-16436.31184686, -16448.84326423, -16063.21459659, -16671.28477321,
+    #        -16393.9382686 , -16533.25323364, ...])
 
 Estimating Heterogeneous Treatment Effects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -178,21 +178,19 @@ previous section.
 
 .. code:: python
 
-    import whynot_estimators
+    >>> import whynot_estimators
 
-    experiment  = wn.opioid.Confounding
+    >>> experiment  = wn.opioid.Confounding
 
-    dataset = experiment.run(num_samples=100)
+    >>> dataset = experiment.run(num_samples=100)
 
     # Estimate CATE using a causal forest
-    estimate = whynot_estimators.causal_forest(
-        dataset.covariates, dataset.treatment, dataset.outcome)
+    >>> estimate = whynot_estimators.causal_forest(
+            dataset.covariates, dataset.treatment, dataset.outcome)
 
     # Compute MSE for HTE estimates
-    mse = np.mean((estimate.individual_effects - dataset.true_effects) ** 2)
-
+    >>> mse = np.mean((estimate.individual_effects - dataset.true_effects) ** 2)
 
 
 .. _Pearl 2009: https://dl.acm.org/citation.cfm?id=1642718
 .. _Imbens and Rubin 2015: https://dl.acm.org/citation.cfm?id=2764565
-
