@@ -9,7 +9,7 @@ from sklearn import preprocessing
 class DataLoader(object):
     """Class to lazily load the credit dataset."""
 
-    def __init__(self, datafile="credit_data.csv", seed=None):
+    def __init__(self, datafile="credit_data.zip", seed=None):
         cur_dir = os.path.abspath(os.path.dirname(__file__))
         datapath = os.path.join(cur_dir, datafile)
 
