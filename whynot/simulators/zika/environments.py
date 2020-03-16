@@ -29,7 +29,6 @@ def get_reward(intervention, state, time):
     """Compute the reward based on the observed state and choosen intervention."""
     A_1, A_2, A_3 = 60, 500, 60
     C_1, C_2, C_3, C_4 = 25, 20, 30, 40
-    m_1, m_2, m_3, m_4 = 4.0, 0.24, 2.00, 1.50
     discount = 4.0 / 365
 
     cost = (

@@ -20,6 +20,7 @@ from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
 class Config(BaseConfig):
     # pylint: disable-msg=too-few-public-methods
     """Parameters for the simulation dynamics."""
+
     # Simulation parameters
     #: Recruitment rate of humans into susceptible population
     lambda_h: float = 0.000011
@@ -145,6 +146,7 @@ class State(BaseState):
     are exposed, but asymptomatic, and a tiny fraction ~1% are infected and
     symptomatic.
     """
+
     #: Number of susceptible humans
     susceptible_humans: float = 750.0
     #: Number of asymptomatic infected human
@@ -159,7 +161,7 @@ class State(BaseState):
     exposed_mosquitos: float = 500.0
     #: Number of infectious mosquitoes
     infectious_mosquites: float = 100.0
-    #: Total number of human
+    #: Total number of humans
     human_population: float = 1030.0
     #: Total number of mosquitoes
     mosquito_population: float = 10600
@@ -171,12 +173,12 @@ class Intervention(BaseIntervention):
 
     Examples
     --------
-    >>> # Starting in step 100, set epsilon_1 to 0.7 (leaving other variables unchanged)
-    >>> Intervention(time=100, epsilon_1=0.7)
+    >>> # Starting in step 10, set bed net use to 0.5 (leaving other variables unchanged)
+    >>> Intervention(time=10, treated_bednet_use=0.5)
 
     """
 
-    def __init__(self, time=100, **kwargs):
+    def __init__(self, time, **kwargs):
         """Specify an intervention in the dynamical system.
 
         Parameters
@@ -240,7 +242,7 @@ def dynamics(state, time, config, intervention=None):
         + config.symptomatic_infection_rate * I_h * S_h / N_h
     )
 
-    dS_h = newly_susceptible - exposure_rate
+    dS_h = newly_susceptible - exposure_rate - config.mu_h * S_h
 
     # Decrease due to exposed becoming infected and natural human death
     dA_h = exposure_rate - config.alpha_h * A_h - config.mu_h * A_h
