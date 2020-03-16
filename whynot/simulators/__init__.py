@@ -12,3 +12,4 @@ from whynot.simulators import opioid
 from whynot.simulators import schelling
 from whynot.simulators import world2
 from whynot.simulators import world3
+from whynot.simulators import zika

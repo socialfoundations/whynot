@@ -29,6 +29,7 @@ Dynamical systems based simulators:
 * :ref:`world3-simulator`
 * :ref:`world2-simulator`
 * :ref:`opioid-simulator`
+* :ref:`zika-simulator`
 * :ref:`lotka-volterra-simulator`
 * :ref:`delayed-impact-simulator`
 * :ref:`credit-simulator`
@@ -197,6 +198,24 @@ please refer to the appendix of `Chen et al.
   * Non-medical opioid use
   * OUD
   * Illicit opioid use
+
+.. _ziki-simulator:
+
+Zika Virus Prevention Simulator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Zika simulator is dynamical systems model of transmission and control of the
+Zika virus disease. The simulator is based on:
+
+Momoh, Abdulfatai A., and Armin Fügenschuh. "Optimal control of intervention
+strategies and cost effectiveness analysis for a Zika virus model." Operations
+Research for Health Care 18 (2018): 99-111.
+
+The intended purpose of the model was to study the efficacy of various
+strategies for controlling the spread of the Zika virus: the use of treated
+bednets, the use of condoms, a medical treatment of infected persons, and the
+use of indoor residual spray (IRS). The dynamics of the Zika model govern the
+evolution of 9 state variables, and the simulator has four control variables
+and 20 simulation parameters.
 
 
 .. _civil-violence-simulator:

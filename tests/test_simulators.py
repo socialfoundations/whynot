@@ -18,8 +18,24 @@ def check_shapes(dataset, num_samples):
 
 @pytest.mark.parametrize(
     "simulator",
-    [wn.delayed_impact, wn.hiv, wn.lotka_volterra, wn.opioid, wn.world2, wn.world3],
-    ids=["delayed_impact", "hiv", "lotka_volterra", "opioid", "world2", "world3",],
+    [
+        wn.delayed_impact,
+        wn.hiv,
+        wn.lotka_volterra,
+        wn.opioid,
+        wn.world2,
+        wn.world3,
+        wn.zika,
+    ],
+    ids=[
+        "delayed_impact",
+        "hiv",
+        "lotka_volterra",
+        "opioid",
+        "world2",
+        "world3",
+        "zika",
+    ],
 )
 def test_dynamics_initial_state(simulator):
     """For ODE simulators, ensure the iniitial_state is returned by reference in run."""
@@ -40,8 +56,17 @@ def test_dynamics_initial_state(simulator):
         (wn.opioid, "nonmedical_incidence", -0.1),
         (wn.world2, None, None),
         (wn.world3, None, None),
+        (wn.zika, "treated_bednet_use", 0.5),
     ],
-    ids=["delayed_impact", "hiv", "lotka_volterra", "opioid", "world2", "world3",],
+    ids=[
+        "delayed_impact",
+        "hiv",
+        "lotka_volterra",
+        "opioid",
+        "world2",
+        "world3",
+        "zika",
+    ],
 )
 def test_dynamics_intervention(simulator, intervention_param, intervention_val):
     """For ODE simulators, ensure test config.intervention."""
@@ -91,6 +116,7 @@ def test_dynamics_intervention(simulator, intervention_param, intervention_val):
         (wn.schelling, 5),
         (wn.world2, 10),
         (wn.world3, 10),
+        (wn.zika, 10),
     ],
     ids=[
         "civil_violence",
@@ -103,6 +129,7 @@ def test_dynamics_intervention(simulator, intervention_param, intervention_val):
         "schelling",
         "world2",
         "world3",
+        "zika",
     ],
 )
 def test_simulator_experiments(simulator, num_samples):
@@ -128,6 +155,7 @@ def test_simulator_experiments(simulator, num_samples):
     "simulator,num_samples",
     [
         (wn.civil_violence, 5),
+        (wn.delayed_impact, 10),
         (wn.dice, 10),
         (wn.hiv, 10),
         (wn.lalonde, 445),
@@ -136,9 +164,11 @@ def test_simulator_experiments(simulator, num_samples):
         (wn.schelling, 5),
         (wn.world2, 10),
         (wn.world3, 10),
+        (wn.zika, 10),
     ],
     ids=[
         "civil_violence",
+        "delayed_impact",
         "dice",
         "hiv",
         "lalonde",
@@ -147,6 +177,7 @@ def test_simulator_experiments(simulator, num_samples):
         "schelling",
         "world2",
         "world3",
+        "zika",
     ],
 )
 def test_parallelize(simulator, num_samples):

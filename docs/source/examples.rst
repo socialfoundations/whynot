@@ -26,8 +26,8 @@ Decision Making in Dynamics
 * `Delayed impact of fair machine learning <https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/delayed_impact.ipynb>`_
 * `Performative prediction <https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/performative_prediction.ipynb>`_
 
-
 Reinforcement Learning
 ----------------------
 * `Design optimal HIV treatment policies <https://github.com/zykls/whynot/blob/master/examples/reinforcement_learning/hiv_simulator.ipynb>`_
 * `Prevent population collapse in World3 <https://github.com/zykls/whynot/blob/master/examples/reinforcement_learning/world3_simulator.ipynb>`_
+* `Design policies to control the spread of Zika virus <https://github.com/zykls/whynot/blob/master/examples/reinforcement_learning/zika_simulator.ipynb>`_
