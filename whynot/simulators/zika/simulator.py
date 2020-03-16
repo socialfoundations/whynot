@@ -282,7 +282,7 @@ def dynamics(state, time, config, intervention=None):
         - config.mu_v * I_v  # Natural death rate
         - config.theta * config.indoor_spray_use * I_v  # Death due to indoor spray
     )
-    
+
     # Increase due to recruitment and decrease is due to natural mosquito death
     # and death due to indoor spray use.
     dN_v = (

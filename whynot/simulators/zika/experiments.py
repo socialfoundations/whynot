@@ -19,6 +19,7 @@ def sample_initial_states(rng):
     state *= rng.uniform(low=0.95, high=1.05, size=state.shape)
     return zika.State(*state)
 
+
 def mixed_treatment_intervention():
     """Apply mixed strategy on all controls starting at time 0."""
     return zika.Intervention(
@@ -28,6 +29,7 @@ def mixed_treatment_intervention():
         treatment_of_infected=0.5,
         indoor_spray_use=0.5,
     )
+
 
 ##################
 # RCT Experiment
