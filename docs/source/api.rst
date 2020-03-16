@@ -13,6 +13,7 @@ Simulators
     simulator_configs/world3
     simulator_configs/world2
     simulator_configs/opioid
+    simulator_configs/zika
     simulator_configs/civil_violence
     simulator_configs/incarceration
     simulator_configs/lotka_volterra

@@ -11,8 +11,8 @@ The intended purpose of the model was to study the efficacy of various
 strategies for controlling the spread of the Zika virus: the use of treated
 bednets, the use of condoms, a medical treatment of infected persons, and the
 use of indoor residual spray (IRS). The dynamics of the Zika model govern the
-evolution of 9 state variables, four control variables, and 20 simulation
-parameters.
+evolution of 9 state variables, and the simulator has four control variables
+and 20 simulation parameters.
 
 ### State Variables
 The state variables are:

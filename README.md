@@ -226,6 +226,7 @@ The simulators in WhyNot currently include:
 - [World3](https://en.wikipedia.org/wiki/World3)
 - [World2](https://scholar.google.com/scholar_lookup?title=World%20Dynamics&publication_year=1971&author=Jay%20W.%20Forrester)
 - [Opioid Epidemic Simulator](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405)
+- [Zika Control Simulator](https://www.sciencedirect.com/science/article/pii/S2211692316301084#b25)
 - [Lotka-Volterra Model](https://en.wikipedia.org/wiki/Lotka–Volterra_equations)
 - [Incarceration Simulator](https://royalsocietypublishing.org/doi/full/10.1098/rsif.2014.0409)
 - [Civil Violence Simulator](https://www.pnas.org/content/99/suppl_3/7243)
