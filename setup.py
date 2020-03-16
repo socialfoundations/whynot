@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="whynot",
-    version="0.10.14",
+    version="0.11.0",
     author="John Miller",
     author_email="miller_john@berkeley.edu",
     description="A framework for benchmarking causal inference.",
