@@ -145,7 +145,6 @@ class State(BaseState):
     are exposed, but asymptomatic, and a tiny fraction ~1% are infected and
     symptomatic.
     """
-    #: sh, ah, ih, rh, sv, ev, iv, nh, nv
     #: Number of susceptible humans
     susceptible_humans: float = 750.0
     #: Number of asymptomatic infected human
@@ -243,10 +242,10 @@ def dynamics(state, time, config, intervention=None):
 
     dS_h = newly_susceptible - exposure_rate
 
-    # decrease due to exposed -> infected and natural human death
+    # Decrease due to exposed becoming infected and natural human death
     dA_h = exposure_rate - config.alpha_h * A_h - config.mu_h * A_h
 
-    # increase to due exposed -> infected and decrease due to recovery,
+    # Increase to due exposed becoming infected and decrease due to recovery,
     # natural human death, and death from Zika
     dI_h = (
         config.alpha_h * A_h
@@ -283,7 +282,9 @@ def dynamics(state, time, config, intervention=None):
         - config.mu_v * I_v  # Natural death rate
         - config.theta * config.indoor_spray_use * I_v  # Death due to indoor spray
     )
-
+    
+    # Increase due to recruitment and decrease is due to natural mosquito death
+    # and death due to indoor spray use.
     dN_v = (
         config.lambda_v - (config.mu_v + config.theta * config.indoor_spray_use) * N_v
     )
