@@ -31,7 +31,6 @@ Dynamical systems based simulators:
 * :ref:`opioid-simulator`
 * :ref:`lotka-volterra-simulator`
 * :ref:`delayed-impact-simulator`
-* :ref:`repeated-classification-simulator`
 * :ref:`credit-simulator`
 
 Agent-based simulators:
@@ -309,24 +308,6 @@ changes the individual's credit score. Credit scores and repayment probabilities
 are based on real FICO data. In this dynamic setting, the paper shows that
 static fairness criterion do not in genearl promote improvement over time and
 can indeed cause active harm.
-
-.. _repeated-classification-simulator:
-
-Repeated Classification Simulator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The Repeated Classification simulator is based on the paper:
-
-    Hashimoto, T., Srivastava, M., Namkoong, H., & Liang, P. (2018, July). Fairness
-    Without Demographics in Repeated Loss Minimization. In International Conference
-    on Machine Learning (pp. 1929-1938).
-
-The paper proposes a simplified model of interaction between individuals from
-different subgroups and standard machine learning classifiers based on empirical
-risk minimization. In the model, decreases in accuracy on different subgroups
-cause individuals to exit the system, further decreasing accuracy in these
-subgroups and creating a negative feedback loop. The paper shows that, when
-combined with repeated empirical risk minimization, even initially fair models
-can become unfair over time if this dynamic is not accounted for.
 
 .. _credit-simulator:
 

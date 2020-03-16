@@ -24,7 +24,6 @@ Causal Inference
 Decision Making in Dynamics
 ---------------------------
 * `Delayed impact of fair machine learning <https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/delayed_impact.ipynb>`_
-* `Repeated classification <https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/repeated_classification.ipynb>`_
 * `Performative prediction <https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/performative_prediction.ipynb>`_
 
 

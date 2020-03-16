@@ -201,8 +201,8 @@ standard retraining procedures perform in a strategic setting, see [this
 notebook](https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/performative_prediction.ipynb).
 
 Beyond strategic classification, WhyNot also supports simulators and experiments
-evaluating [fairness criteria](https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/delayed_impact.ipynb)
-and [repeated classification](https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/repeated_classification.ipynb)
+evaluating other aspects of machine learning, e.g. [fairness
+criteria](https://github.com/zykls/whynot/blob/master/examples/dynamic_decisions/delayed_impact.ipynb),
 in dynamic settings.
 
 For more examples and demonstrations of how to design and conduct
@@ -232,7 +232,6 @@ The simulators in WhyNot currently include:
 - [Schelling Model](https://www.stat.berkeley.edu/~aldous/157/Papers/Schelling_Seg_Models.pdf)
 - [LaLonde Synthetic Outcome Model](http://sekhon.berkeley.edu/matching/lalonde.html)
 - [Delayed Impact](https://arxiv.org/abs/1803.04383)
-- [Repeated Classification](https://arxiv.org/pdf/1806.08010)
 - [Performative Prediction Credit Simulator](https://arxiv.org/abs/2002.06673)
 
 For a detailed overview of these simulators, please see the [simulator

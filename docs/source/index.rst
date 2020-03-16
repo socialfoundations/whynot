@@ -20,8 +20,7 @@ against ground truth.
     experiment = wn.hiv.HIVConfounding
 
     # Generate an observational dataset
-    dataset = experiment.run(num_samples=200, show_progress=True)
-
+    dataset = experiment.run(num_samples=200, show_progress=True) 
     # Run your favorite causal inference procedure
     estimate = wn.algorithms.ols.estimate_treatment_effect(
         dataset.covariates, dataset.treatments, dataset.outcomes)
