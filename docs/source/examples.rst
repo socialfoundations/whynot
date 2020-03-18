@@ -11,7 +11,7 @@ the library!
 
 Causal Inference
 ----------------
-* `Heterogeneous treatment effects <https://github.com/zykls/whynot/blob/master/examples/causal_inference/heterogeneous_example.ipynb>`_
+* `Heterogeneous treatment effects <https://github.com/zykls/whynot/blob/master/examples/causal_inference/heterogeneous_treatment_effects.ipynb>`_
 * `Interaction between experimental units <https://github.com/zykls/whynot/blob/master/examples/causal_inference/interference.ipynb>`_
 * `Mediation analysis <https://github.com/zykls/whynot/blob/master/examples/causal_inference/mediation_analysis.ipynb>`_
 * `Observed and unobserved confounding <https://github.com/zykls/whynot/blob/master/examples/causal_inference/unobserved_confounding.ipynb>`_

@@ -24,12 +24,12 @@ Overview
 --------
 Dynamical systems based simulators:
 
-* :ref:`dice-simulator`
 * :ref:`adams-hiv-simulator`
+* :ref:`dice-simulator`
+* :ref:`zika-simulator`
+* :ref:`opioid-simulator`
 * :ref:`world3-simulator`
 * :ref:`world2-simulator`
-* :ref:`opioid-simulator`
-* :ref:`zika-simulator`
 * :ref:`lotka-volterra-simulator`
 * :ref:`delayed-impact-simulator`
 * :ref:`credit-simulator`
@@ -51,6 +51,21 @@ reference, including specification of simulator states, configurations, and
 supported interventions, see :ref:`Simulator API <simulator_api>`.
 
 
+.. _adams-hiv-simulator:
+
+HIV Treatment Simulator 
+^^^^^^^^^^^^^^^^^^^^^^^
+The HIV treatment simulator is a differential equation simulator of HIV treatment based on
+
+Adams, Brian Michael, et al.  *Dynamic multidrug therapies for HIV: Optimal and
+STI control approaches.* North Carolina State University. Center for Research in
+Scientific Computation, 2004.
+
+The Adams HIV model has a set of 6 state and 20 simulation parameters to
+parameterize the dynamics. We omit listing all of them here and refer the reader
+to the API documentation (:ref:`hiv`) for more details.
+
+
 .. _dice-simulator:
 
 Dynamic Integrated Climate Economy Model (DICE)
@@ -63,63 +78,59 @@ science, and impacts in a highly aggregated model that allows a weighing of the
 costs and benefits of taking steps to slow greenhouse warming."
 
 The DICE model has a set of 26 state and 54 simulation parameters to
-parameterize the dynamics. We omit listing all of them here are refer the
+parameterize the dynamics. We omit listing all of them here and refer the
 reader to the API documentation (:ref:`dice`) for more details.
 
-.. _adams-hiv-simulator:
+.. _zika-simulator:
 
-Adams HIV Simulator 
-^^^^^^^^^^^^^^^^^^^
-The Adams HIV simulator is a differential equation simulator of HIV treatment based on
+Zika Epidemic Prevention Simulator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Zika simulator is dynamical systems model of transmission and control of the
+Zika virus disease. The simulator is based on:
 
-Adams, Brian Michael, et al.  *Dynamic multidrug therapies for HIV: Optimal and
-STI control approaches.* North Carolina State University. Center for Research in Scientific Computation, 2004.  APA.
+Momoh, Abdulfatai A., and Armin Fügenschuh. "Optimal control of intervention
+strategies and cost effectiveness analysis for a Zika virus model." Operations
+Research for Health Care 18 (2018): 99-111.
 
-The Adams HIV model has a set of 6 state and 20 simulation parameters to
-parameterize the dynamics. We omit listing all of them here are refer the reader to the API documentation (:ref:`hiv`) for more details.
+The intended purpose of the model was to study the efficacy of various
+strategies for controlling the spread of the Zika virus: the use of treated
+bed nets, the use of condoms, a medical treatment of infected persons, and the
+use of indoor residual spray (IRS). The dynamics of the Zika model govern the
+evolution of 9 state variables, and the simulator has four control variables
+and 20 simulation parameters. See :ref:`zika` for precise details.
+
+
+.. _opioid-simulator:
+
+Opioid Epidemic Simulator
+^^^^^^^^^^^^^^^^^^^^^^^^^
+The opioid epidemic simulator is a system dynamics model of the US opioid
+epidemic developed by `Chen et al.
+<https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405>`_ (JAMA,
+2019). The model is calibrated based on past opioid use data from the Center
+for Disease Control and was developed to simulate the effect of interventions
+like reducing the number of new non-medical users of opioids on future opioid
+overdose deaths in the United States. The simulator is a time-varying
+differential equations model in 3 variables. For a complete description of the
+model, please refer to the appendix of `Chen et al.
+<https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405>`_, and
+see :ref:`opioid` for more details about the state variables and simulation
+parameters.
+
 
 .. _world3-simulator:
 
 World3
 ^^^^^^
 `World3 <https://en.wikipedia.org/wiki/World3>`_ is a systems dynamics model
-commisioned by the Club of Rome in the early 1970s to illustrate the interactions between population growth, industrial development, and the
+commissioned by the Club of Rome in the early 1970s to illustrate the
+interactions between population growth, industrial development, and the
 limitations of the natural environment over time.
 
 The model is a differential equation model with 13 state variables and 245
-algebraic equations governing their evolution over time.
+algebraic equations governing their evolution over time. See :ref:`world3` for a
+complete description of the state variables and parameters.
 
-**State Variables**
-
-* Population age 0 to 14
-* Population age 15 to 44
-* Population age 45 to 64
-* Population age 65 and over
-* Industrial capital
-* Service capital
-* Arable land
-* Potentially arable land
-* Urban industrial land
-* Land fertility
-* Nonrenewable resources
-* Persistent pollution
-
-**Simulation Parameters**
-
-* Policy year (year of intervention)
-* Industrial capital output ratio
-* Average lifetime of industrial capital
-* Fraction of industrial output allocated to consumption
-* Average lifetime of service capital
-* Service capital output ratio
-* Land yield factor
-* Nonrenewable resource usage factor
-* Persistent pollution generation factor
-
-While there are many more simulation parameters in World3 than those listed
-here, the parameters enumerated above are all of the scalar parameters, For
-brevity and clarity's sake, we have omitted parameters corresponding to
-tabular functions.
 
 .. _world2-simulator:
 
@@ -133,89 +144,7 @@ questions, it represents different dynamics.
 
 The model is a system of differential equations in 5 variables corresponding to
 quantities and 43 algebraic equations governing their evolution over time.
-
-**State Variables**
-
-* Population
-* Natural resources
-* Capital investment
-* Pollution
-* Fraction of capital investment in agriculture
-
-**Simulation Parameters**
-
-* Policy year (year of intervention)
-* Birth rate
-* Death rate
-* Effective capital investment ratio
-* Natural resources usage
-* Land area
-* Population density
-* Food coefficient
-* Capital investment generation rate
-* Capital investment discard rate
-* Pollution rate
-
-.. _opioid-simulator:
-
-Opioid Epidemic Simulator
-^^^^^^^^^^^^^^^^^^^^^^^^^
-The opioid epidemic simulator is a system dynamics model of the US opioid
-epidemic developed by `Chen et al.
-<https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405>`_ (JAMA,
-2019). The model is calibrated based on past opioid use data from the Center
-for Disease Control and was developed to simulate the effect of interventions
-like reducing the number of new non-medical users of opioids on future opioid
-overdose deaths in the United States. The simulator is a time-varying
-differential equations model in 3 variables. For a complete description,
-please refer to the appendix of `Chen et al.
-<https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405>`_.
-
-**State Variables**
-
-* Number of people with non-medical use of prescription opioids
-* Number of people with prescription opioid use disorder (OUD)
-* Number of people with illicit opioid use
-
-**Simulation Parameters**
-
-* Annual incidence of
-
-  * Non-medical prescription opioid use
-  * Incidence of illicit opioid use
-* Annual overdose mortality rate for
-
-  * Non-medical prescription opioid use
-  * OUD
-  * Illicit opioid use
-* Annual transition rate
-
-  * From non-medical prescription opioid use to OUD
-  * From non-medical prescription opioid use to illicit opioid use
-  * From OUD to illicit opioid use
-* Annual exit rate (either stop using opioids or die from non-opioid causes) for
-
-  * Non-medical opioid use
-  * OUD
-  * Illicit opioid use
-
-.. _ziki-simulator:
-
-Zika Virus Prevention Simulator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The Zika simulator is dynamical systems model of transmission and control of the
-Zika virus disease. The simulator is based on:
-
-Momoh, Abdulfatai A., and Armin Fügenschuh. "Optimal control of intervention
-strategies and cost effectiveness analysis for a Zika virus model." Operations
-Research for Health Care 18 (2018): 99-111.
-
-The intended purpose of the model was to study the efficacy of various
-strategies for controlling the spread of the Zika virus: the use of treated
-bednets, the use of condoms, a medical treatment of infected persons, and the
-use of indoor residual spray (IRS). The dynamics of the Zika model govern the
-evolution of 9 state variables, and the simulator has four control variables
-and 20 simulation parameters.
+See :ref:`world2` for a complete description of the state variables and parameters.
 
 
 .. _civil-violence-simulator:
@@ -227,33 +156,16 @@ Epstein in 2002 <http://www.pnas.org/content/99/suppl_3/7243>`_. The model was
 originally used to study the complex dynamics of decentralized rebellion and
 revolution and to examine the state's efforts to counter these dynamics. The
 model consists of two types of actors: agents and cops. Agents are
-heterogenous, and their varied features make them more or less likely to
+heterogeneous, and their varied features make them more or less likely to
 actively rebel against the state. The rich dynamics of the model emerge from
 the interaction between agents and between agents and cops: agents are more
 likely to begin rebel if other agents start to rebel, and the cops attempt to
-arrest rebelling agents.
+arrest rebelling agents. See :ref:`civil_violence` for a complete description of
+the agents and the simulation parameters.
 
-**Agents**
-The agent-based simulator contains both agents and cops. Cops are homogenous,
-while agents are individually endowed with the following (parameterized) qualities:
-
-* Experienced hardship
-* Belief in regime legitimacy
-* Vision- number of adjacent squares an agent can inspect
-* Rebellion threshold
-* Risk aversion
-
-**Simulation Parameters**
-
-* Grid size (height and width)
-* Density of cops
-* Density of agents
-* Cop vision- how many adjacent squares cops can inspect
-* Maximum jail term length
-* Prison interaction term
-* Arrest probability constant (for calibration)
-
-The implementation of this simulator is taken from the `examples <https://github.com/projectmesa/mesa/tree/master/examples>`_ of the `mesa library <https://github.com/projectmesa>`_.
+The implementation of this simulator is taken from the `examples
+<https://github.com/projectmesa/mesa/tree/master/examples>`_ of the `mesa
+library <https://github.com/projectmesa>`_.
 
 .. _incarceration-simulator:
 
@@ -283,32 +195,19 @@ one observed in the United States.
 Lotka-Volterra Model
 ^^^^^^^^^^^^^^^^^^^^
 Lotka-Volterra is a classical differential equation model of the interactions
-between predator and prey in a single ecosystem. It serves as a simple example
-to showcase how to use WhyNot to construct causal inference problems from
-dynamical systems.  The model was originally developed to understand and
-explain perplexing fishery statistics during World War I- namely why the
-hiatus of fishing during the war led to an observed increase in the number of
-predators.
+between predator and prey in a single ecosystem. The model was originally
+developed to understand and explain perplexing fishery statistics during World
+War I, namely why the hiatus of fishing during the war led to an observed
+increase in the number of predators.
 
 For more details, see `Scholl 2012
 <https://pdfs.semanticscholar.org/f314/7c9d2e43aafc492852f552990a3b21315ca5.pdf?_ga=2.132703694.1945084113.1556061073-1443175395.1541897531>`_.
 
 The simulator is system of ordinary differential equations in two variables.
-For a complete description, see
-`here <https://scipy-cookbook.readthedocs.io/items/LoktaVolterraTutorial.html>`_.
-
-**State Variables**
-
-* Number of foxes
-* Number of rabbits
-
-**Simulation Parameters**
-
-* Policy year (year of intervention)
-* Rabbit growth factor
-* Rabbit death factor
-* Fox death factor
-* Fox growth factor
+For a complete description of the dynamics, see
+`here
+<https://scipy-cookbook.readthedocs.io/items/LoktaVolterraTutorial.html>`_. The
+state and simulator parameters are detailed in :ref:`lotka_volterra`.
 
 .. _delayed-impact-simulator:
 
@@ -325,7 +224,7 @@ loans, a lending institution approves or denies the loan on the basis of the
 individual's credit score, and subsequent loan repayment or default in turn
 changes the individual's credit score. Credit scores and repayment probabilities
 are based on real FICO data. In this dynamic setting, the paper shows that
-static fairness criterion do not in genearl promote improvement over time and
+static fairness criterion do not necessarily promote improvement over time and
 can indeed cause active harm.
 
 .. _credit-simulator:
@@ -354,7 +253,7 @@ Schelling Model
 The `Schelling model
 <https://www.stat.berkeley.edu/~aldous/157/Papers/Schelling_Seg_Models.pdf>`_
 is a classic agent-based model originally used to illustrate how weak
-individual preferences regarding one's neighbhors can lead to global
+individual preferences regarding one's neighbors can lead to global
 segregation of entire cities. In the model, individuals prefer to live where
 at least some fraction of their neighbors are the same race as they are and
 will move if this constraint is not met. As this process is iterated, an
