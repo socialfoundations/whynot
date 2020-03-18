@@ -74,7 +74,7 @@ We can run the experiment using the experiment `run` function and specifying a
 desired sample size `num_samples`. The experiment then returns a causal
 `Dataset` consisting of the covariates for each unit, the treatment assignment,
 the outcome, and the ground truth causal effect for each unit. All of this data
-is contained in numpy arrays, which makes it easy to connect to causal
+is contained in NumPy arrays, which makes it easy to connect to causal
 estimators.
 ```py
 import numpy as np
@@ -157,7 +157,7 @@ gradient example, see [this notebook](https://github.com/zykls/whynot/blob/maste
 Beyond settings typically studied in sequential decision making, WhyNot also
 supports experiments with standard supervised learning algorithms in dynamic
 settings. In this section, we show how to use WhyNot to study the performance of
-classifiers when individuals being classified [*behave strategically*] to
+classifiers when individuals being classified *behave strategically* to
 improve their outcomes, a problem sometimes called [strategic
 classification](https://arxiv.org/abs/1506.06980).
 
@@ -221,12 +221,12 @@ these environments, as well as an [OpenAI gym](https://github.com/openai/gym)
 interface to perform reinforcement learning experiments in new environments.
 
 The simulators in WhyNot currently include:
-- [Adams HIV (ODE-based HIV simulator)](https://www.ncbi.nlm.nih.gov/pubmed/20369969)
+- [HIV Treatment Simulator](https://www.ncbi.nlm.nih.gov/pubmed/20369969)
 - [Dynamic Integrated Climate Economy Model (DICE)](https://en.wikipedia.org/wiki/DICE_model)
+- [Zika Epidemic Simulator](https://www.sciencedirect.com/science/article/pii/S2211692316301084#b25)
+- [Opioid Epidemic Simulator](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405)
 - [World3](https://en.wikipedia.org/wiki/World3)
 - [World2](https://scholar.google.com/scholar_lookup?title=World%20Dynamics&publication_year=1971&author=Jay%20W.%20Forrester)
-- [Opioid Epidemic Simulator](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2723405)
-- [Zika Control Simulator](https://www.sciencedirect.com/science/article/pii/S2211692316301084#b25)
 - [Lotka-Volterra Model](https://en.wikipedia.org/wiki/Lotka–Volterra_equations)
 - [Incarceration Simulator](https://royalsocietypublishing.org/doi/full/10.1098/rsif.2014.0409)
 - [Civil Violence Simulator](https://www.pnas.org/content/99/suppl_3/7243)
