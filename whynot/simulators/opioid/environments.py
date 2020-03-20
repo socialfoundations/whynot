@@ -39,7 +39,7 @@ def observation_space():
     state_dim = State.num_variables()
     state_space_low = np.zeros(state_dim)
     state_space_high = np.inf * np.ones(state_dim)
-    return spaces.Box(state_space_low, state_space_high)
+    return spaces.Box(state_space_low, state_space_high, dtype=np.float64)
 
 
 OpioidEnv = ODEEnvBuilder(

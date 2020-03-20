@@ -33,15 +33,18 @@ CreditEnv = ODEEnvBuilder(
     initial_state=State(features=CreditData.features, labels=CreditData.labels),
     # Action space is classifiers with the same number of parameters are
     # features.
-    action_space=spaces.Box(low=-np.inf, high=np.inf, shape=(CreditData.num_features,)),
+    action_space=spaces.Box(low=-np.inf, high=np.inf,
+        shape=(CreditData.num_features,), dtype=np.float64),
     # Observation space is the strategically adapted features and labels
     observation_space=spaces.Dict(
         {
             "features": spaces.Box(
-                low=-np.inf, high=np.inf, shape=CreditData.features.shape
+                low=-np.inf, high=np.inf, shape=CreditData.features.shape,
+                dtype=np.float64
             ),
             "labels": spaces.Box(
-                low=-np.inf, high=np.inf, shape=CreditData.labels.shape
+                low=-np.inf, high=np.inf, shape=CreditData.labels.shape,
+                dtype=np.float64
             ),
         }
     ),

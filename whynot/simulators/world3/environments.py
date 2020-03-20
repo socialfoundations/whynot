@@ -46,7 +46,7 @@ def observation_space():
     num_states = State.num_variables()
     state_space_low = np.zeros(num_states)
     state_space_high = np.inf * np.ones(num_states)
-    return spaces.Box(state_space_low, state_space_high)
+    return spaces.Box(state_space_low, state_space_high, dtype=np.float64)
 
 
 World3Env = ODEEnvBuilder(
