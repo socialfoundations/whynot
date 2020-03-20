@@ -1,7 +1,7 @@
 ![WhyNot Logo](docs/source/_static/WhyNot_fullcolor.svg)
 
 [![Build Status](https://travis-ci.com/zykls/whynot.svg?token=ERpRX6SmHRsKJ8dNb4QV&branch=master)](https://travis-ci.com/zykls/whynot)
-[![Documentation Status](https://readthedocs.com/projects/whynot-docs/badge/?version=latest)](https://whynot-docs.readthedocs-hosted.com/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/whynot/badge/?version=latest)](https://whynot.readthedocs.io/en/latest/?badge=latest)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 **WhyNot** is a Python package that provides an experimental sandbox for
@@ -13,7 +13,7 @@ decision making tools.
 For an introduction to WhyNot and a brief tutorial, see our [walkthrough
 video](https://youtu.be/QKrqJ9r7Okg). 
 For more detailed information, check out the
-[documentation](https://whynot-docs.readthedocs-hosted.com/en/latest/).
+[documentation](https://whynot.readthedocs.io/en/latest/).
 
 
 ## Table of Contents
@@ -54,7 +54,7 @@ pip install -r requirements.txt
 Every simulator in WhyNot comes equipped with a set of experiments probing
 different aspects of causal inference. In this section, we show how to run
 experiments probing average treatment effect estimation on the [World3
-simulator](https://whynot-docs.readthedocs-hosted.com/en/latest/simulators.html#world3-simulator). 
+simulator](https://whynot.readthedocs.io/en/latest/simulators.html#world3-simulator). 
 World3 is a dynamical systems model that studies the interplay between natural
 resource constraints, population growth, and industrial development.
 
@@ -122,7 +122,7 @@ causal inference experiments studying
 WhyNot supports experimentation with sequential decision making and
 reinforcement learning via unified interface with the [OpenAI
 gym](https://github.com/openai/gym). In this section, we give a simple example
-showing how to use the [HIV simulator](https://whynot-docs.readthedocs-hosted.com/en/latest/simulators.html#adams-hiv-simulator)
+showing how to use the [HIV simulator](https://whynot.readthedocs.io/en/latest/simulators.html#adams-hiv-simulator)
 for sequential decision making experiments.
 
 First, we initialize the environment and set the random seed.
@@ -164,7 +164,7 @@ classification](https://arxiv.org/abs/1506.06980).
 
 
 First, we set up the [credit
-environment](https://whynot-docs.readthedocs-hosted.com/en/latest/simulators.html#credit).
+environment](https://whynot.readthedocs.io/en/latest/simulators.html#credit-simulator).
 ```py
 import whynot.gym as gym
 
@@ -208,9 +208,9 @@ in dynamic settings.
 
 For more examples and demonstrations of how to design and conduct
 experiments in each of these settings, check out 
-[usage](https://whynot-docs.readthedocs-hosted.com/en/latest/usage.html) and
+[usage](https://whynot.readthedocs.io/en/latest/usage.html) and
 our collection of
-[examples](https://whynot-docs.readthedocs-hosted.com/en/latest/examples.html).
+[examples](https://whynot.readthedocs.io/en/latest/examples.html).
 
 
 ## Simulators in WhyNot
@@ -237,7 +237,7 @@ The simulators in WhyNot currently include:
 - [Performative Prediction Credit Simulator](https://arxiv.org/abs/2002.06673)
 
 For a detailed overview of these simulators, please see the [simulator
-documentation](https://whynot-docs.readthedocs-hosted.com/en/latest/simulators.html).
+documentation](https://whynot.readthedocs.io/en/latest/simulators.html).
 
 ## Using causal estimators in R
 WhyNot ships with a small set of causal estimators written in pure Python.
@@ -331,7 +331,7 @@ effects and allow for time-varying treatments and sequential decision making.
 
 WhyNot contains a range of different simulators, and an overview is provided in
 the documentation
-[here](https://whynot-docs.readthedocs-hosted.com/en/latest/).
+[here](https://whynot.readthedocs.io/en/latest/).
 
 
 **6. What’s the difference between WhyNot and CauseMe?**
