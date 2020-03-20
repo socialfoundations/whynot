@@ -66,7 +66,7 @@ print([experiment.name for experiment in experiments])
 #['PollutionRCT', 'PollutionConfounding', 'PollutionUnobservedConfounding', 'PollutionMediation']
 ```
 These experiments generate datasets both in the setting of a pure randomized
-control trial (`world3_rct`), as well as with (unobserved) confounding and
+control trial (`PollutionRCT`), as well as with (unobserved) confounding and
 mediation. We will run a randomized control experiment. The description property
 offers specific details about the experiment.
 ```py
@@ -83,9 +83,9 @@ estimators.
 ```py
 import numpy as np
 
-dset = rct.run(num_samples=500, show_progress=True)
-(X, W, Y) = dset.covariates, dset.treatments, dset.outcomes
-treatment_effect = np.mean(dset.true_effects)
+dataset = rct.run(num_samples=500, show_progress=True)
+(X, W, Y) = dataset.covariates, dataset.treatments, dataset.outcomes
+treatment_effect = np.mean(dataset.true_effects)
 
 # Plug-in your favorite causal estimator
 estimated_ate = np.mean(Y[W == 1.]) -  np.mean(Y[W  == 0.])
@@ -198,7 +198,7 @@ def learn_classifier(features, labels):
 dataset = env.reset()
 for _ in range(100):
     theta = learn_classifier(dataset["features"], dataset["labels"])
-    dataset, loss, _ = env.step(theta)
+    dataset, loss, _, _ = env.step(theta)
 ```
 For more details on the simulation and a complete example showing the
 standard retraining procedures perform in a strategic setting, see [this

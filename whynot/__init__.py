@@ -1,6 +1,6 @@
 """whynot package initialization."""
 
-__version__ = "0.11.0"
+__version__ = "0.11.1"
 from whynot.algorithms import *
 from whynot.simulators import *
 from whynot import causal_graphs, dynamics, framework
