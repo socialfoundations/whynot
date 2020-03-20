@@ -83,7 +83,7 @@ estimators.
 ```py
 import numpy as np
 
-dataset = rct.run(num_samples=500, show_progress=True)
+dataset = rct.run(num_samples=200, seed=1111, show_progress=True)
 (X, W, Y) = dataset.covariates, dataset.treatments, dataset.outcomes
 treatment_effect = np.mean(dataset.true_effects)
 
@@ -107,12 +107,9 @@ true_sate = dataset.sate
 for estimator, estimate in estimated_effects.items():
     relative_error = np.abs((estimate.ate - true_sate) / true_sate)
     print("{}: {:.2f}".format(estimator, relative_error))
-# ols: 0.50
-# propensity_weighted_ols: 0.51
-# propensity_score_matching: 0.28
-# matching: 0.75
-# causal_forest: 0.06
-# tmle: 0.06
+# ols: 1.06
+# propensity_score_matching: 1.38
+# propensity_weighted_ols: 1.37
 ```
 
 In addition to experiments studying average treatment effect, WhyNot also supports
