@@ -54,7 +54,7 @@ def sample_initial_states(rng):
 # pylint: disable-msg=invalid-name
 #: An RCT experiment to study the effect of decreases in pollution generation on population.
 PollutionRCT = DynamicsExperiment(
-    name="world3_rct",
+    name="PollutionRCT",
     description="Study effect of intervening in 1975 to decrease pollution generation.",
     simulator=world3,
     simulator_config=world3.Config(persistent_pollution_generation_factor=1.0),
@@ -74,8 +74,8 @@ PollutionRCT = DynamicsExperiment(
 @parameter(
     name="treatment_bias",
     default=0.8,
-    values=np.linspace(0.5, 0.05, 1),
-    description="Bias of probability of treatment between top and bottom pollution runs.",
+    values=np.linspace(0.5, 1.0, 5),
+    description="Treatment probability bias between low and high pollution runs.",
 )
 def pollution_confounded_propensity(intervention, untreated_runs, treatment_bias):
     """Probability of treating each unit.
@@ -100,9 +100,9 @@ def pollution_confounded_propensity(intervention, untreated_runs, treatment_bias
 # pylint: disable-msg=invalid-name
 #: An observational experiment with confounding. Polluted states are more likely to be treated.
 PollutionConfounding = DynamicsExperiment(
-    name="world3_pollution_confounding",
+    name="PollutionConfounding",
     description=(
-        "Study effect of intervening to decrease pollution.  Confounding "
+        "Study effect of intervening to decrease pollution on total population. Confounding "
         "arises becauses states with high pollution are more likely "
         "to receive treatment."
     ),
@@ -121,7 +121,7 @@ PollutionConfounding = DynamicsExperiment(
 # pylint: disable-msg=invalid-name
 #: An observational experiment with unobserved confounding.
 PollutionUnobservedConfounding = DynamicsExperiment(
-    name="world3_pollution_unobserved_confounding",
+    name="PollutionUnobservedConfounding",
     description=(
         "Study effect of intervening to decrease pollution.  Confounding "
         "arises becauses states with high pollution are more likely "
@@ -168,7 +168,7 @@ def mediation_covariates(intervention, run, mediation_year, num_mediators):
 # pylint: disable-msg=invalid-name
 #: An observational experiment with mediation from states after intervention.
 PollutionMediation = DynamicsExperiment(
-    name="world3_pollution_mediation",
+    name="PollutionMediation",
     description=(
         "Study effect of intervening to decrease pollution.  Confounding "
         "arises becauses states with high pollution are more likely "

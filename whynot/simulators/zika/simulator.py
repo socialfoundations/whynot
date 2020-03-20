@@ -85,7 +85,7 @@ class Config(BaseConfig):
     #: Simulation end time (in days)
     end_time: float = 100
     #: How frequently to measure simulator state
-    delta_t: float = 0.05
+    delta_t: float = 1.0
     #: solver relative tolerance
     rtol: float = 1e-6
     #: solver absolute tolerance

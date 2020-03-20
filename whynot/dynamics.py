@@ -954,3 +954,7 @@ class DynamicsExperiment:
             true_effects=treatment_effects,
             causal_graph=graph,
         )
+
+    def __repr__(self):
+        """Display the experiment by it's name."""
+        return self.name

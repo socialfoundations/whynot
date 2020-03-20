@@ -31,7 +31,7 @@ def sample_initial_states(rng):
 # pylint: disable-msg=invalid-name
 #: Experiment on effect of increased drug efficacy on infected macrophages (cells/ml)
 HIVRCT = DynamicsExperiment(
-    name="hiv_rct",
+    name="HIVRCT",
     description="Study effect of increased drug efficacy on infected macrophages (cells/ml).",
     simulator=hiv,
     simulator_config=hiv.Config(epsilon_1=0.1, start_time=0, end_time=150),
@@ -70,7 +70,7 @@ def hiv_confounded_propensity(untreated_run, treatment_bias):
 # pylint: disable-msg=invalid-name
 #: Experiment on effect of increased drug efficacy on infected macrophages with confounding
 HIVConfounding = DynamicsExperiment(
-    name="hiv_confounding",
+    name="HIVConfounding",
     description=(
         "Study effect of increased drug efficacy on infected macrophages (cells/ml). "
         "Units with high immune response and free virus are more likely to be treated."

@@ -37,7 +37,7 @@ def mixed_treatment_intervention():
 # pylint: disable-msg=invalid-name
 #: Experiment on effect of mixed treatment policy on infections in 20 days
 ZikaRCT = DynamicsExperiment(
-    name="hiv_rct",
+    name="ZikaRCT",
     description="Study effect of mixed treatment policy on infections in 20 days.",
     simulator=zika,
     simulator_config=zika.Config(start_time=0, end_time=20),

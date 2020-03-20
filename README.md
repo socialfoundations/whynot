@@ -10,7 +10,11 @@ learning with challenging dynamic environments.  The package facilitates
 developing, testing, benchmarking, and teaching causal inference and sequential
 decision making tools.
 
-For more detailed information, check out the [documentation](https://whynot-docs.readthedocs-hosted.com/en/latest/).
+For an introduction to WhyNot and a brief tutorial, see our [walkthrough
+video](https://youtu.be/QKrqJ9r7Okg). 
+For more detailed information, check out the
+[documentation](https://whynot-docs.readthedocs-hosted.com/en/latest/).
+
 
 ## Table of Contents
 1. [Basic installation instructions](#basic-installation-instructions)
@@ -59,7 +63,7 @@ First, we examine all of the experiments available for World3.
 import whynot as wn
 experiments = wn.world3.get_experiments()
 print([experiment.name for experiment in experiments])
-#['world3_rct', 'world3_pollution_confounding', 'world3_pollution_unobserved_confounding', 'world3_pollution_mediation']
+#['PollutionRCT', 'PollutionConfounding', 'PollutionUnobservedConfounding', 'PollutionMediation']
 ```
 These experiments generate datasets both in the setting of a pure randomized
 control trial (`world3_rct`), as well as with (unobserved) confounding and
