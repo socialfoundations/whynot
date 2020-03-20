@@ -3,7 +3,7 @@
 developed by the Club of Rome in the early 1970s to illustrate the interactions
 between population growth, industrial development, and the limitations of the
 natural environment over time.  The model is a differential equation model with
-13 state variables and 245 algebraic equations governing their evolution over
+12 state variables and 245 algebraic equations governing their evolution over
 time.
 
 ### State Variables
