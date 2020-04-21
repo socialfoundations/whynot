@@ -20,6 +20,7 @@ def check_shapes(dataset, num_samples):
     "simulator",
     [
         wn.delayed_impact,
+        wn.credit,
         wn.hiv,
         wn.lotka_volterra,
         wn.opioid,
@@ -29,6 +30,7 @@ def check_shapes(dataset, num_samples):
     ],
     ids=[
         "delayed_impact",
+        "credit",
         "hiv",
         "lotka_volterra",
         "opioid",
