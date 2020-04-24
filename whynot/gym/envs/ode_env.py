@@ -1,4 +1,5 @@
 """Environment builder for simulators based on dynamical systems."""
+import copy
 import inspect
 
 from whynot.gym import Env
@@ -149,7 +150,10 @@ class ODEEnvBuilder(Env):
             kwargs["time"] = self.time
         return self.reward_fn(intervention=intervention, state=state, **kwargs)
 
-    def __call__(self):
+    def __call__(self, config=None):
         """Return the class, as if this function were calling the constructor."""
-        self.reset()
-        return self
+        env = copy.deepcopy(self)
+        if config:
+            env.config = config
+        env.reset()
+        return env

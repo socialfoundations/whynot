@@ -11,12 +11,28 @@ and the dynamics are taken from:
 """
 import copy
 import dataclasses
-from typing import Callable, List
+from typing import Any
 
 import whynot as wn
 import whynot.traceable_numpy as np
 from whynot.dynamics import BaseConfig, BaseIntervention, BaseState
 from whynot.simulators.credit.dataloader import CreditData
+
+
+@dataclasses.dataclass
+class State(BaseState):
+    # pylint: disable-msg=too-few-public-methods
+    """State of the Credit model."""
+
+    #: Matrix of agent features (e.g. https://www.kaggle.com/c/GiveMeSomeCredit/data)
+    features: np.ndarray = CreditData.features
+
+    #: Vector indicating whether or not the agent experiences financial distress
+    labels: np.ndarray = CreditData.labels
+
+    def values(self):
+        """Return the state as a dictionary of numpy arrays."""
+        return {name: getattr(self, name) for name in self.variable_names()}
 
 
 @dataclasses.dataclass
@@ -47,6 +63,9 @@ class Config(BaseConfig):
     #: Whether or not dynamics have memory
     memory: bool = False
 
+    #: State systems resets to if no memory.
+    base_state: Any = State()
+
     # Simulator book-keeping
     #: Start time of the simulator
     start_time: int = 0
@@ -54,22 +73,6 @@ class Config(BaseConfig):
     end_time: int = 5
     #: Spacing of the evaluation grid
     delta_t: int = 1
-
-
-@dataclasses.dataclass
-class State(BaseState):
-    # pylint: disable-msg=too-few-public-methods
-    """State of the Credit model."""
-
-    #: Matrix of agent features (see https://www.kaggle.com/c/GiveMeSomeCredit/data)
-    features: np.ndarray = np.ones((13, 11))
-
-    #: Vector indicating whether or not the agent experiences financial distress
-    labels: np.ndarray = np.zeros((13, 1))
-
-    def values(self):
-        """Return the state as a dictionary of numpy arrays."""
-        return {name: getattr(self, name) for name in self.variable_names()}
 
 
 class Intervention(BaseIntervention):
@@ -161,10 +164,13 @@ def dynamics(state, time, config, intervention=None):
     if intervention and time >= intervention.time:
         config = config.update(intervention)
 
+    # Only use the current state if the dynamics have memory.
+    # Otherwise, agents "reset" to the base dataset. The latter
+    # case is the one treated in the performative prediction paper.
     if config.memory:
-        features, labels = state
+        features, labels = state.features, state.labels
     else:
-        features, labels = CreditData.features, CreditData.labels
+        features, labels = config.base_state.features, config.base_state.labels
 
     # Update features in response to classifier. Labels are fixed.
     strategic_features = agent_model(features, config)
@@ -196,7 +202,7 @@ def simulate(initial_state, config, intervention=None, seed=None):
     state = copy.deepcopy(initial_state)
 
     for step in range(config.start_time, config.end_time):
-        next_state = dynamics(state.values(), step, config, intervention)
+        next_state = dynamics(state, step, config, intervention)
         state = State(*next_state)
         states.append(state)
         times.append(step + 1)
