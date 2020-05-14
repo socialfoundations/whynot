@@ -13,7 +13,7 @@ import numpy as np
 from scipy.integrate import odeint
 
 import whynot as wn
-from whynot.dynamics import BaseConfig, BaseState, BaseIntervention
+from whynot.dynamics import BaseConfig, BaseIntervention, BaseShock, BaseState
 
 
 @dataclasses.dataclass
@@ -160,12 +160,40 @@ class State(BaseState):
     #: Number of exposed mosquitoes
     exposed_mosquitos: float = 500.0
     #: Number of infectious mosquitoes
-    infectious_mosquites: float = 100.0
+    infectious_mosquitos: float = 100.0
     #: Total number of humans
     human_population: float = 1030.0
     #: Total number of mosquitoes
     mosquito_population: float = 10600
 
+    def shock(self, intervention):
+        """Apply a shock to the system state."""
+        state = dataclasses.replace(self, **intervention.updates)
+
+        # Ensure total humans and mosquitos is properly normalized
+        # after the shock.
+        new_human_pop = (
+            state.susceptible_humans
+            + state.asymptomatic_humans
+            + state.symptomatic_humans
+            + state.recovered_humans)
+        new_mos_pop = (
+            state.susceptible_mosquitos
+            + state.exposed_mosquitos
+            + state.infectious_mosquitos)
+
+        human_norm = state.human_population / new_human_pop
+        mosquito_norm = state.mosquito_population / new_mos_pop
+
+        state.susceptible_humans *= human_norm
+        state.asymptomatic_humans *= human_norm
+        state.symptomatic_humans *= human_norm
+        state.recovered_humans *= human_norm
+        state.susceptible_mosquitos *= mosquito_norm
+        state.exposed_mosquitos *= mosquito_norm
+        state.infectious_mosquitos *= mosquito_norm
+
+        return state
 
 class Intervention(BaseIntervention):
     # pylint: disable-msg=too-few-public-methods
@@ -173,12 +201,12 @@ class Intervention(BaseIntervention):
 
     Examples
     --------
-    >>> # Starting in step 10, set bed net use to 0.5 (leaving other variables unchanged)
-    >>> Intervention(time=10, treated_bednet_use=0.5)
+    >>> # Starting in steps 10 to 12, set bed net use to 0.5 (leaving other variables unchanged)
+    >>> Intervention(time=10, stop_time=12, treated_bednet_use=0.5)
 
     """
 
-    def __init__(self, time, **kwargs):
+    def __init__(self, time, stop_time=float('inf'), **kwargs):
         """Specify an intervention in the dynamical system.
 
         Parameters
@@ -190,6 +218,26 @@ class Intervention(BaseIntervention):
 
         """
         super(Intervention, self).__init__(Config, time, **kwargs)
+        self.start_time = time
+        self.stop_time = stop_time
+
+
+class Shock(BaseShock):
+    """State shocks in the Zika model."""
+
+    def __init__(self, time, **kwargs):
+        """Specify an intervention in the dynamical system.
+
+        Parameters
+        ----------
+            time: int
+                Time of the intervention (days)
+            kwargs: dict
+                Only valid keyword arguments are state variable names.
+
+        """
+        super(Shock, self).__init__(State, time, **kwargs)
+        self.start_time = time
 
 
 def dynamics(state, time, config, intervention=None):
@@ -212,7 +260,7 @@ def dynamics(state, time, config, intervention=None):
             Derivative of the dynamics with respect to time
 
     """
-    if intervention and time >= intervention.time:
+    if intervention and time >= intervention.start_time and time <= intervention.stop_time:
         config = config.update(intervention)
 
     # Keep notation roughly consistent with the original paper
@@ -331,18 +379,51 @@ def simulate(initial_state, config, intervention=None, seed=None):
     """
     # Simulator is deterministic, so seed is ignored
     # pylint: disable-msg=unused-argument
-    t_eval = np.arange(
-        config.start_time, config.end_time + config.delta_t, config.delta_t
-    )
+    if isinstance(intervention, Shock):
+        # Integrate dynamics until the shock
+        t_eval_1 = np.arange(
+            config.start_time, intervention.time, config.delta_t
+        )
+        solution_1 = odeint(
+            dynamics,
+            y0=dataclasses.astuple(initial_state),
+            t=list(t_eval_1) + [intervention.time],
+            args=(config, None),
+            rtol=config.rtol,
+            atol=config.atol,
+        )
 
-    solution = odeint(
-        dynamics,
-        y0=dataclasses.astuple(initial_state),
-        t=t_eval,
-        args=(config, intervention),
-        rtol=config.rtol,
-        atol=config.atol,
-    )
+        # Apply the shock to the final state
+        solution_first, final_state = solution_1[:-1], solution_1[-1]
+        shocked_state = State(*final_state).shock(intervention)
+
+        # Continuous integrating until
+        t_eval_2 = np.arange(t_eval_1[-1] + config.delta_t,
+                             config.end_time + config.delta_t, config.delta_t)
+        solution_2 = odeint(
+            dynamics,
+            y0=dataclasses.astuple(shocked_state),
+            t=[intervention.time] + list(t_eval_2),
+            args=(config, None),
+            rtol=config.rtol,
+            atol=config.atol,
+        )
+        solution_second = solution_2[1:]
+        solution = np.concatenate([solution_first, solution_second])
+        t_eval = np.concatenate([t_eval_1, t_eval_2])
+ 
+    else:
+        t_eval = np.arange(
+            config.start_time, config.end_time + config.delta_t, config.delta_t
+        )
+        solution = odeint(
+            dynamics,
+            y0=dataclasses.astuple(initial_state),
+            t=t_eval,
+            args=(config, intervention),
+            rtol=config.rtol,
+            atol=config.atol,
+        )
 
     states = [initial_state] + [State(*state) for state in solution[1:]]
     return wn.dynamics.Run(states=states, times=t_eval)

@@ -5,6 +5,7 @@ from whynot.simulators.zika.simulator import (
     dynamics,
     Intervention,
     simulate,
+    Shock,
     State,
 )
 from whynot.simulators.zika.experiments import *

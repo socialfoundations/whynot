@@ -52,6 +52,9 @@ class BaseState:
         # dataclasses.astuple, which is necessary for graph tracing.
         return np.array([getattr(self, name) for name in self.variable_names()])
 
+    def shock(self, intervention):
+        return dataclasses.replace(self, **intervention.updates)
+
 
 class BaseIntervention:
     # pylint: disable-msg=too-few-public-methods
@@ -74,6 +77,30 @@ class BaseIntervention:
         config_args = set(f.name for f in dataclasses.fields(config_class))
         for arg in kwargs:
             if arg not in config_args:
+                raise TypeError(f"__init__() got an unexpected keyword argument {arg}!")
+        self.updates = kwargs
+
+
+class BaseShock:
+    """Parameterization of an intervention on a state."""
+
+    def __init__(self, state_class, time, **kwargs):
+        """Specify an intervention on the state of the dynamical system.
+
+        Parameters
+        ----------
+            time: int
+                Time of the intervention.
+            config_class:
+                The Config class, a child class of dataclass.
+            kwargs: dict
+                Only valid keyword arguments are parameters of the config class.
+
+        """
+        self.time = time
+        state_names = set(state_class.variable_names())
+        for arg in kwargs:
+            if arg not in state_names:
                 raise TypeError(f"__init__() got an unexpected keyword argument {arg}!")
         self.updates = kwargs
 
