@@ -109,12 +109,9 @@ def strategic_logistic_loss(config, features, labels, theta):
 
     config = config.update(Intervention(theta=theta))
 
-    # Compute adjusted data
-    strategic_features = agent_model(features, config)
-
     # compute log likelihood
-    num_samples = strategic_features.shape[0]
-    logits = strategic_features @ config.theta
+    num_samples = features.shape[0]
+    logits = features @ config.theta
     log_likelihood = (1.0 / num_samples) * np.sum(
         -1.0 * np.multiply(labels, logits) + np.log(1 + np.exp(logits))
     )
