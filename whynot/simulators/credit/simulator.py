@@ -104,7 +104,7 @@ class Intervention(BaseIntervention):
         super(Intervention, self).__init__(Config, time, **kwargs)
 
 
-def strategic_logistic_loss(config, features, labels, theta):
+def logistic_loss(config, features, labels, theta):
     """Evaluate the performative loss for logistic regression classifier."""
 
     config = config.update(Intervention(theta=theta))

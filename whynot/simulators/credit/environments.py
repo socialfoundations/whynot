@@ -9,14 +9,14 @@ from whynot.simulators.credit import (
     Config,
     Intervention,
     simulate,
-    strategic_logistic_loss,
+    logistic_loss,
     State,
 )
 
 
 def compute_reward(intervention, state, config):
     """Compute the reward based on the observed state and choosen intervention."""
-    return strategic_logistic_loss(
+    return logistic_loss(
         config, state.features, state.labels, intervention.updates["theta"],
     )
 
