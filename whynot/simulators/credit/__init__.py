@@ -6,7 +6,7 @@ from whynot.simulators.credit.simulator import (
     dynamics,
     Intervention,
     simulate,
-    strategic_logistic_loss,
+    logistic_loss,
     State,
 )
 
