@@ -25,6 +25,7 @@ For more detailed information, check out the
 3. [Simulators in WhyNot](#simulators-in-whynot)
 4. [Using estimators in R](#using-estimators-in-r)
 5. [Frequently asked questions](#frequently-asked-questions)
+6. [Citing WhyNot](#citing-whynot)
 
 WhyNot is still under active development! If you find bugs or have feature
 requests, please file a 
@@ -367,3 +368,25 @@ source and MIT licensed. We invite contributions broadly in a number of areas,
 including the addition of simulators, causal estimators, sequential decision
 making algorithms, documentation, performance improvements, code quality and
 tests.
+
+## Citing WhyNot
+
+If you use WhyNot for published work, we encourage you to cite the project.
+Please use the following BibTeX entry:
+
+    @software{miller2020whynot,
+      author       = {John Miller and
+                      Chloe Hsu and
+                      Jordan Troutman and
+                      Juan Perdomo and
+                      Tijana Zrnic and
+                      Lydia Liu and
+                      Yu Sun and
+                      Ludwig Schmidt and
+                      Moritz Hardt},
+      title        = {WhyNot},
+      year         = 2020,
+      publisher    = {Zenodo},
+      doi          = {10.5281/zenodo.3875775},
+      url          = {https://doi.org/10.5281/zenodo.3875775}
+    }
