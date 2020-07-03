@@ -51,8 +51,8 @@ class Config(BaseConfig):
     default_score_change: float = -150
 
     #: Minimum credit score
-    min_score: int = 350
-    max_score: int = 800
+    min_score: int = 300
+    max_score: int = 850
 
     #: Simulation start step (in rounds)
     start_time: float = 0
@@ -68,13 +68,16 @@ class Config(BaseConfig):
 class State(BaseState):
     # pylint: disable-msg=too-few-public-methods
     """State of the lending simulator."""
-
     #: Group membership (sensitive attribute) 0 or 1
     group: int = 0
     #: Agent credit score
     credit_score: int = 700
     #: Running total of the banks profit/loss for the agent
     profits: float = 0
+    #: Whether the loan was approved on the last round.
+    loan_approved: int = 0
+    #: Potential repayment (computed even for loan_approved=0) on last round
+    repaid: int = 0
 
 
 class Intervention(BaseIntervention):
@@ -178,7 +181,7 @@ def dynamics(state, time, config, intervention=None, rng=None):
     if rng is None:
         rng = np.random.RandomState(None)
 
-    group, score, individual_profits = state
+    group, score, individual_profits, _, _ = state
 
     # Credit bureau measures the agent's score
     measured_score = config.credit_scorer(score)
@@ -194,7 +197,7 @@ def dynamics(state, time, config, intervention=None, rng=None):
 
     new_profits = update_profits(config, individual_profits, loan_approved, repaid)
 
-    return group, new_score, new_profits
+    return group, new_score, new_profits, loan_approved, repaid
 
 
 def simulate(initial_state, config, intervention=None, seed=None):
