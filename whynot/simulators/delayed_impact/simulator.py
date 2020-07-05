@@ -68,6 +68,7 @@ class Config(BaseConfig):
 class State(BaseState):
     # pylint: disable-msg=too-few-public-methods
     """State of the lending simulator."""
+
     #: Group membership (sensitive attribute) 0 or 1
     group: int = 0
     #: Agent credit score
