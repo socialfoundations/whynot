@@ -37,6 +37,8 @@ class Config:
         End iteration of simulation
     percent : float
         Initial incarceration rate
+    harsh_sentence : bool
+        Always assign harsh sentence if set to True
     random_sentence_type : bool
         Assign lenient or harsh sentence randomly
     random_sentence_bias : float
