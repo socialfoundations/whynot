@@ -40,6 +40,7 @@ def test_basestate():
         state1: float = 0
         state2: float = 1
         state3: float = 3
+        num_features: np.ndarray = dataclasses.field(default_factory=lambda: np.array([]))
 
     assert State.num_variables() == 3
     assert State.variable_names() == ["state1", "state2", "state3"]

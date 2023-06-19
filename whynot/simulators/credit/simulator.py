@@ -25,10 +25,11 @@ class State(BaseState):
     """State of the Credit model."""
 
     #: Matrix of agent features (e.g. https://www.kaggle.com/c/GiveMeSomeCredit/data)
-    features: np.ndarray = CreditData.features
+    features: np.ndarray = dataclasses.field(default_factory=lambda: np.array([]))
+    # features: np.ndarray = CreditData.features
 
     #: Vector indicating whether or not the agent experiences financial distress
-    labels: np.ndarray = CreditData.labels
+    labels: np.ndarray = dataclasses.field(default_factory=lambda: np.array([]))
 
     def values(self):
         """Return the state as a dictionary of numpy arrays."""
@@ -49,13 +50,13 @@ class Config(BaseConfig):
 
     # Dynamics parameters
     #: Subset of the features that can be manipulated by the agent
-    changeable_features: np.ndarray = np.array([0, 5, 7])
+    changeable_features: np.ndarray = dataclasses.field(default_factory=lambda: np.array([0, 5, 7]))
 
     #: Model how much the agent adapt her features in response to a classifier
     epsilon: float = 0.1
 
     #: Parameters for logistic regression classifier used by the institution
-    theta: np.ndarray = np.ones((11, 1))
+    theta: np.ndarray = dataclasses.field(default_factory=lambda: np.ones((11, 1)))
 
     #: L2 penalty on the logistic regression loss
     l2_penalty: float = 0.0
@@ -64,7 +65,7 @@ class Config(BaseConfig):
     memory: bool = False
 
     #: State systems resets to if no memory.
-    base_state: Any = State()
+    base_state: Any = dataclasses.field(default_factory=lambda: State())
 
     # Simulator book-keeping
     #: Start time of the simulator
