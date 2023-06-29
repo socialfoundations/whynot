@@ -14,7 +14,7 @@ import whynot as wn
 
 # Allow tracing to use ints and bools (since we only care about the forward
 # pass and not derivatives).
-for type_ in [bool, np.bool, np.bool_, int, np.int32, np.int64]:
+for type_ in [bool, np.bool_, np.bool_, int, np.int32, np.int64]:
     ArrayBox.register(type_)
 
 
