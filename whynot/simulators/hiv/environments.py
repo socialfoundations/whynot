@@ -6,10 +6,11 @@ Scientific Computation, 2004. APA.
 
 https://pdfs.semanticscholar.org/c030/127238b1dbad2263fba6b64b5dec7c3ffa20.pdf
 """
+import gymnasium
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnvBuilder, register
+from whynot.gym.envs import ODEEnvBuilder
 from whynot.simulators.hiv import Config, Intervention, simulate, State
 
 
@@ -59,6 +60,8 @@ HivEnv = ODEEnvBuilder(
     reward_fn=get_reward,
 )
 
-register(
-    id="HIV-v0", entry_point=HivEnv, max_episode_steps=400, reward_threshold=1e10,
+gymnasium.register(
+    id="HIV-v0", entry_point=HivEnv, apply_api_compatibility=True, max_episode_steps=400, reward_threshold=1e10,
 )
+
+env = gymnasium.make("HIV-v0", apply_api_compatibility=True)
