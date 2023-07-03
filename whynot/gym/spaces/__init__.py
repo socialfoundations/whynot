@@ -1,15 +1,15 @@
-"""Ensure gym spaces are accessible if you import whynot.gym as gym."""
-from gym.spaces.space import Space
-from gym.spaces.box import Box
-from gym.spaces.discrete import Discrete
-from gym.spaces.multi_discrete import MultiDiscrete
-from gym.spaces.multi_binary import MultiBinary
-from gym.spaces.tuple import Tuple
-from gym.spaces.dict import Dict
+"""Ensure gymnasium spaces are accessible if you import whynot.gym as gym."""
+from gymnasium.spaces.space import Space
+from gymnasium.spaces.box import Box
+from gymnasium.spaces.discrete import Discrete
+from gymnasium.spaces.multi_discrete import MultiDiscrete
+from gymnasium.spaces.multi_binary import MultiBinary
+from gymnasium.spaces.tuple import Tuple
+from gymnasium.spaces.dict import Dict
 
-from gym.spaces.utils import flatdim
-from gym.spaces.utils import flatten
-from gym.spaces.utils import unflatten
+from gymnasium.spaces.utils import flatdim
+from gymnasium.spaces.utils import flatten
+from gymnasium.spaces.utils import unflatten
 
 __all__ = [
     "Space",

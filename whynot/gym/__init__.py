@@ -5,9 +5,9 @@ import os
 import sys
 import warnings
 
-from gym import error
-from gym.core import Env
-from gym import logger
+from gymnasium import error
+from gymnasium.core import Env
+from gymnasium import logger
 
 from whynot.gym.envs import make, spec, register
 
