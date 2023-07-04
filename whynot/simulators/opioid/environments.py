@@ -1,8 +1,10 @@
 """Reinforcement learning environments for the opioid epidemic simulator."""
+import gymnasium
+
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnvBuilder, register
+from whynot.gym.envs import ODEEnvBuilder
 from whynot.simulators.opioid import Config, Intervention, simulate, State
 
 
@@ -58,9 +60,10 @@ OpioidEnv = ODEEnvBuilder(
     reward_fn=get_reward,
 )
 
-register(
+gymnasium.register(
     id="opioid-v0",
     entry_point=OpioidEnv,
+    apply_api_compatibility=True,
     # The simulator starts in 2002 and ends in 2030.
     max_episode_steps=28,
     reward_threshold=0,

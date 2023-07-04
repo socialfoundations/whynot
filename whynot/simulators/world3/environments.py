@@ -1,10 +1,12 @@
 """Reinforcment learning for world3."""
+import gymnasium
+
 from itertools import product
 
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnvBuilder, register
+from whynot.gym.envs import ODEEnvBuilder
 from whynot.simulators.world3 import Config, Intervention, simulate, State
 
 
@@ -63,6 +65,6 @@ World3Env = ODEEnvBuilder(
     reward_fn=get_reward,
 )
 
-register(
-    id="world3-v0", entry_point=World3Env, max_episode_steps=400, reward_threshold=1e5,
+gymnasium.register(
+    id="world3-v0", entry_point=World3Env, apply_api_compatibility=True, max_episode_steps=400, reward_threshold=1e5,
 )
