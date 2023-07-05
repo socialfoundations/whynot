@@ -11,7 +11,7 @@ setup(
     install_requires=[
         "autograd",
         "dataclasses; python_version<'3.7'",
-        "gym==0.23.0",
+        "gym==0.21.0",
         "mesa<=0.8.7",
         "numpy",
         "networkx",
