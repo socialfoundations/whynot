@@ -1,10 +1,11 @@
 """Interactive environment for the credit simulator."""
 import copy
+import gymnasium
 
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnvBuilder, register
+from whynot.gym.envs import ODEEnvBuilder
 from whynot.simulators.credit import (
     Config,
     Intervention,
@@ -93,9 +94,10 @@ def build_credit_env(config=None, initial_state=None):
     )
 
 
-register(
+gymnasium.register(
     id="Credit-v0",
     entry_point=build_credit_env,
+    apply_api_compatibility=True,
     max_episode_steps=100,
     reward_threshold=0,
 )

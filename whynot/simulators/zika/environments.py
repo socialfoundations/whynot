@@ -6,10 +6,12 @@ Research for Health Care 18 (2018): 99-111.
 
 https://www.sciencedirect.com/science/article/pii/S2211692316301084#!
 """
+import gymnasium
+
 import numpy as np
 
 from whynot.gym import spaces
-from whynot.gym.envs import ODEEnvBuilder, register
+from whynot.gym.envs import ODEEnvBuilder
 from whynot.simulators.zika import Config, Intervention, simulate, State
 
 
@@ -78,6 +80,6 @@ ZikaEnv = ODEEnvBuilder(
     reward_fn=get_reward,
 )
 
-register(
-    id="Zika-v0", entry_point=ZikaEnv, max_episode_steps=200, reward_threshold=1e10,
+gymnasium.register(
+    id="Zika-v0", entry_point=ZikaEnv, apply_api_compatibility=True, max_episode_steps=200, reward_threshold=1e10,
 )
