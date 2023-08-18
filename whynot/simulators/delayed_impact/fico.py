@@ -118,15 +118,17 @@ def _get_pmf(cdf):
 def _loan_repaid_probs_factory(
     repay_df: DataFrame, scores: Index
 ) -> Iterable[Callable[[Array], Array]]:
-    """Given performance pd.DataFrame, construct mapping from X to p(Y|X)."""
 
     def repaid_probs_fn(query_scores: Array) -> Array:
         if isinstance(query_scores, np.ndarray):
             nearest_scores = _find_nearest_indices(scores, query_scores)
-            return repay_df[nearest_scores].values
+            return repay_df.iloc[nearest_scores].values
 
         query_score = query_scores
-        nearest_score = scores[scores.get_loc(query_score, method="nearest")]
+        nearest_score_idx = scores.get_indexer([query_score], method="nearest")[0]
+        if nearest_score_idx == -1:
+            raise ValueError(f"Query score {query_score} has no nearest value in scores.")
+        nearest_score = scores[nearest_score_idx]
         return repay_df[nearest_score]
 
     return repaid_probs_fn
